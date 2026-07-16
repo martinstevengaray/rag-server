@@ -28,7 +28,47 @@ public class Embedder {
 
     public static void main(String[] args) {
         Embedder embedder = new Embedder();
-        embedder.exampleOne();
+        embedder.exampleThree();
+    }
+    public void exampleThree() {
+        EmbeddingModel embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
+
+
+        Embedding embedding1 = embeddingModel.embed("hi there how are you").content();
+        Embedding embedding2 = embeddingModel.embed("welcome to my home").content();
+        Embedding embedding3 = embeddingModel.embed("was there a dog in the mall?").content();
+
+        // 4. Extract the raw numerical vector (float array)
+        float[] vector1 = embedding1.vector();
+        float[] vector2 = embedding2.vector();
+        float[] vector3 = embedding3.vector();
+
+        System.out.println(Arrays.toString(vector1));
+        System.out.println(Arrays.toString(vector2));
+        System.out.println(Arrays.toString(vector3));
+
+        String search = "I'm looking for some example greetings";
+
+        // BGE retrieves best when the query (not the documents) carries this prefix
+        Embedding searchEmbedding = embeddingModel
+                .embed("Represent this sentence for searching relevant passages: " + search)
+                .content();
+
+        String[] texts = {"hi there how are you", "welcome to my home", "was there a dog in the mall?"};
+        Embedding[] documents = {embedding1, embedding2, embedding3};
+
+        int closest = 0;
+        double bestScore = -1;
+        for (int i = 0; i < documents.length; i++) {
+            double score = CosineSimilarity.between(searchEmbedding, documents[i]);
+            System.out.printf("similarity to \"%s\": %.4f%n", texts[i], score);
+            if (score > bestScore) {
+                bestScore = score;
+                closest = i;
+            }
+        }
+
+        System.out.println("Closest match for \"" + search + "\" is \"" + texts[closest] + "\"");
     }
 
     public void exampleOne() {
