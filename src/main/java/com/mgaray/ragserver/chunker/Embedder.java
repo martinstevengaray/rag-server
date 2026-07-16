@@ -6,10 +6,15 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.CosineSimilarity;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class Embedder {
 
@@ -33,42 +38,38 @@ public class Embedder {
     public void exampleThree() {
         EmbeddingModel embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
 
+        InMemoryEmbeddingStore<TextSegment> store = new InMemoryEmbeddingStore<>();
 
-        Embedding embedding1 = embeddingModel.embed("hi there how are you").content();
-        Embedding embedding2 = embeddingModel.embed("welcome to my home").content();
-        Embedding embedding3 = embeddingModel.embed("was there a dog in the mall?").content();
+        String[] texts = {"hi there how are you", "welcome to my home", "was there a dog in the mall?"};
+        for (String text : texts) {
+            TextSegment segment = TextSegment.from(text);
+            Embedding embedding = embeddingModel.embed(segment).content();
+            store.add(embedding, segment);
+        }
 
-        // 4. Extract the raw numerical vector (float array)
-        float[] vector1 = embedding1.vector();
-        float[] vector2 = embedding2.vector();
-        float[] vector3 = embedding3.vector();
-
-        System.out.println(Arrays.toString(vector1));
-        System.out.println(Arrays.toString(vector2));
-        System.out.println(Arrays.toString(vector3));
-
-        String search = "I'm looking for some example greetings";
+        String search = "I love animals";//"I'm looking for some example greetings";
 
         // BGE retrieves best when the query (not the documents) carries this prefix
         Embedding searchEmbedding = embeddingModel
                 .embed("Represent this sentence for searching relevant passages: " + search)
                 .content();
 
-        String[] texts = {"hi there how are you", "welcome to my home", "was there a dog in the mall?"};
-        Embedding[] documents = {embedding1, embedding2, embedding3};
+        EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
+                .queryEmbedding(searchEmbedding)
+                .maxResults(3)
+                .build();
 
-        int closest = 0;
-        double bestScore = -1;
-        for (int i = 0; i < documents.length; i++) {
-            double score = CosineSimilarity.between(searchEmbedding, documents[i]);
-            System.out.printf("similarity to \"%s\": %.4f%n", texts[i], score);
-            if (score > bestScore) {
-                bestScore = score;
-                closest = i;
-            }
+        // matches come back best-first; score is relevance [0..1] = (cosine + 1) / 2
+        List<EmbeddingMatch<TextSegment>> matches = store.search(request).matches();
+
+        for (EmbeddingMatch<TextSegment> match : matches) {
+            System.out.printf("score %.4f (cosine %.4f): \"%s\"%n",
+                    match.score(),
+                    CosineSimilarity.fromRelevanceScore(match.score()),
+                    match.embedded().text());
         }
 
-        System.out.println("Closest match for \"" + search + "\" is \"" + texts[closest] + "\"");
+        System.out.println("Closest match for \"" + search + "\" is \"" + matches.get(0).embedded().text() + "\"");
     }
 
     public void exampleOne() {
