@@ -49,6 +49,10 @@ public class Embedder {
         System.out.println(Arrays.toString(vector2));
         System.out.println(Arrays.toString(vector3));
 
+        String search1 = "I'm looking for some example greetings";
+        String search2 = "I'm not feeling well";
+        String search3 = "I love animals";
+
     }
 
     public void exampleTwo() {
