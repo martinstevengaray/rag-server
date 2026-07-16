@@ -27,7 +27,7 @@ public class Embedder {
 
     public static void main(String[] args) {
         Embedder embedder = new Embedder();
-        embedder.exampleTwo();
+        embedder.exampleOne();
     }
 
     public void exampleOne() {
@@ -36,12 +36,18 @@ public class Embedder {
         EmbeddingModel embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
 
 
-        Embedding embedding = embeddingModel.embed("hi there how are you").content();
+        Embedding embedding1 = embeddingModel.embed("hi there how are you").content();
+        Embedding embedding2 = embeddingModel.embed("welcome to my home").content();
+        Embedding embedding3 = embeddingModel.embed("was there a dog in the mall?").content();
 
         // 4. Extract the raw numerical vector (float array)
-        float[] vector = embedding.vector();
+        float[] vector1 = embedding1.vector();
+        float[] vector2 = embedding2.vector();
+        float[] vector3 = embedding3.vector();
 
-        System.out.println(Arrays.toString(vector));
+        System.out.println(Arrays.toString(vector1));
+        System.out.println(Arrays.toString(vector2));
+        System.out.println(Arrays.toString(vector3));
 
     }
 
