@@ -7,6 +7,7 @@ import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15Quantize
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.CosineSimilarity;
 
 import java.util.Arrays;
 
@@ -53,6 +54,26 @@ public class Embedder {
         String search2 = "I'm not feeling well";
         String search3 = "I love animals";
 
+        // BGE retrieves best when the query (not the documents) carries this prefix
+        Embedding searchEmbedding = embeddingModel
+                .embed("Represent this sentence for searching relevant passages: " + search1)
+                .content();
+
+        String[] texts = {"hi there how are you", "welcome to my home", "was there a dog in the mall?"};
+        Embedding[] documents = {embedding1, embedding2, embedding3};
+
+        int closest = 0;
+        double bestScore = -1;
+        for (int i = 0; i < documents.length; i++) {
+            double score = CosineSimilarity.between(searchEmbedding, documents[i]);
+            System.out.printf("similarity to \"%s\": %.4f%n", texts[i], score);
+            if (score > bestScore) {
+                bestScore = score;
+                closest = i;
+            }
+        }
+
+        System.out.println("Closest match for \"" + search1 + "\" is \"" + texts[closest] + "\"");
     }
 
     public void exampleTwo() {
