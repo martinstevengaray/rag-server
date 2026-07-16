@@ -27,7 +27,7 @@ public class Embedder {
 
     public static void main(String[] args) {
         Embedder embedder = new Embedder();
-        embedder.exampleOne();
+        embedder.exampleTwo();
     }
 
     public void exampleOne() {
@@ -45,11 +45,12 @@ public class Embedder {
 
     }
 
-    public void exampleTwo(String[] args) {
+    public void exampleTwo() {
         // 1. Initialize the embedding model (requires your OPENAI_API_KEY environment variable)
         EmbeddingModel embeddingModel = OpenAiEmbeddingModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
                 .modelName("text-embedding-3-small") // Standard, high-performance model
+                //text-embedding-3-large
                 .build();
 
         // 2. Define the text chunk you want to vectorize
