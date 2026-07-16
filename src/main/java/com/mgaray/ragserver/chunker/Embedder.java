@@ -50,13 +50,14 @@ public class Embedder {
         System.out.println(Arrays.toString(vector2));
         System.out.println(Arrays.toString(vector3));
 
-        String search1 = "I'm looking for some example greetings";
-        String search2 = "I'm not feeling well";
-        String search3 = "I love animals";
+        String search1 = "I love dogs";//"I'm looking for some example greetings";
+//        String search2 = "I'm not feeling well";
+//        String search3 = "I love animals";
 
         // BGE retrieves best when the query (not the documents) carries this prefix
         Embedding searchEmbedding = embeddingModel
                 .embed("Represent this sentence for searching relevant passages: " + search1)
+//                .embed(search1)
                 .content();
 
         String[] texts = {"hi there how are you", "welcome to my home", "was there a dog in the mall?"};
@@ -99,5 +100,15 @@ public class Embedder {
         System.out.println("Vector generated successfully!");
         System.out.println("Vector Dimension Count: " + vector.length); // Typically 1536 dimensions for OpenAI
         System.out.println("First 5 values of the vector: " + Arrays.toString(Arrays.copyOfRange(vector, 0, 5)));
+    }
+
+    static double dotProduct(Embedding a, Embedding b) {
+        float[] x = a.vector();
+        float[] y = b.vector();
+        double sum = 0;
+        for (int i = 0; i < x.length; i++) {
+            sum += x[i] * y[i];
+        }
+        return sum;
     }
 }
