@@ -4,21 +4,14 @@ import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.BucketDelegate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Chunker {
 
     private final BucketDelegate bucketDelegate = new BucketDelegate();
 
-    public Chunker(String corpusBaseFolder) {
-        //expected folder structure:
-        //  title-XX.html
-        //  title-XX.json
-        //  title-XX.txt
-
-
-
-
+    public Chunker() {
     }
 
     public Models.Chunks chunk(Models.SourceRecords sourceRecords) {
@@ -38,13 +31,27 @@ public class Chunker {
         return null;
     }
 
-    record ChunkingSpec(String wordCount, float percentOverlap) {}
+    record ChunkingSpec(int wordCount, float percentOverlap) {}
 
-    private List<String> chunk(String original, ChunkingSpec chunkingSpec) {
+    public List<String> chunk(String original, ChunkingSpec chunkingSpec) {
+        List<String> chunks = new ArrayList<>();
+        if (original == null || original.isBlank()) {
+            return chunks;
+        }
 
+        String[] words = original.trim().split("\\s+");
+        int chunkSize = chunkingSpec.wordCount();
+        // step < chunkSize makes consecutive chunks overlap; clamp so we always advance
+        int step = Math.max(1, Math.round(chunkSize * (1 - chunkingSpec.percentOverlap())));
 
-        return null;
+        for (int start = 0; start < words.length; start += step) {
+            int end = Math.min(start + chunkSize, words.length);
+            chunks.add(String.join(" ", Arrays.copyOfRange(words, start, end)));
+            if (end == words.length) {
+                break;
+            }
+        }
+        return chunks;
     }
-
 
 }
