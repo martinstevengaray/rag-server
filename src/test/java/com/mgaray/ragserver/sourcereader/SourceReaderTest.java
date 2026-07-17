@@ -7,7 +7,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 public class SourceReaderTest {
 
     public static void main(String[] args) {
-        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
         SourceReader sourceReader = new SourceReader(dataFetcher);
         SourceValidator sourceValidator = new SourceValidator();
         Models.SourceManifest sourceManifest = null;

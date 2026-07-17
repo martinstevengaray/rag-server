@@ -26,8 +26,8 @@ public class SourceReader { //todo rename to sourceTransformer
             if (FileUtils.exists(inputRecordLocation) && FileUtils.exists(inputTextLocation)) {
                 String text = FileUtils.readFile(inputTextLocation);
                 //copy source.text file
-                String outputSourceRecordId = "title-" + inputSourceRecordId;
-                String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+                String outputSourceRecordId = "title" + inputSourceRecordId;
+                String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
                 dataFetcher.save(outputTextLocation, text);
                 //save source.json file
                 Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
@@ -55,8 +55,8 @@ public class SourceReader { //todo rename to sourceTransformer
             String inputTextLocation = downloadsFolder + "/text/ors" + inputSourceRecordId + ".txt";
             String text = FileUtils.readFile(inputTextLocation);
             //save source.text file
-            String outputSourceRecordId = inputSourceRecordId;
-            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+            String outputSourceRecordId = "ors" + inputSourceRecordId;
+            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
             dataFetcher.save(outputTextLocation, text);
             //save source.json file
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -80,7 +80,7 @@ public class SourceReader { //todo rename to sourceTransformer
             String text = record.get("text").toString();
             //save source.text file
             String outputSourceRecordId = inputSourceRecordId;
-            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
             dataFetcher.save(outputTextLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     outputSourceRecordId,
