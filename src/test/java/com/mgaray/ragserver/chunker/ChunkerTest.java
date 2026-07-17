@@ -34,7 +34,9 @@ public class ChunkerTest {
         Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords);
 
         Chunker chunker = new Chunker();
-        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
+        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest,
+                new Models.ChunkingSpec(8, 0.5f),
+                Chunker.Mode.IN_MEMORY, null);
         for (Models.Chunk chunk : chunkManifest.chunks()) {
             System.out.println(chunk.lazyText());
         }

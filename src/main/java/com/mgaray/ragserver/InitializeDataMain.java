@@ -16,7 +16,7 @@ public class InitializeDataMain {
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
         System.out.println("start chunking");
-        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, chunkingSpec);
+        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, chunkingSpec, Chunker.Mode.IN_MEMORY, null);
 //        System.out.println(chunkManifest);
 
     }

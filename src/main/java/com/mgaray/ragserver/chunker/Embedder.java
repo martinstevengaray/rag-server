@@ -31,6 +31,10 @@ public class Embedder {
 
     }
 
+    public Embedding embed(String text) {
+        return new Embedding(new float[] {0, 0, 0, 0}); //todo
+    }
+
     public static void main(String[] args) {
         Embedder embedder = new Embedder();
         embedder.exampleThree();

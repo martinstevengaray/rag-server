@@ -12,43 +12,61 @@ public class Chunker {
     public enum Mode {IN_MEMORY, ON_DISK, ON_S3}
 
     private final DataFetcher dataFetcher;
+    private final Embedder embedder;;
 
     public Chunker() {
         this.dataFetcher = new DataFetcher();
+        this.embedder = new Embedder();
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,
                                       Models.ChunkingSpec chunkingSpec,
                                       Mode mode,
                                       String bucketOrLocalFolder) {
-        return null;
-    }
-
-    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest, Models.ChunkingSpec chunkingSpec) {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            chunks.addAll(chunk(sourceRecord, chunkingSpec));
+            chunks.addAll(chunk(sourceRecord, chunkingSpec, mode, bucketOrLocalFolder));
         }
         return new Models.ChunkManifest(chunks, chunkingSpec);
     }
 
-    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord, Models.ChunkingSpec chunkingSpec) {
+    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord,
+                                     Models.ChunkingSpec chunkingSpec,
+                                     Mode mode,
+                                     String bucketOrLocalFolder) {
         String originalText = dataFetcher.fetchSourceRecordText(sourceRecord);
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkText = chunkedText.get(chunkIndex);
-            Models.Chunk chunk = new Models.Chunk(
-                    sourceRecord,
-                    chunkIndex,
-                    new Models.StorageLocation(null, null),
-                    new Models.StorageLocation(null, null),
-                    chunkText,
-                    null);
-            chunks.add(chunk);
+            float[] chunkEmbedding = embedder.embed(chunkText).vector();
+            chunks.add(createChunk(sourceRecord, chunkIndex, chunkText, chunkEmbedding, mode, bucketOrLocalFolder));
         }
         return chunks;
     }
+
+    Models.Chunk createChunk(Models.SourceRecord sourceRecord,
+                             Integer chunkIndex,
+                             String chunkText,
+                             float[] chunkEmbedding,
+                             Mode mode,
+                             String bucketOrLocalFolder) {
+        switch (mode) {
+            case IN_MEMORY:
+                return new Models.Chunk(
+                        sourceRecord,
+                        chunkIndex,
+                        new Models.StorageLocation(null, null),
+                        new Models.StorageLocation(null, null),
+                        chunkText,
+                        chunkEmbedding);
+            case ON_DISK: //todo
+            case ON_S3: //todo
+            default:
+                throw new IllegalArgumentException("Unsupported mode: " + mode);
+        }
+    }
+
 
     private List<String> chunk(String original, Models.ChunkingSpec chunkingSpec) {
         List<String> chunks = new ArrayList<>();
