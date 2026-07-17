@@ -24,7 +24,9 @@ public class SourceReader {
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
                         new Models.StorageLocation(null, textLocation),
-                        new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
+                        new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
+                        null,
+                        null);
                 sourceRecords.add(sourceRecord);
             }
         }
@@ -44,7 +46,9 @@ public class SourceReader {
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
                     new Models.StorageLocation(null, textLocation),
-                    new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
+                    new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
+                    null,
+                    null);
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords);
@@ -55,8 +59,8 @@ public class SourceReader {
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String sourceRecordId = record.get("id").toString();
-            String textLocation = downloadsFolder + "/text/" + sourceRecordId + ".txt";
-            //source data cleanup hack: only needed to be run once after source download -todo move to download source repo
+            String textLocation = downloadsFolder + "/text/" + sourceRecordId + ".txt"; //todo consider removing now that lazyText can be leveraged
+            //source data cleanup hack: only needed to be run once after source download -todo move to download source repo (see related todo above)
             //if (!FileUtils.exists(textLocation)) {
             //    String textFileContents = record.get("text").toString();
             //    FileUtils.writeFile(textLocation, textFileContents);
@@ -67,7 +71,9 @@ public class SourceReader {
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
                     new Models.StorageLocation(null, textLocation),
-                    new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
+                    new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
+                    record.get("text").toString(),
+                    null);
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords);

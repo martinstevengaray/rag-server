@@ -11,14 +11,18 @@ public class Models {
                                String retrievedAt,
                                String title,
                                StorageLocation textLocation,
-                               StorageLocation chunkManifestLocation) {}
+                               StorageLocation chunkManifestLocation,
+                               //todo the following two may not be necessary
+                               String lazyText,
+                               ChunkManifest lazyChunkManifest) {}
 
     public record ChunkManifest(List<Chunk> chunks) {}
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
                         float[] embedding,
-                        StorageLocation textLocation) {}
+                        StorageLocation textLocation,
+                        String lazyText) {}
 
     public record StorageLocation(String bucket,
                                   String key) {}

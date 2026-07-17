@@ -11,7 +11,7 @@ public class Chunker {
 
     record ChunkingSpec(int wordCount, float percentOverlap) {}
 
-    private static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
+    public static final ChunkingSpec defaulChunkingSpec = new ChunkingSpec(500, 0.5f);
 
     private final DataFetcher dataFetcher = new DataFetcher();
 
@@ -19,24 +19,35 @@ public class Chunker {
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest) {
+        return chunk(sourceManifest, defaulChunkingSpec);
+    }
+
+    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest, ChunkingSpec chunkingSpec) {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            chunks.addAll(chunk(sourceRecord));
+            chunks.addAll(chunk(sourceRecord, chunkingSpec));
         }
         return new Models.ChunkManifest(chunks);
     }
 
-    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord) {
-        String originalText = dataFetcher.fetch(sourceRecord.textLocation());
+    private String fetchText(Models.SourceRecord sourceRecord) {
+        if (sourceRecord.lazyText() != null) {
+            return sourceRecord.lazyText();
+        }
+        return dataFetcher.fetch(sourceRecord.textLocation());
+    }
+
+    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord, ChunkingSpec chunkingSpec) {
+        String originalText = fetchText(sourceRecord);
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkText = chunkedText.get(chunkIndex);
-
-//            String textLocation = sourceRecord.
-
-//            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, null, null)); //todo (..., float[] embedding, Resource textLocation)
-
+            chunks.add(new Models.Chunk(sourceRecord,
+                    chunkIndex,
+                    null,   //todo
+                    new Models.StorageLocation(null, null),
+                    chunkText));
         }
         return chunks;
     }
