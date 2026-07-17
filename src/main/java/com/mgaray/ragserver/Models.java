@@ -20,9 +20,10 @@ public class Models {
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
-                        float[] embedding,
+                        StorageLocation embeddingLocation,
                         StorageLocation textLocation,
-                        String lazyText) {}
+                        String lazyText,
+                        float[] lacyEmbedding) {}
 
     public record StorageLocation(String bucket,
                                   String key) {}

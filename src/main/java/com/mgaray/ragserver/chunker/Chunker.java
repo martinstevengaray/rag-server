@@ -36,11 +36,14 @@ public class Chunker {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkText = chunkedText.get(chunkIndex);
-            chunks.add(new Models.Chunk(sourceRecord,
+            Models.Chunk chunk = new Models.Chunk(
+                    sourceRecord,
                     chunkIndex,
-                    null,   //todo
                     new Models.StorageLocation(null, null),
-                    chunkText));
+                    new Models.StorageLocation(null, null),
+                    chunkText,
+                    null);
+            chunks.add(chunk);
         }
         return chunks;
     }
