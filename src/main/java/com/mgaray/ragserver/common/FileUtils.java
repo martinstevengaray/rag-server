@@ -24,7 +24,6 @@ public class FileUtils {
 
     //creates folder structure if it does not already exist
     public static void writeFile(String filename, String content) {
-//        if (true) throw new RuntimeException("warning file writing");
         try {
             Path filePath = Path.of(filename);
             Path parent = filePath.getParent();

@@ -68,6 +68,10 @@ public class Embedder {
         return embeddingModel.embed(text).content();
     }
 
+    public String getModelName() {
+        return this.modelType.name;
+    }
+
 
 }
 

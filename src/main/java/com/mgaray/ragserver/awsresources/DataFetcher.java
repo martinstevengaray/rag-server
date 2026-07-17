@@ -3,6 +3,7 @@ package com.mgaray.ragserver.awsresources;
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.common.FileUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,16 @@ public class DataFetcher {
             case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, content);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
             default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
-        };
+        }
+    }
+
+    public void save(String storageLocation, float[] embedding) {
+        switch(mode) {
+            case IN_MEMORY -> inMemoryDataStore.put(storageLocation, embedding);
+            case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, Arrays.toString(embedding)); //todo bin format
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        }
     }
 
 //    public String fetchSourceRecordText(Models.SourceRecord sourceRecord) {

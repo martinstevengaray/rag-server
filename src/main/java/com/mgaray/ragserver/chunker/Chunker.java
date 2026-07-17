@@ -46,16 +46,14 @@ public class Chunker {
             String chunkText = chunkedText.get(chunkIndex);
             String checkTextStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/chunks/" + chunkId + ".txt";
             dataFetcher.save(checkTextStorageLocation, chunkText);
-
-            {
-                float[] chunkEmbedding = embedder.embed(chunkText).vector();
-                String embeddingStorageLocation = "/portland-city-code/sourceRecords/ors001/embeddings/local-BgeSmallEnV15Quantized-000.txt";
-                chunks.add(new Models.Chunk(
-                            sourceRecord,
-                            chunkIndex,
-                            checkTextStorageLocation,
-                            embeddingStorageLocation));
-            }
+            float[] chunkEmbedding = embedder.embed(chunkText).vector();
+            String embeddingStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/embeddings/" + embedder.getModelName() + "-" + chunkId + ".bin";
+            dataFetcher.save(embeddingStorageLocation, chunkEmbedding);
+            chunks.add(new Models.Chunk(
+                        sourceRecord,
+                        chunkIndex,
+                        checkTextStorageLocation,
+                        embeddingStorageLocation));
         }
         return chunks;
     }
