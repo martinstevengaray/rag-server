@@ -6,7 +6,7 @@ public class BucketResource {
 
 
 
-    public String fetch(ModelRecords.BucketUrl buckerUrl) {
+    public String fetch(ModelRecords.Resource resource) {
 
 
 

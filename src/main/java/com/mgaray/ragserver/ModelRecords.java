@@ -1,13 +1,27 @@
 package com.mgaray.ragserver;
 
+import java.util.List;
+
 public class ModelRecords {
 
 
-    public record Chunk(SourceRecord sourceRecord, int chunkIndex, float[] embedding, BucketUrl textSourceUrl) {}
+    public record Chunk(SourceRecord sourceRecord,
+                        int chunkIndex,
+                        float[] embedding,
+                        Resource chunkedTextUrl) {}
 
-    public record BucketUrl(String bucket, String key) {}
+    public record Resource(String bucket, String key) {
+        public Resource(String key) { this(null, key);}
+    }
 
-    public record SourceRecord() {} //specific to Portland, Orgeon, or Nab
+    public record Source(List<SourceRecord> sourceRecords) {}
+
+    public record SourceRecord(String key,
+                               String originalSourceUrl,
+                               String retrievedAt,
+                               String title,
+                               Resource rawTextUrl) {}
+
 
 
 
