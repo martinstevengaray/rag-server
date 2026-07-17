@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.formatter.portland;
+package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.ModelRecords;
 import com.mgaray.ragserver.common.FileUtils;
@@ -8,27 +8,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class Main {
+public class SourceReader {
 
     public static void main(String[] args) {
         ModelRecords.Source source = null;
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
-        source = (new Main()).sourceFolderForPortland(inputPortland);
+        source = (new SourceReader()).sourceFolderForPortland(inputPortland);
         System.out.println(JsonUtils.toJsonPretty(source));
 
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
-        source = (new Main()).sourceFolderForOregon(inputOregon);
+        source = (new SourceReader()).sourceFolderForOregon(inputOregon);
         System.out.println(JsonUtils.toJsonPretty(source));
-
-        String inputWebc = "../rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
-        source = (new Main()).sourceFolderForNabAndWebc(inputWebc);
-        System.out.println(JsonUtils.toJsonPretty(source));
-
-        String inputNab = "../rag-content-corpus-download/src/new-american-bible/downloads-clean";
-        source = (new Main()).sourceFolderForNabAndWebc(inputNab);
-        System.out.println(JsonUtils.toJsonPretty(source));
-
     }
 
     //title-01.json - title-35.json
@@ -76,13 +67,17 @@ public class Main {
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String recordKey = record.get("id").toString();
+            String textFile = downloadsFolder + "/text/" + recordKey + ".txt";
             String textFileContents = record.get("text").toString();
+            if (!FileUtils.exists(textFile)) {
+                FileUtils.writeFile(textFile, textFileContents);
+            }
             ModelRecords.SourceRecord sourceRecord = new ModelRecords.SourceRecord(
                     recordKey,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    new ModelRecords.Resource(textFileContents)); //todo
+                    new ModelRecords.Resource(textFile));
             sourceRecords.add(sourceRecord);
         }
         return new ModelRecords.Source(sourceRecords);

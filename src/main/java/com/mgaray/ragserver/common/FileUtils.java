@@ -21,6 +21,20 @@ public class FileUtils {
         }
     }
 
+    //creates folder structure if it does not already exist
+    public static void writeFile(String filename, String content) {
+        try {
+            Path filePath = Path.of(filename);
+            Path parent = filePath.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            Files.writeString(filePath, content);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Object> readJsonFile(String fileName) {
         return JsonUtils.parse(readFile(fileName));
     }
