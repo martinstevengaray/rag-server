@@ -9,9 +9,7 @@ import java.util.List;
 
 public class Chunker {
 
-    public record ChunkingSpec(int wordCount, float percentOverlap) {}
-
-    private static final ChunkingSpec defaulChunkingSpec = new ChunkingSpec(500, 0.5f);
+    private static final Models.ChunkingSpec defaulChunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
     private final DataFetcher dataFetcher = new DataFetcher();
 
@@ -22,15 +20,15 @@ public class Chunker {
         return chunk(sourceManifest, defaulChunkingSpec);
     }
 
-    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest, ChunkingSpec chunkingSpec) {
+    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest, Models.ChunkingSpec chunkingSpec) {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             chunks.addAll(chunk(sourceRecord, chunkingSpec));
         }
-        return new Models.ChunkManifest(chunks);
+        return new Models.ChunkManifest(chunks, chunkingSpec);
     }
 
-    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord, ChunkingSpec chunkingSpec) {
+    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord, Models.ChunkingSpec chunkingSpec) {
         String originalText = dataFetcher.fetchSourceRecordText(sourceRecord);
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
@@ -48,7 +46,7 @@ public class Chunker {
         return chunks;
     }
 
-    private List<String> chunk(String original, ChunkingSpec chunkingSpec) {
+    private List<String> chunk(String original, Models.ChunkingSpec chunkingSpec) {
         List<String> chunks = new ArrayList<>();
         if (original == null || original.isBlank()) {
             return chunks;

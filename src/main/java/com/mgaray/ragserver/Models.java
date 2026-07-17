@@ -16,7 +16,7 @@ public class Models {
                                String lazyText,
                                ChunkManifest lazyChunkManifest) {}
 
-    public record ChunkManifest(List<Chunk> chunks) {}
+    public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {}
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
@@ -24,6 +24,9 @@ public class Models {
                         StorageLocation textLocation,
                         String lazyText,
                         float[] lacyEmbedding) {}
+
+
+    public record ChunkingSpec(int wordCount, float percentOverlap) {}
 
     public record StorageLocation(String bucket,
                                   String key) {}
