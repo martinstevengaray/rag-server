@@ -18,21 +18,21 @@ public class Chunker {
     public Chunker() {
     }
 
-    public Models.Chunks chunk(Models.SourceRecords sourceRecords) {
+    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest) {
         List<Models.Chunk> chunks = new ArrayList<>();
-        for (Models.SourceRecord sourceRecord : sourceRecords.sourceRecords()) {
+        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             chunks.addAll(chunk(sourceRecord));
         }
-        return new Models.Chunks(chunks);
+        return new Models.ChunkManifest(chunks);
     }
 
     private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord) {
-        String originalText = bucketDelegate.fetch(sourceRecord.textUrl());
+        String originalText = bucketDelegate.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunk = chunkedText.get(chunkIndex);
-            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, null, null)); //todo (..., float[] embedding, Resource chunkedTextUrl)
+            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, null, null)); //todo (..., float[] embedding, Resource textLocation)
 
         }
         return chunks;

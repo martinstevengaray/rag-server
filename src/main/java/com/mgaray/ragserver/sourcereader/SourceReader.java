@@ -10,7 +10,7 @@ import java.util.Map;
 public class SourceReader {
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt
-    public Models.SourceRecords sourceFolderForPortland(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForPortland(String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
             String recordNumberString = String.format("%02d", recordNumber);
@@ -23,50 +23,50 @@ public class SourceReader {
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        new Models.Resource(null, textFile));
+                        new Models.StorageLocation(null, textFile));
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceRecords(sourceRecords);
+        return new Models.SourceManifest(sourceRecords);
     }
 
     //ors001.txt - ors838.txt
-    public Models.SourceRecords sourceFolderForOregon(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForOregon(String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> manifest = FileUtils.readJsonlFile(downloadsFolder + "/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
-            String recordKey = record.get("chapter").toString();
-            String textFile = downloadsFolder + "/text/ors" + recordKey + ".txt";
+            String recordId = record.get("chapter").toString();
+            String textFile = downloadsFolder + "/text/ors" + recordId + ".txt";
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    recordKey,
+                    recordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    new Models.Resource(null, textFile));
+                    new Models.StorageLocation(null, textFile));
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceRecords(sourceRecords);
+        return new Models.SourceManifest(sourceRecords);
     }
 
-    public Models.SourceRecords sourceFolderForNabAndWebc(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForNabAndWebc(String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
-            String recordKey = record.get("id").toString();
-            String textFile = downloadsFolder + "/text/" + recordKey + ".txt";
+            String recordId = record.get("id").toString();
+            String textFile = downloadsFolder + "/text/" + recordId + ".txt";
             String textFileContents = record.get("text").toString();
             if (!FileUtils.exists(textFile)) {
                 FileUtils.writeFile(textFile, textFileContents);
             }
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    recordKey,
+                    recordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    new Models.Resource(null, textFile));
+                    new Models.StorageLocation(null, textFile));
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceRecords(sourceRecords);
+        return new Models.SourceManifest(sourceRecords);
     }
 
 }

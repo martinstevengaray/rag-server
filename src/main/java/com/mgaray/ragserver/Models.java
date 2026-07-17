@@ -4,22 +4,22 @@ import java.util.List;
 
 public class Models {
 
-    public record SourceRecords(List<SourceRecord> sourceRecords) {}
+    public record SourceManifest(List<SourceRecord> sourceRecords) {}
 
-    public record SourceRecord(String key,
+    public record SourceRecord(String id,
                                String sourceUrl,
                                String retrievedAt,
                                String title,
-                               Resource textUrl) {}
+                               StorageLocation textLocation) {}
 
-    public record Chunks(List<Chunk> chunks) {}
+    public record ChunkManifest(List<Chunk> chunks) {}
 
     public record Chunk(SourceRecord sourceRecord,
                         int chunkIndex,
                         float[] embedding,
-                        Resource chunkedTextUrl) {}
+                        StorageLocation textLocation) {}
 
-    public record Resource(String bucket,
-                           String key) {}
+    public record StorageLocation(String bucket,
+                                  String key) {}
 
 }

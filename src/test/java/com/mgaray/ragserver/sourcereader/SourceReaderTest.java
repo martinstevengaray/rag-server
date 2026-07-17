@@ -7,17 +7,17 @@ public class SourceReaderTest {
     public static void main(String[] args) {
         SourceReader sourceReader = new SourceReader();
         SourceValidator sourceValidator = new SourceValidator();
-        Models.SourceRecords sourceRecords = null;
+        Models.SourceManifest sourceManifest = null;
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
-        sourceRecords = sourceReader.sourceFolderForPortland(inputPortland);
+        sourceManifest = sourceReader.sourceFolderForPortland(inputPortland);
         //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceRecords));
+        System.out.println(sourceValidator.validate(sourceManifest));
 
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
-        sourceRecords = sourceReader.sourceFolderForOregon(inputOregon);
+        sourceManifest = sourceReader.sourceFolderForOregon(inputOregon);
         //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceRecords));
+        System.out.println(sourceValidator.validate(sourceManifest));
 
     }
 
