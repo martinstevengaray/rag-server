@@ -13,7 +13,11 @@ public class Models {
                                String retrievedAt,
                                String title,
                                String textLocation,
-                               String chunkManifestLocation) {}
+                               String chunkManifestLocation) {
+        public SourceRecord withChunkManifestLocation(String chunkManifestLocation) {
+            return new SourceRecord(id, sourceUrl, retrievedAt, title, textLocation, chunkManifestLocation);
+        }
+    }
 
     public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
 

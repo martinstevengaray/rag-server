@@ -2,7 +2,11 @@ package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.chunker.Chunker;
+import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.sourcereader.SourceReader;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InitializeDataMain {
 
@@ -18,8 +22,9 @@ public class InitializeDataMain {
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
         System.out.println("start chunking");
-        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, chunkingSpec);
-//        System.out.println(chunkManifest);
+        sourceManifest = chunker.chunk(sourceManifest, chunkingSpec);
+        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
 
     }
+
 }
