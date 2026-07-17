@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.sourcereader;
 
-import com.mgaray.ragserver.ModelRecords;
+import com.mgaray.ragserver.Models;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -9,11 +9,11 @@ import java.util.Set;
 
 public class SourceValidator {
 
-    public List<String> validate(ModelRecords.SourceRecords sourceRecords) {
+    public List<String> validate(Models.SourceRecords sourceRecords) {
         List<String> errors = new ArrayList<>();
         Set<String> keys = new HashSet<>();;
         Set<String> sourceUrls = new HashSet<>();
-        for (ModelRecords.SourceRecord record : sourceRecords.sourceRecords()) {
+        for (Models.SourceRecord record : sourceRecords.sourceRecords()) {
             keys.add(record.key());;
             sourceUrls.add(record.sourceUrl());
         }

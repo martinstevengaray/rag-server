@@ -2,7 +2,7 @@ package com.mgaray.ragserver;
 
 import java.util.List;
 
-public class ModelRecords {
+public class Models {
 
     public record SourceRecords(List<SourceRecord> sourceRecords) {}
 

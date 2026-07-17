@@ -8,7 +8,7 @@ public class SourceReaderTest {
     public static void main(String[] args) {
         SourceReader sourceReader = new SourceReader();
         SourceValidator sourceValidator = new SourceValidator();
-        ModelRecords.SourceRecords sourceRecords = null;
+        Models.SourceRecords sourceRecords = null;
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
         sourceRecords = sourceReader.sourceFolderForPortland(inputPortland);

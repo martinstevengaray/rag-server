@@ -1,12 +1,12 @@
 package com.mgaray.ragserver.awsresources;
 
-import com.mgaray.ragserver.ModelRecords;
+import com.mgaray.ragserver.Models;
 
 public class BucketResource {
 
 
 
-    public String fetch(ModelRecords.Resource resource) {
+    public String fetch(Models.Resource resource) {
 
 
 

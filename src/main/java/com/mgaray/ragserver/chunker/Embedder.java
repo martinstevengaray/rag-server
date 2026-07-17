@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.ModelRecords;
+import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.BucketResource;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
@@ -22,7 +22,7 @@ public class Embedder {
     private final BucketResource bucketResource = new BucketResource();
 
 
-    public void mutateEmbedding(ModelRecords.Chunk chunk) {
+    public void mutateEmbedding(Models.Chunk chunk) {
 //        String chunkOfText = bucketResource.fetch(chunk.textSourceUrl());
 //
 //        Embedding embedding = model.embed(chunkOfText).content();
