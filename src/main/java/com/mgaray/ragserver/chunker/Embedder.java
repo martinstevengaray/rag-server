@@ -8,11 +8,13 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.output.Response;
 import dev.langchain4j.store.embedding.CosineSimilarity;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class Embedder {
 
 
     public enum ModelType {
+        DUMMY("dummy"),
         LOCAL("local-BgeSmallEnV15Quantized"),
         OPEN_AI("open-ai-text-embedding-3-small");
         public final String name;
@@ -37,17 +40,26 @@ public class Embedder {
     public Embedder(ModelType modelType) {
         this.modelType = modelType;
         switch (modelType) {
-            case LOCAL:
-                this.embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
-                break;
-            case OPEN_AI:
-                this.embeddingModel = OpenAiEmbeddingModel.builder()
+            case DUMMY -> {
+                final float[] embedding;
+                this.embeddingModel = new EmbeddingModel() {
+                @Override
+                public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
+                    float[] dummyVector = new float[]{0f, 0.1f, 0.2f, 0.3f};
+                    List<Embedding> embeddings = new ArrayList<>();
+                    for (TextSegment textSegment : textSegments) {
+                        embeddings.add(new Embedding(dummyVector));
+                    }
+                    return new Response<List<Embedding>>(embeddings);
+                }
+            };
+            }
+            case LOCAL -> this.embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
+            case OPEN_AI -> this.embeddingModel = OpenAiEmbeddingModel.builder()
                         .apiKey(System.getenv("OPENAI_API_KEY"))
                         .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
                         .build();
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported modelType: " + modelType);
+            default -> throw new IllegalArgumentException("Unsupported modelType: " + modelType);
         }
     }
 

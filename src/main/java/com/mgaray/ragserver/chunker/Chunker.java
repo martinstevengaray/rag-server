@@ -22,7 +22,7 @@ public class Chunker {
     private Chunker(DataFetcher dataFetcher, boolean createVectorStore) {
         this.createVectorStore = createVectorStore;
         this.dataFetcher = dataFetcher;
-        this.embedder = new Embedder(Embedder.ModelType.LOCAL);
+        this.embedder = new Embedder(Embedder.ModelType.DUMMY);
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,

@@ -10,11 +10,11 @@ public class InitializeDataMain {
     private static final String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
 
     public static void main(String[] args) {
-        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
         SourceReader sourceReader = new SourceReader(dataFetcher);
         Chunker chunker = new Chunker(dataFetcher);
 
-        Models.SourceManifest sourceManifest = sourceReader.sourceFolderForPortland("developer-wip", inputPortland);
+        Models.SourceManifest sourceManifest = sourceReader.sourceFolderForPortland("portland-city-code", inputPortland);
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
         System.out.println("start chunking");
