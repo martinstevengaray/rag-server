@@ -10,7 +10,8 @@ public class Models {
                                String sourceUrl,
                                String retrievedAt,
                                String title,
-                               StorageLocation textLocation) {}
+                               StorageLocation textLocation,
+                               StorageLocation chunkManifestLocation) {}
 
     public record ChunkManifest(List<Chunk> chunks) {}
 
@@ -29,15 +30,18 @@ public class Models {
     S3 folder structure:
         S3://bucket/sourceManifest.id/sourceManifest.json
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/source.txt
+        S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunks/chunk.id.txt
 
     Example:
         S3://bucket/portland-city-code/sourceManifest.json
         S3://bucket/portland-city-code/sourceRecords/ors001/source.txt
+        S3://bucket/portland-city-code/sourceRecords/ors001/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/ors001/chunks/000.txt
         S3://bucket/portland-city-code/sourceRecords/ors001/chunks/001.txt
         S3://bucket/portland-city-code/sourceRecords/ors001/chunks/002.txt
         S3://bucket/portland-city-code/sourceRecords/ors002/source.txt
+        S3://bucket/portland-city-code/sourceRecords/ors002/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/ors002/chunks/000.txt
         S3://bucket/portland-city-code/sourceRecords/ors002/chunks/001.txt
         S3://bucket/portland-city-code/sourceRecords/ors002/chunks/002.txt

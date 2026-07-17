@@ -60,4 +60,10 @@ public class Chunker {
         return chunks;
     }
 
+
+    //  S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
+    private String createChunkManifestLocation(String downloadsFolder, String sourceManifestId, String sourceRecordId) {
+        return downloadsFolder + "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+    }
+
 }

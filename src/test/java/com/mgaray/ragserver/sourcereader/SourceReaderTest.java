@@ -12,13 +12,22 @@ public class SourceReaderTest {
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForPortland("portland-city-code", inputPortland);
         //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceManifest));
+        System.out.println("errors: " + sourceValidator.validate(sourceManifest));
 
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForOregon("oregon-state-code", inputOregon);
         //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceManifest));
+        System.out.println("errors: " + sourceValidator.validate(sourceManifest));
 
+        String inputWebc = "../rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
+        sourceManifest = sourceReader.sourceFolderForNabAndWebc("src/web-catholic-bible", inputWebc);
+        //System.out.println(JsonUtils.toJsonPretty(source));
+        System.out.println("errors: " + sourceValidator.validate(sourceManifest));
+
+        String inputNab = "../rag-content-corpus-download/src/new-american-bible/downloads-clean";
+        sourceManifest = sourceReader.sourceFolderForNabAndWebc("new-american-bible", inputNab);
+        //System.out.println(JsonUtils.toJsonPretty(source));
+        System.out.println("errors: " + sourceValidator.validate(sourceManifest));
     }
 
 }

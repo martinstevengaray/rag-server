@@ -9,64 +9,68 @@ import java.util.Map;
 
 public class SourceReader {
 
-    //title-01.json - title-35.json  &&  title-01.txt - title-35.txt
-    public Models.SourceManifest sourceFolderForPortland(String sourceId, String downloadsFolder) {
+    //title-01.json - title-35.json  &&  title-01.txt - title-35.txt   (recall: 08 does not exit)
+    public Models.SourceManifest sourceFolderForPortland(String sourceManifestId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
-            String recordNumberString = String.format("%02d", recordNumber);
-            String recordFile = downloadsFolder + "/title-" + recordNumberString + ".json";
-            String textFile = downloadsFolder + "/title-" + recordNumberString + ".txt";
-            if (FileUtils.exists(recordFile) && FileUtils.exists(textFile)) {
-                Map<String, Object> record = FileUtils.readJsonFile(recordFile);
+            String sourceRecordId = String.format("%02d", recordNumber);
+            String recordFileLocation = downloadsFolder + "/title-" + sourceRecordId + ".json";
+            String textLocation = downloadsFolder + "/title-" + sourceRecordId + ".txt";
+            if (FileUtils.exists(recordFileLocation) && FileUtils.exists(textLocation)) {
+                Map<String, Object> record = FileUtils.readJsonFile(recordFileLocation);
                 Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                        Integer.toString(recordNumber),
+                        sourceRecordId,
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        new Models.StorageLocation(null, textFile));
+                        new Models.StorageLocation(null, textLocation),
+                        new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords);
     }
 
-    //ors001.txt - ors838.txt
-    public Models.SourceManifest sourceFolderForOregon(String sourceId, String downloadsFolder) {
+    //ors001.txt - ors838.txt (recall: 627 exist in total)
+    public Models.SourceManifest sourceFolderForOregon(String sourceManifestId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> manifest = FileUtils.readJsonlFile(downloadsFolder + "/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
-            String recordId = record.get("chapter").toString();
-            String textFile = downloadsFolder + "/text/ors" + recordId + ".txt";
+            String sourceRecordId = record.get("chapter").toString();
+            String textLocation = downloadsFolder + "/text/ors" + sourceRecordId + ".txt";
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    recordId,
+                    sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    new Models.StorageLocation(null, textFile));
+                    new Models.StorageLocation(null, textLocation),
+                    new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords);
     }
 
-    public Models.SourceManifest sourceFolderForNabAndWebc(String sourceId, String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForNabAndWebc(String sourceManifestId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
-            String recordId = record.get("id").toString();
-            String textFile = downloadsFolder + "/text/" + recordId + ".txt";
-            String textFileContents = record.get("text").toString();
-            if (!FileUtils.exists(textFile)) {
-                FileUtils.writeFile(textFile, textFileContents);
-            }
+            String sourceRecordId = record.get("id").toString();
+            String textLocation = downloadsFolder + "/text/" + sourceRecordId + ".txt";
+            //source data cleanup hack: only needed to be run once after source download -todo move to download source repo
+            //if (!FileUtils.exists(textLocation)) {
+            //    String textFileContents = record.get("text").toString();
+            //    FileUtils.writeFile(textLocation, textFileContents);
+            //}
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    recordId,
+                    sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    new Models.StorageLocation(null, textFile));
+                    new Models.StorageLocation(null, textLocation),
+                    new Models.StorageLocation(null, null)); //does not yet exist, will be created after chunking
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords);
     }
 
 }

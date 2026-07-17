@@ -23,6 +23,7 @@ public class SourceValidator {
         if (sourceUrls.size() != sourceManifest.sourceRecords().size()) { //verify each source has a unique sourceUrl
             errors.add("sourceUrls.size() != source.sourceRecords().size() : " + sourceUrls.size() +" != " + sourceManifest.sourceRecords().size());
         }
+        System.out.println(sourceManifest.id() + ": " + sourceManifest.sourceRecords().size());
         return errors;
     }
 
