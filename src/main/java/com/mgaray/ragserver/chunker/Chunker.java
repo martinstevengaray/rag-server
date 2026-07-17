@@ -38,7 +38,6 @@ public class Chunker {
         return new Models.SourceManifest(sourceManifest.id(), updateSourceRecords);
     }
 
-    private record ChunkResponse(int chunkIndex, String chuckText) {}
     private List<Models.Chunk> chunk(String sourceManifestId,
                                      Models.SourceRecord sourceRecord,
                                      Models.ChunkingSpec chunkingSpec) {
@@ -61,31 +60,6 @@ public class Chunker {
         }
         return chunks;
     }
-
-    //  S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
-    private String createChunkManifestLocation(String downloadsFolder, String sourceManifestId, String sourceRecordId) {
-        return downloadsFolder + "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
-    }
-//    Models.Chunk createChunk(Models.SourceRecord sourceRecord,
-//                             Integer chunkIndex,
-//                             String chunkText,
-//                             float[] chunkEmbedding) {
-//        switch (mode) {
-//            case IN_MEMORY:
-//                return new Models.Chunk(
-//                        sourceRecord,
-//                        chunkIndex,
-//                        new Models.StorageLocation(null, null),
-//                        new Models.StorageLocation(null, null),
-//                        chunkText,
-//                        chunkEmbedding);
-//            case ON_DISK: //todo
-//            case ON_S3: //todo
-//            default:
-//                throw new IllegalArgumentException("Unsupported mode: " + mode);
-//        }
-//    }
-
 
     private List<String> chunk(String original, Models.ChunkingSpec chunkingSpec) {
         List<String> chunks = new ArrayList<>();

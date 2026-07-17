@@ -36,6 +36,14 @@ public class JsonUtils {
         }
     }
 
+    public static <T> T toObject(String jsonString, Class<T> clazz) {
+        try {
+            return objectMapper.readValue(jsonString, clazz);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Map<String, Object> getNestedMap(Map<String, Object> objectMap, String... path) {
         Map<String, Object> nestedMap = getNestedField(objectMap, path);
         return (nestedMap != null) ? nestedMap : Map.of();

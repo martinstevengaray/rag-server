@@ -21,7 +21,7 @@ public class Models {
 
     public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
 
-    public record Chunk(SourceRecord sourceRecord,
+    public record Chunk(SourceRecord sourceRecord, //todo remove this field in favor of copying over relevant fields only (for example chunkManifestLocation makes no sense here)
                         int index,
                         String textLocation,
                         String embeddingLocation) {}

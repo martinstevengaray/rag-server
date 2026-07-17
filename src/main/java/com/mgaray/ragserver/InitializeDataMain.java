@@ -23,6 +23,10 @@ public class InitializeDataMain {
 
         System.out.println("start chunking");
         sourceManifest = chunker.chunk(sourceManifest, chunkingSpec);
+
+        String sourceManifestLocation = "/" + sourceManifest.id() + "/sourceManifest.json";
+        dataFetcher.save(sourceManifestLocation, sourceManifest);
+
         System.out.println(JsonUtils.toJsonPretty(sourceManifest));
 
     }

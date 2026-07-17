@@ -36,8 +36,9 @@ public class ChunkerTest {
         Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords);
 
         Chunker chunker = new Chunker(dataFetcher);
-        List<Models.ChunkManifest> chunkManifests = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
-        for (Models.ChunkManifest chunkManifest : chunkManifests) {
+        sourceManifest = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
+        for (Models.SourceRecord sourceRecordUpdated : sourceManifest.sourceRecords()) {
+            Models.ChunkManifest chunkManifest = dataFetcher.fetch(sourceRecordUpdated.chunkManifestLocation(), Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String text = dataFetcher.fetch(chunk.textLocation());
                 System.out.println(text);
