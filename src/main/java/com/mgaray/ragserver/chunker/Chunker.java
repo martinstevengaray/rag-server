@@ -13,34 +13,34 @@ public class Chunker {
 
     private final DataFetcher dataFetcher;
     private final Embedder embedder;;
+    private final Mode mode;
+    private final String bucket;
 
-    public Chunker() {
+    public Chunker(Mode mode, String bucket) {
+        this.mode = mode;
+        this.bucket = bucket;
         this.dataFetcher = new DataFetcher();
         this.embedder = new Embedder(Embedder.ModelType.LOCAL);
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,
-                                      Models.ChunkingSpec chunkingSpec,
-                                      Mode mode,
-                                      String bucketOrLocalFolder) {
+                                      Models.ChunkingSpec chunkingSpec) {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            chunks.addAll(chunk(sourceRecord, chunkingSpec, mode, bucketOrLocalFolder));
+            chunks.addAll(chunk(sourceRecord, chunkingSpec));
         }
         return new Models.ChunkManifest(chunks, chunkingSpec);
     }
 
     private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord,
-                                     Models.ChunkingSpec chunkingSpec,
-                                     Mode mode,
-                                     String bucketOrLocalFolder) {
+                                     Models.ChunkingSpec chunkingSpec) {
         String originalText = dataFetcher.fetchSourceRecordText(sourceRecord);
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkText = chunkedText.get(chunkIndex);
             float[] chunkEmbedding = embedder.embed(chunkText).vector();
-            chunks.add(createChunk(sourceRecord, chunkIndex, chunkText, chunkEmbedding, mode, bucketOrLocalFolder));
+            chunks.add(createChunk(sourceRecord, chunkIndex, chunkText, chunkEmbedding));
         }
         return chunks;
     }
@@ -48,9 +48,7 @@ public class Chunker {
     Models.Chunk createChunk(Models.SourceRecord sourceRecord,
                              Integer chunkIndex,
                              String chunkText,
-                             float[] chunkEmbedding,
-                             Mode mode,
-                             String bucketOrLocalFolder) {
+                             float[] chunkEmbedding) {
         switch (mode) {
             case IN_MEMORY:
                 return new Models.Chunk(

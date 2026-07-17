@@ -10,13 +10,13 @@ public class InitializeDataMain {
 
     public static void main(String[] args) {
         SourceReader sourceReader = new SourceReader();
-        Chunker chunker = new Chunker();
+        Chunker chunker = new Chunker(Chunker.Mode.IN_MEMORY, null);
 
         Models.SourceManifest sourceManifest = sourceReader.sourceFolderForPortland("developer-wip", inputPortland);
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
         System.out.println("start chunking");
-        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, chunkingSpec, Chunker.Mode.IN_MEMORY, null);
+        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, chunkingSpec);
 //        System.out.println(chunkManifest);
 
     }
