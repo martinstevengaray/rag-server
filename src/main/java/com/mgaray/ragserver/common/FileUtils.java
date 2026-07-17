@@ -13,6 +13,7 @@ public class FileUtils {
     }
 
     public static String readFile(String fileName) {
+        System.out.print(".");
         try {
             Path path = Path.of(fileName);
             return Files.readString(path);
@@ -23,6 +24,7 @@ public class FileUtils {
 
     //creates folder structure if it does not already exist
     public static void writeFile(String filename, String content) {
+        if (true) throw new RuntimeException("warning file writing");
         try {
             Path filePath = Path.of(filename);
             Path parent = filePath.getParent();

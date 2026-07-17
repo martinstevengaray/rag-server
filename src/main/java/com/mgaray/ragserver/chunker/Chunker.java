@@ -30,15 +30,8 @@ public class Chunker {
         return new Models.ChunkManifest(chunks);
     }
 
-    private String fetchText(Models.SourceRecord sourceRecord) {
-        if (sourceRecord.lazyText() != null) {
-            return sourceRecord.lazyText();
-        }
-        return dataFetcher.fetch(sourceRecord.textLocation());
-    }
-
     private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord, ChunkingSpec chunkingSpec) {
-        String originalText = fetchText(sourceRecord);
+        String originalText = dataFetcher.fetchSourceRecordText(sourceRecord);
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {

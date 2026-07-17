@@ -12,4 +12,11 @@ public class DataFetcher {
         return null;
     }
 
+    public String fetchSourceRecordText(Models.SourceRecord sourceRecord) {
+        if (sourceRecord.lazyText() != null) {
+            return sourceRecord.lazyText();
+        }
+        return fetch(sourceRecord.textLocation());
+    }
+
 }

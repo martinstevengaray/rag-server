@@ -20,7 +20,7 @@ public class SourceReaderTest {
         System.out.println("errors: " + sourceValidator.validate(sourceManifest));
 
         String inputWebc = "../rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
-        sourceManifest = sourceReader.sourceFolderForNabAndWebc("src/web-catholic-bible", inputWebc);
+        sourceManifest = sourceReader.sourceFolderForNabAndWebc("web-catholic-bible", inputWebc);
         //System.out.println(JsonUtils.toJsonPretty(source));
         System.out.println("errors: " + sourceValidator.validate(sourceManifest));
 
