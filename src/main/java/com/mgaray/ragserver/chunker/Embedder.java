@@ -24,6 +24,7 @@ public class Embedder {
         LOCAL("local-BgeSmallEnV15Quantized"),
         OPEN_AI("open-ai-text-embedding-3-small");
         public final String name;
+
         ModelType(String name) {
             this.name = name;
         }
@@ -43,7 +44,7 @@ public class Embedder {
                 this.embeddingModel = OpenAiEmbeddingModel.builder()
                         .apiKey(System.getenv("OPENAI_API_KEY"))
                         .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
-                        .build();;
+                        .build();
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported modelType: " + modelType);
@@ -51,17 +52,16 @@ public class Embedder {
     }
 
     public Embedding embed(String text) {
-        System.out.print("*");
+        //System.out.print("*");
         return embeddingModel.embed(text).content();
     }
 
 
+}
 
 
 
-
-
-
+/*
 
     private final DataFetcher dataFetcher = new DataFetcher();
 
@@ -198,3 +198,4 @@ public class Embedder {
         return sum;
     }
 }
+*/

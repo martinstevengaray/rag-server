@@ -1,5 +1,6 @@
 package com.mgaray.ragserver;
 
+import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.chunker.Chunker;
 import com.mgaray.ragserver.sourcereader.SourceReader;
 
@@ -9,8 +10,9 @@ public class InitializeDataMain {
     private static final String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
 
     public static void main(String[] args) {
-        SourceReader sourceReader = new SourceReader();
-        Chunker chunker = new Chunker(Chunker.Mode.IN_MEMORY, null);
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
+        SourceReader sourceReader = new SourceReader(dataFetcher);
+        Chunker chunker = new Chunker(dataFetcher);
 
         Models.SourceManifest sourceManifest = sourceReader.sourceFolderForPortland("developer-wip", inputPortland);
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);

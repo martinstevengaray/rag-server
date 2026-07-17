@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
@@ -19,25 +20,26 @@ public class ChunkerTest {
           """;
 
     public static void main(String[] args) {
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/ChunkerTest");
+
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        Models.StorageLocation sourceLocation = new Models.StorageLocation(null, "./test/java/com/mgaray/ragserver/chunker/source.txt");
+        String sourceLocation = "/source.txt";
+        dataFetcher.save(sourceLocation, chunkText);
         Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                "ChunkerTest.sourceRecord",
+                "ChunkerTest-sourceRecord",
                 null,
                 null,
                 null,
                 sourceLocation,
-                null,
-                chunkText,
                 null);
         sourceRecords.add(sourceRecord);
         Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords);
 
-        Chunker chunker = new Chunker(Chunker.Mode.IN_MEMORY, null);
-        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest,
-                new Models.ChunkingSpec(8, 0.5f));
+        Chunker chunker = new Chunker(dataFetcher);
+        Models.ChunkManifest chunkManifest = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
         for (Models.Chunk chunk : chunkManifest.chunks()) {
-            System.out.println(chunk.lazyText());
+            String text = dataFetcher.fetch(chunk.textLocation());
+            System.out.println(text);
         }
 
     }

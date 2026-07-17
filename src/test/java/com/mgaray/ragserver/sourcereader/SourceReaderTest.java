@@ -1,19 +1,22 @@
 package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.common.JsonUtils;
 
 public class SourceReaderTest {
 
     public static void main(String[] args) {
-        SourceReader sourceReader = new SourceReader();
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
+        SourceReader sourceReader = new SourceReader(dataFetcher);
         SourceValidator sourceValidator = new SourceValidator();
         Models.SourceManifest sourceManifest = null;
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForPortland("portland-city-code", inputPortland);
-        //System.out.println(JsonUtils.toJsonPretty(source));
+        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
         System.out.println("errors: " + sourceValidator.validate(sourceManifest));
-
+//if(true) return;
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForOregon("oregon-state-code", inputOregon);
         //System.out.println(JsonUtils.toJsonPretty(source));

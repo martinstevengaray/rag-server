@@ -13,13 +13,15 @@ public class Chunker {
 
     private final DataFetcher dataFetcher;
     private final Embedder embedder;;
-    private final Mode mode;
-    private final String bucket;
+    private final boolean createVectorStore;
 
-    public Chunker(Mode mode, String bucket) {
-        this.mode = mode;
-        this.bucket = bucket;
-        this.dataFetcher = new DataFetcher();
+    public Chunker(DataFetcher dataFetcher) {
+        this(dataFetcher, false);
+    }
+
+    private Chunker(DataFetcher dataFetcher, boolean createVectorStore) {
+        this.createVectorStore = createVectorStore;
+        this.dataFetcher = dataFetcher;
         this.embedder = new Embedder(Embedder.ModelType.LOCAL);
     }
 
@@ -27,43 +29,60 @@ public class Chunker {
                                       Models.ChunkingSpec chunkingSpec) {
         List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            chunks.addAll(chunk(sourceRecord, chunkingSpec));
+            chunks.addAll(chunk(sourceManifest.id(), sourceRecord, chunkingSpec));
         }
         return new Models.ChunkManifest(chunks, chunkingSpec);
     }
 
-    private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord,
+    private record ChunkResponse(int chunkIndex, String chuckText) {}
+    private List<Models.Chunk> chunk(String sourceManifestId,
+                                     Models.SourceRecord sourceRecord,
                                      Models.ChunkingSpec chunkingSpec) {
-        String originalText = dataFetcher.fetchSourceRecordText(sourceRecord);
+        String originalText = dataFetcher.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
+            String chunkId = String.format("%03d", chunkIndex);  //the 3 should by dynamic todo!
             String chunkText = chunkedText.get(chunkIndex);
-            float[] chunkEmbedding = embedder.embed(chunkText).vector();
-            chunks.add(createChunk(sourceRecord, chunkIndex, chunkText, chunkEmbedding));
+            String checkTextStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/chunks/" + chunkId + ".txt";
+            dataFetcher.save(checkTextStorageLocation, chunkText);
+
+            {
+                float[] chunkEmbedding = embedder.embed(chunkText).vector();
+                String embeddingStorageLocation = "/portland-city-code/sourceRecords/ors001/embeddings/local-BgeSmallEnV15Quantized-000.txt";
+                chunks.add(new Models.Chunk(
+                            sourceRecord,
+                            chunkIndex,
+                            checkTextStorageLocation,
+                            embeddingStorageLocation));
+            }
         }
         return chunks;
     }
 
-    Models.Chunk createChunk(Models.SourceRecord sourceRecord,
-                             Integer chunkIndex,
-                             String chunkText,
-                             float[] chunkEmbedding) {
-        switch (mode) {
-            case IN_MEMORY:
-                return new Models.Chunk(
-                        sourceRecord,
-                        chunkIndex,
-                        new Models.StorageLocation(null, null),
-                        new Models.StorageLocation(null, null),
-                        chunkText,
-                        chunkEmbedding);
-            case ON_DISK: //todo
-            case ON_S3: //todo
-            default:
-                throw new IllegalArgumentException("Unsupported mode: " + mode);
-        }
+    //  S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
+    private String createChunkManifestLocation(String downloadsFolder, String sourceManifestId, String sourceRecordId) {
+        return downloadsFolder + "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
     }
+//    Models.Chunk createChunk(Models.SourceRecord sourceRecord,
+//                             Integer chunkIndex,
+//                             String chunkText,
+//                             float[] chunkEmbedding) {
+//        switch (mode) {
+//            case IN_MEMORY:
+//                return new Models.Chunk(
+//                        sourceRecord,
+//                        chunkIndex,
+//                        new Models.StorageLocation(null, null),
+//                        new Models.StorageLocation(null, null),
+//                        chunkText,
+//                        chunkEmbedding);
+//            case ON_DISK: //todo
+//            case ON_S3: //todo
+//            default:
+//                throw new IllegalArgumentException("Unsupported mode: " + mode);
+//        }
+//    }
 
 
     private List<String> chunk(String original, Models.ChunkingSpec chunkingSpec) {
@@ -86,9 +105,5 @@ public class Chunker {
     }
 
 
-    //  S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
-    private String createChunkManifestLocation(String downloadsFolder, String sourceManifestId, String sourceRecordId) {
-        return downloadsFolder + "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
-    }
 
 }

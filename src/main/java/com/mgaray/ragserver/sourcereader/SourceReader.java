@@ -1,32 +1,43 @@
 package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SourceReader {
+public class SourceReader { //todo rename to sourceTransformer
+
+    private final DataFetcher dataFetcher;
+
+    public SourceReader(DataFetcher dataFetcher) {
+        this.dataFetcher = dataFetcher;
+    }
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt   (recall: 08 does not exit)
     public Models.SourceManifest sourceFolderForPortland(String sourceManifestId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
-            String sourceRecordId = String.format("%02d", recordNumber);
-            String recordFileLocation = downloadsFolder + "/title-" + sourceRecordId + ".json";
-            String textLocation = downloadsFolder + "/title-" + sourceRecordId + ".txt";
-            if (FileUtils.exists(recordFileLocation) && FileUtils.exists(textLocation)) {
-                Map<String, Object> record = FileUtils.readJsonFile(recordFileLocation);
+            String inputSourceRecordId = String.format("%02d", recordNumber);
+            String inputRecordLocation = downloadsFolder + "/title-" + inputSourceRecordId + ".json";
+            String inputTextLocation = downloadsFolder + "/title-" + inputSourceRecordId + ".txt";
+            if (FileUtils.exists(inputRecordLocation) && FileUtils.exists(inputTextLocation)) {
+                String text = FileUtils.readFile(inputTextLocation);
+                //copy source.text file
+                String outputSourceRecordId = "title-" + inputSourceRecordId;
+                String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+                dataFetcher.save(outputTextLocation, text);
+                //save source.json file
+                Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
                 Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                        sourceRecordId,
+                        outputSourceRecordId,
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        new Models.StorageLocation(null, textLocation),
-                        new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
-                        null,
-                        null);
+                        outputTextLocation,
+                        null); //does not yet exist, will be created after chunking
                 sourceRecords.add(sourceRecord);
             }
         }
@@ -38,17 +49,23 @@ public class SourceReader {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> manifest = FileUtils.readJsonlFile(downloadsFolder + "/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
-            String sourceRecordId = record.get("chapter").toString();
-            String textLocation = downloadsFolder + "/text/ors" + sourceRecordId + ".txt";
+            String inputSourceRecordId = record.get("chapter").toString();
+            if (inputSourceRecordId.length() == 1) { inputSourceRecordId = "00" + inputSourceRecordId; }
+            else if (inputSourceRecordId.length() == 2) { inputSourceRecordId = "0" + inputSourceRecordId; }
+            String inputTextLocation = downloadsFolder + "/text/ors" + inputSourceRecordId + ".txt";
+            String text = FileUtils.readFile(inputTextLocation);
+            //save source.text file
+            String outputSourceRecordId = inputSourceRecordId;
+            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+            dataFetcher.save(outputTextLocation, text);
+            //save source.json file
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    sourceRecordId,
+                    outputSourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    new Models.StorageLocation(null, textLocation),
-                    new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
-                    null,
-                    null);
+                    outputTextLocation,
+                    null); //does not yet exist, will be created after chunking
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords);
@@ -58,22 +75,20 @@ public class SourceReader {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
-            String sourceRecordId = record.get("id").toString();
-            String textLocation = downloadsFolder + "/text/" + sourceRecordId + ".txt"; //todo consider removing now that lazyText can be leveraged
-            //source data cleanup hack: only needed to be run once after source download -todo move to download source repo (see related todo above)
-            //if (!FileUtils.exists(textLocation)) {
-            //    String textFileContents = record.get("text").toString();
-            //    FileUtils.writeFile(textLocation, textFileContents);
-            //}
+            String inputSourceRecordId = record.get("id").toString();
+//            String inputTextLocation = downloadsFolder + "/text/" + inputSourceRecordId + ".txt"; //todo consider removing now that lazyText can be leveraged
+            String text = record.get("text").toString();
+            //save source.text file
+            String outputSourceRecordId = inputSourceRecordId;
+            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/source.txt";
+            dataFetcher.save(outputTextLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    sourceRecordId,
+                    outputSourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    new Models.StorageLocation(null, textLocation),
-                    new Models.StorageLocation(null, null), //does not yet exist, will be created after chunking
-                    record.get("text").toString(),
-                    null);
+                    outputTextLocation,
+                    null); //does not yet exist, will be created after chunking
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords);
