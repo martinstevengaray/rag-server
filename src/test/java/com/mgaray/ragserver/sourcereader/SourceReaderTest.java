@@ -1,7 +1,6 @@
-package com.mgaray.ragserver;
+package com.mgaray.ragserver.sourcereader;
 
-import com.mgaray.ragserver.sourcereader.SourceReader;
-import com.mgaray.ragserver.sourcereader.SourceValidator;
+import com.mgaray.ragserver.Models;
 
 public class SourceReaderTest {
 
