@@ -9,9 +9,9 @@ import java.util.List;
 
 public class Chunker {
 
-    record ChunkingSpec(int wordCount, float percentOverlap) {}
+    public record ChunkingSpec(int wordCount, float percentOverlap) {}
 
-    public static final ChunkingSpec defaulChunkingSpec = new ChunkingSpec(500, 0.5f);
+    private static final ChunkingSpec defaulChunkingSpec = new ChunkingSpec(500, 0.5f);
 
     private final DataFetcher dataFetcher = new DataFetcher();
 
@@ -52,7 +52,7 @@ public class Chunker {
         return chunks;
     }
 
-    public List<String> chunk(String original, ChunkingSpec chunkingSpec) {
+    private List<String> chunk(String original, ChunkingSpec chunkingSpec) {
         List<String> chunks = new ArrayList<>();
         if (original == null || original.isBlank()) {
             return chunks;
