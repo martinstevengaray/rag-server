@@ -20,15 +20,6 @@ public class SourceReaderTest {
         //System.out.println(JsonUtils.toJsonPretty(source));
         System.out.println(sourceValidator.validate(sourceRecords));
 
-        String inputWebc = "../rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
-        sourceRecords = sourceReader.sourceFolderForNabAndWebc(inputWebc);
-        //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceRecords));
-
-        String inputNab = "../rag-content-corpus-download/src/new-american-bible/downloads-clean";
-        sourceRecords = sourceReader.sourceFolderForNabAndWebc(inputNab);
-        //System.out.println(JsonUtils.toJsonPretty(source));
-        System.out.println(sourceValidator.validate(sourceRecords));
     }
 
 }
