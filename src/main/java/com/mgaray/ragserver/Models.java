@@ -15,7 +15,7 @@ public class Models {
     public record ChunkManifest(List<Chunk> chunks) {}
 
     public record Chunk(SourceRecord sourceRecord,
-                        int chunkIndex,
+                        int index,
                         float[] embedding,
                         StorageLocation textLocation) {}
 
