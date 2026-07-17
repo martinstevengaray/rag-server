@@ -27,11 +27,15 @@ public class Chunker {
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,
                                       Models.ChunkingSpec chunkingSpec) {
-        List<Models.Chunk> chunks = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            chunks.addAll(chunk(sourceManifest.id(), sourceRecord, chunkingSpec));
+            List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
+            Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
+            String chunkManifestLocation = "/" + sourceManifest.id() + "/sourceRecords/" + sourceRecord.id() + "/chunkManifest.json";
+            dataFetcher.save(chunkManifestLocation, chunkManifest);
+            //todo sourceRecord.setChunkManifestLocation(chunkManifestLocation);
         }
-        return new Models.ChunkManifest(chunks, chunkingSpec);
+
+        return new Models.ChunkManifest(null, chunkingSpec);
     }
 
     private record ChunkResponse(int chunkIndex, String chuckText) {}

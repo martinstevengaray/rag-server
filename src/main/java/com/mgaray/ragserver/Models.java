@@ -4,7 +4,6 @@ import java.util.List;
 
 public class Models {
 
-
     public record RunDefinition() {} //todo
 
     public record SourceManifest(String id, List<SourceRecord> sourceRecords) {}
@@ -14,10 +13,7 @@ public class Models {
                                String retrievedAt,
                                String title,
                                String textLocation,
-                               String chunkManifestLocation) {} //,
-//                               //todo the following two may not be necessary
-//                               String lazyText,
-//                               ChunkManifest lazyChunkManifest) {}
+                               String chunkManifestLocation) {}
 
     public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
 
@@ -25,15 +21,8 @@ public class Models {
                         int index,
                         String textLocation,
                         String embeddingLocation) {}
-//            ,
-//                        String lazyText,
-//                        float[] lacyEmbedding) {}
-
 
     public record ChunkingSpec(int wordCount, float percentOverlap) {}
-
-//    public record StorageLocation(String bucket,
-//                                  String key) {}
 
 /*
 

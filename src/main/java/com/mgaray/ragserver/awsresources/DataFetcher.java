@@ -2,6 +2,7 @@ package com.mgaray.ragserver.awsresources;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.common.FileUtils;
+import com.mgaray.ragserver.common.JsonUtils;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,6 +30,10 @@ public class DataFetcher {
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
             default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
         };
+    }
+
+    public void save(String storageLocation, Object object) {
+        save(storageLocation, JsonUtils.toJson(object));
     }
 
     public void save(String storageLocation, String content) {
