@@ -10,12 +10,12 @@ public class SourceReaderTest {
         Models.SourceManifest sourceManifest = null;
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
-        sourceManifest = sourceReader.sourceFolderForPortland(inputPortland);
+        sourceManifest = sourceReader.sourceFolderForPortland("portland-city-code", inputPortland);
         //System.out.println(JsonUtils.toJsonPretty(source));
         System.out.println(sourceValidator.validate(sourceManifest));
 
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
-        sourceManifest = sourceReader.sourceFolderForOregon(inputOregon);
+        sourceManifest = sourceReader.sourceFolderForOregon("oregon-state-code", inputOregon);
         //System.out.println(JsonUtils.toJsonPretty(source));
         System.out.println(sourceValidator.validate(sourceManifest));
 

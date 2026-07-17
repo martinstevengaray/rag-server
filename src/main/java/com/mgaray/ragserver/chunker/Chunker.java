@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.Models;
-import com.mgaray.ragserver.awsresources.BucketDelegate;
+import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +13,7 @@ public class Chunker {
 
     private static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
 
-    private final BucketDelegate bucketDelegate = new BucketDelegate();
+    private final DataFetcher dataFetcher = new DataFetcher();
 
     public Chunker() {
     }
@@ -27,12 +27,15 @@ public class Chunker {
     }
 
     private List<Models.Chunk> chunk(Models.SourceRecord sourceRecord) {
-        String originalText = bucketDelegate.fetch(sourceRecord.textLocation());
+        String originalText = dataFetcher.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
-            String chunk = chunkedText.get(chunkIndex);
-            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, null, null)); //todo (..., float[] embedding, Resource textLocation)
+            String chunkText = chunkedText.get(chunkIndex);
+
+//            String textLocation = sourceRecord.
+
+//            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, null, null)); //todo (..., float[] embedding, Resource textLocation)
 
         }
         return chunks;

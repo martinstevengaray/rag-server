@@ -10,7 +10,7 @@ import java.util.Map;
 public class SourceReader {
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt
-    public Models.SourceManifest sourceFolderForPortland(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForPortland(String sourceId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
             String recordNumberString = String.format("%02d", recordNumber);
@@ -27,11 +27,11 @@ public class SourceReader {
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceRecords);
+        return new Models.SourceManifest(sourceId, sourceRecords);
     }
 
     //ors001.txt - ors838.txt
-    public Models.SourceManifest sourceFolderForOregon(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForOregon(String sourceId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> manifest = FileUtils.readJsonlFile(downloadsFolder + "/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
@@ -45,10 +45,10 @@ public class SourceReader {
                     new Models.StorageLocation(null, textFile));
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceRecords);
+        return new Models.SourceManifest(sourceId, sourceRecords);
     }
 
-    public Models.SourceManifest sourceFolderForNabAndWebc(String downloadsFolder) {
+    public Models.SourceManifest sourceFolderForNabAndWebc(String sourceId, String downloadsFolder) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
@@ -66,7 +66,7 @@ public class SourceReader {
                     new Models.StorageLocation(null, textFile));
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceRecords);
+        return new Models.SourceManifest(sourceId, sourceRecords);
     }
 
 }
