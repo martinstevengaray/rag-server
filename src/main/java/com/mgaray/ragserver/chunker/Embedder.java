@@ -16,7 +16,43 @@ import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import java.util.Arrays;
 import java.util.List;
 
+
 public class Embedder {
+
+
+    public enum ModelType {LOCAL, OPEN_AI}
+    public EmbeddingModel embeddingModel;
+
+    private final ModelType modelType;
+
+    public Embedder(ModelType modelType) {
+        this.modelType = modelType;
+        switch (modelType) {
+            case LOCAL:
+                this.embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
+                break;
+            case OPEN_AI:
+                this.embeddingModel = OpenAiEmbeddingModel.builder()
+                        .apiKey(System.getenv("OPENAI_API_KEY"))
+                        .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
+                        .build();;
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported modelType: " + modelType);
+        }
+    }
+
+    public Embedding embed(String text) {
+        System.out.print("*");
+        return embeddingModel.embed(text).content();
+    }
+
+
+
+
+
+
+
 
 
     private final DataFetcher dataFetcher = new DataFetcher();
@@ -31,12 +67,9 @@ public class Embedder {
 
     }
 
-    public Embedding embed(String text) {
-        return new Embedding(new float[] {0, 0, 0, 0}); //todo
-    }
 
     public static void main(String[] args) {
-        Embedder embedder = new Embedder();
+        Embedder embedder = new Embedder(ModelType.LOCAL);
         embedder.exampleThree();
     }
     public void exampleThree() {

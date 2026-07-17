@@ -16,7 +16,7 @@ public class Chunker {
 
     public Chunker() {
         this.dataFetcher = new DataFetcher();
-        this.embedder = new Embedder();
+        this.embedder = new Embedder(Embedder.ModelType.LOCAL);
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,
