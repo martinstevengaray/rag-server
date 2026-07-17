@@ -20,7 +20,15 @@ import java.util.List;
 public class Embedder {
 
 
-    public enum ModelType {LOCAL, OPEN_AI}
+    public enum ModelType {
+        LOCAL("local-BgeSmallEnV15Quantized"),
+        OPEN_AI("open-ai-text-embedding-3-small");
+        public final String name;
+        ModelType(String name) {
+            this.name = name;
+        }
+    }
+
     public EmbeddingModel embeddingModel;
 
     private final ModelType modelType;

@@ -33,16 +33,20 @@ public class Models {
 
 /*
 
-    Although sourceManifest can define any storage pattern, this is the convention we use in SourceReader
+    Although sourceManifest can define any storage pattern, this is the convention we use
 
     S3 folder structure:
         S3://bucket/sourceManifest.id/sourceManifest.json
+        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.bin
+        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.bin
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/source.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunks/chunk.id.txt
 
     Example:
         S3://bucket/portland-city-code/sourceManifest.json
+        S3://bucket/portland-city-code/embeddings/local-BgeSmallEnV15Quantized.bin
+        S3://bucket/portland-city-code/embeddings/open-ai-text-embedding-3-small.bin
         S3://bucket/portland-city-code/sourceRecords/ors001/source.txt
         S3://bucket/portland-city-code/sourceRecords/ors001/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/ors001/chunks/000.txt
