@@ -9,15 +9,19 @@ import java.util.List;
 
 public class Chunker {
 
-    private static final Models.ChunkingSpec defaulChunkingSpec = new Models.ChunkingSpec(500, 0.5f);
+    public enum Mode {IN_MEMORY, ON_DISK, ON_S3}
 
-    private final DataFetcher dataFetcher = new DataFetcher();
+    private final DataFetcher dataFetcher;
 
     public Chunker() {
+        this.dataFetcher = new DataFetcher();
     }
 
-    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest) {
-        return chunk(sourceManifest, defaulChunkingSpec);
+    public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest,
+                                      Models.ChunkingSpec chunkingSpec,
+                                      Mode mode,
+                                      String bucketOrLocalFolder) {
+        return null;
     }
 
     public Models.ChunkManifest chunk(Models.SourceManifest sourceManifest, Models.ChunkingSpec chunkingSpec) {
