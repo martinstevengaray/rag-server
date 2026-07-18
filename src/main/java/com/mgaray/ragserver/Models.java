@@ -1,27 +1,26 @@
 package com.mgaray.ragserver;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Models {
 
     public record RunDefinition() {} //todo
 
-    public record SourceManifest(String id, List<SourceRecord> sourceRecords) {}
+    public record SourceManifest(String id,
+                                 List<SourceRecord> sourceRecords,
+                                 Map<String, String> sourceIdToChunkManifestLocation) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
                                String retrievedAt,
                                String title,
-                               String textLocation,
-                               String chunkManifestLocation) {
-        public SourceRecord withChunkManifestLocation(String chunkManifestLocation) {
-            return new SourceRecord(id, sourceUrl, retrievedAt, title, textLocation, chunkManifestLocation);
-        }
-    }
+                               String textLocation) {}
 
     public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
 
-    public record Chunk(SourceRecord sourceRecord, //todo remove this field in favor of copying over relevant fields only (for example chunkManifestLocation makes no sense here)
+    public record Chunk(SourceRecord sourceRecord,
                         int index,
                         String textLocation,
                         String embeddingLocation) {}

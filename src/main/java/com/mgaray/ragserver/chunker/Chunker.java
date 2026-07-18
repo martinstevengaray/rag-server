@@ -23,17 +23,15 @@ public class Chunker {
         this.embedder = new Embedder(Embedder.ModelType.DUMMY);
     }
 
-    public Models.SourceManifest chunk(Models.SourceManifest sourceManifest,
+    public void chunk(Models.SourceManifest sourceManifest,
                                        Models.ChunkingSpec chunkingSpec) {
-        List<Models.SourceRecord> updateSourceRecords = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
             Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
             String chunkManifestLocation = "/" + sourceManifest.id() + "/sourceRecords/" + sourceRecord.id() + "/chunkManifest.json";
             dataFetcher.save(chunkManifestLocation, chunkManifest);
-            updateSourceRecords.add(sourceRecord.withChunkManifestLocation(chunkManifestLocation));
+            sourceManifest.sourceIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
         }
-        return new Models.SourceManifest(sourceManifest.id(), updateSourceRecords);
     }
 
     private List<Models.Chunk> chunk(String sourceManifestId,

@@ -4,6 +4,7 @@ import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ChunkerTest {
@@ -29,15 +30,15 @@ public class ChunkerTest {
                 null,
                 null,
                 null,
-                sourceLocation,
-                null);
+                sourceLocation);
         sourceRecords.add(sourceRecord);
-        Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords);
+        Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords, new HashMap<>());
 
         Chunker chunker = new Chunker(dataFetcher);
-        sourceManifest = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
+        chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
         for (Models.SourceRecord sourceRecordUpdated : sourceManifest.sourceRecords()) {
-            Models.ChunkManifest chunkManifest = dataFetcher.fetch(sourceRecordUpdated.chunkManifestLocation(), Models.ChunkManifest.class);
+            String chunkManifestLocation = sourceManifest.sourceIdToChunkManifestLocation().get(sourceRecordUpdated.id());
+            Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String text = dataFetcher.fetch(chunk.textLocation());
                 System.out.println(text);

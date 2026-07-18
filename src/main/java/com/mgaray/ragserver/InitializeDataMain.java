@@ -19,7 +19,7 @@ public class InitializeDataMain {
         Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
 
         System.out.println("start chunking");
-        sourceManifest = chunker.chunk(sourceManifest, chunkingSpec);
+        chunker.chunk(sourceManifest, chunkingSpec);
 
         String sourceManifestLocation = "/" + sourceManifest.id() + "/sourceManifest.json";
         dataFetcher.save(sourceManifestLocation, sourceManifest);

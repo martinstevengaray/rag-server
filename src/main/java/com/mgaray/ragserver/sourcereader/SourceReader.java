@@ -5,6 +5,7 @@ import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -36,12 +37,11 @@ public class SourceReader { //todo rename to sourceTransformer
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        outputTextLocation,
-                        null); //does not yet exist, will be created after chunking
+                        outputTextLocation);
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -64,11 +64,10 @@ public class SourceReader { //todo rename to sourceTransformer
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    outputTextLocation,
-                    null); //does not yet exist, will be created after chunking
+                    outputTextLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
     }
 
     public Models.SourceManifest sourceFolderForNabAndWebc(String sourceManifestId, String downloadsFolder) {
@@ -76,7 +75,6 @@ public class SourceReader { //todo rename to sourceTransformer
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String inputSourceRecordId = record.get("id").toString();
-//            String inputTextLocation = downloadsFolder + "/text/" + inputSourceRecordId + ".txt"; //todo consider removing now that lazyText can be leveraged
             String text = record.get("text").toString();
             //save source.text file
             String outputSourceRecordId = inputSourceRecordId;
@@ -87,11 +85,10 @@ public class SourceReader { //todo rename to sourceTransformer
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    outputTextLocation,
-                    null); //does not yet exist, will be created after chunking
+                    outputTextLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords);
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
     }
 
 }
