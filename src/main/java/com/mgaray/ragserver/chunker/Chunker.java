@@ -30,7 +30,7 @@ public class Chunker {
             Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
             String chunkManifestLocation = "/" + sourceManifest.id() + "/sourceRecords/" + sourceRecord.id() + "/chunkManifest.json";
             dataFetcher.save(chunkManifestLocation, chunkManifest);
-            sourceManifest.sourceIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
+            sourceManifest.sourceRecordIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
         }
     }
 

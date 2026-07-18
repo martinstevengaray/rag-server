@@ -1,6 +1,5 @@
 package com.mgaray.ragserver;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +9,7 @@ public class Models {
 
     public record SourceManifest(String id,
                                  List<SourceRecord> sourceRecords,
-                                 Map<String, String> sourceIdToChunkManifestLocation) {}
+                                 Map<String, String> sourceRecordIdToChunkManifestLocation) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
@@ -31,7 +30,7 @@ public class Models {
 
 /*
 
-    Although sourceManifest can define any storage pattern, this is the convention we use
+    Although sourceManifest can support any storage pattern, this is the convention we use
 
     S3 folder structure:
         S3://bucket/sourceManifest.id/sourceManifest.json

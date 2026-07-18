@@ -2,6 +2,7 @@ package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.chunker.LocationConventions;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
@@ -27,17 +28,17 @@ public class SourceReader { //todo rename to sourceTransformer
             if (FileUtils.exists(inputRecordLocation) && FileUtils.exists(inputTextLocation)) {
                 String text = FileUtils.readFile(inputTextLocation);
                 //copy source.text file
-                String outputSourceRecordId = "title" + inputSourceRecordId;
-                String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
-                dataFetcher.save(outputTextLocation, text);
+                String sourceRecordId = "title" + inputSourceRecordId;
+                String textLocation = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+                dataFetcher.save(textLocation, text);
                 //save source.json file
                 Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
                 Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                        outputSourceRecordId,
+                        sourceRecordId,
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        outputTextLocation);
+                        textLocation);
                 sourceRecords.add(sourceRecord);
             }
         }
@@ -55,16 +56,16 @@ public class SourceReader { //todo rename to sourceTransformer
             String inputTextLocation = downloadsFolder + "/text/ors" + inputSourceRecordId + ".txt";
             String text = FileUtils.readFile(inputTextLocation);
             //save source.text file
-            String outputSourceRecordId = "ors" + inputSourceRecordId;
-            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
-            dataFetcher.save(outputTextLocation, text);
+            String sourceRecordId = "ors" + inputSourceRecordId;
+            String textLocation  = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            dataFetcher.save(textLocation, text);
             //save source.json file
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    outputSourceRecordId,
+                    sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    outputTextLocation);
+                    textLocation);
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
@@ -74,18 +75,17 @@ public class SourceReader { //todo rename to sourceTransformer
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
-            String inputSourceRecordId = record.get("id").toString();
+            String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
-            //save source.text file
-            String outputSourceRecordId = inputSourceRecordId;
-            String outputTextLocation = "/" + sourceManifestId + "/sourceRecords/" + outputSourceRecordId + "/sourceRecord.txt";
-            dataFetcher.save(outputTextLocation, text);
+            //save sourceRecord.text file
+            String textLocation = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            dataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                    outputSourceRecordId,
+                    sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    outputTextLocation);
+                    textLocation);
             sourceRecords.add(sourceRecord);
         }
         return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
