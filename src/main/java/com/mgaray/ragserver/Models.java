@@ -5,11 +5,14 @@ import java.util.Map;
 
 public class Models {
 
-    public record RunDefinition() {} //todo
+    public record RunDefinition(ChunkingSpec chunkingSpec,
+                                EmbeddingSpec embeddingSpec) {} //todo
 
     public record SourceManifest(String id,
+                                 //RunDefinition //todo
                                  List<SourceRecord> sourceRecords,
-                                 Map<String, String> sourceRecordIdToChunkManifestLocation) {}
+                                 Map<String, String> sourceRecordIdToChunkManifestLocation,
+                                 List<VectorStoreExport> vectorStoreExports) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
@@ -25,8 +28,13 @@ public class Models {
                         String textLocation,
                         String embeddingLocation) {}
 
+    public record VectorStoreExport(String modelName,
+                                    String location) {}
+
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
+
+    public record EmbeddingSpec(String modelName) {}
 
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}

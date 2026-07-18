@@ -41,7 +41,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -67,7 +67,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                     textLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
     }
 
     public Models.SourceManifest sourceFolderForNabAndWebc(String sourceManifestId, String downloadsFolder) {
@@ -87,7 +87,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                     textLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
     }
 
 }

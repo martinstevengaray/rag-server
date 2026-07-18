@@ -5,6 +5,7 @@ import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.service.V;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
@@ -22,15 +23,17 @@ public class VectorStore {
         this.dataFetcher = dataFetcher;
     }
 
-    public VectorStore(DataFetcher dataFetcher, String sourceManifestId, String modelName) {
-        this.dataFetcher = dataFetcher;
-        String location = Models.vectorStore(sourceManifestId, modelName);
-        store = InMemoryEmbeddingStore.fromJson(dataFetcher.fetch(location));
-    }
+//    public VectorStore(DataFetcher dataFetcher, String sourceManifestId) { //, String modelName) {
+//        this.dataFetcher = dataFetcher;
+//        String location = Models.vectorStore(sourceManifestId, modelName);
+//        this.store = InMemoryEmbeddingStore.fromJson(dataFetcher.fetch(location));
+//    }
 
-    public void load(Models.SourceManifest sourceManifest) {
-        //todo
-    }
+//    public void load(Models.SourceManifest sourceManifest) {
+//        manifest.
+//
+//        //todo
+//    }
 
     public void add(float[] vector, Models.Chunk chunk) {
         store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
