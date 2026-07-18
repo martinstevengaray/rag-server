@@ -2,6 +2,7 @@ package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.chunker.Chunker;
+import com.mgaray.ragserver.chunker.LocationConventions;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.sourcereader.SourceReader;
 
@@ -21,7 +22,7 @@ public class InitializeDataMain {
         System.out.println("start chunking");
         chunker.chunk(sourceManifest, chunkingSpec);
 
-        String sourceManifestLocation = "/" + sourceManifest.id() + "/sourceManifest.json";
+        String sourceManifestLocation = LocationConventions.sourceManifestLocation(sourceManifest.id());
         dataFetcher.save(sourceManifestLocation, sourceManifest);
 
         System.out.println(JsonUtils.toJsonPretty(sourceManifest));

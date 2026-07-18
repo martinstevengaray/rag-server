@@ -28,7 +28,7 @@ public class Chunker {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
             Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
-            String chunkManifestLocation = "/" + sourceManifest.id() + "/sourceRecords/" + sourceRecord.id() + "/chunkManifest.json";
+            String chunkManifestLocation = LocationConventions.chunkManifestLocation(sourceManifest.id(), sourceRecord.id());
             dataFetcher.save(chunkManifestLocation, chunkManifest);
             sourceManifest.sourceRecordIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
         }
@@ -43,16 +43,17 @@ public class Chunker {
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkId = String.format("%03d", chunkIndex);  //the 3 should by dynamic todo!
             String chunkText = chunkedText.get(chunkIndex);
-            String checkTextStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/chunks/" + chunkId + ".txt";
-            if (!dataFetcher.exists(checkTextStorageLocation)) {
-                dataFetcher.save(checkTextStorageLocation, chunkText);
+            String chuckTextLocation = LocationConventions.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
+            if (!dataFetcher.exists(chuckTextLocation)) {
+                dataFetcher.save(chuckTextLocation, chunkText);
             }
-            String embeddingStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/embeddings/" + embedder.getModelName() + "-" + chunkId + ".bin";
-            if (!dataFetcher.exists(embeddingStorageLocation)) {
+            String embeddingLocation = LocationConventions.embeddingLocation(sourceManifestId, sourceRecord.id(),
+                    embedder.getModelName(), chunkId);
+            if (!dataFetcher.exists(embeddingLocation)) {
                 float[] chunkEmbedding = embedder.embed(chunkText).vector();
-                dataFetcher.save(embeddingStorageLocation, chunkEmbedding);
+                dataFetcher.save(embeddingLocation, chunkEmbedding);
             }
-            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, checkTextStorageLocation, embeddingStorageLocation));
+            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
         return chunks;
     }
