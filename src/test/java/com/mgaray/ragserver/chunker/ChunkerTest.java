@@ -23,23 +23,25 @@ public class ChunkerTest {
         String localRootFolderBucket = "/Users/turtlemccully/projects/rag-server/local/ChunkerTest";
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, localRootFolderBucket);
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        String sourceLocation = "/source.txt";
-        dataFetcher.save(sourceLocation, chunkText);
+        String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
+        String sourceLocationTextLocation = Models.sourceRecordTextLocation(sourceManifestId,sourceRecordId);
+        dataFetcher.save(sourceLocationTextLocation, chunkText);
+        String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
         Models.SourceRecord sourceRecord = new Models.SourceRecord(
                 sourceRecordId,
                 null,
                 null,
                 null,
-                sourceLocation);
+                sourceLocationTextLocation,
+                chunkManifestLocation);
         sourceRecords.add(sourceRecord);
         Models.SourceManifest sourceManifest =
-                new Models.SourceManifest("ChunkerTest", sourceRecords, new HashMap<>(), new ArrayList<>());
+                new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
 
         Chunker chunker = new Chunker(dataFetcher);
         chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
 
-        String chunkManifestLocation = sourceManifest.sourceRecordIdToChunkManifestLocation().get(sourceRecordId);
         Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
         for (Models.Chunk chunk : chunkManifest.chunks()) {
             String text = dataFetcher.fetch(chunk.textLocation());

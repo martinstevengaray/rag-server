@@ -11,14 +11,14 @@ public class Models {
     public record SourceManifest(String id,
                                  //RunDefinition //todo
                                  List<SourceRecord> sourceRecords,
-                                 Map<String, String> sourceRecordIdToChunkManifestLocation,
                                  List<VectorStoreExport> vectorStoreExports) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
                                String retrievedAt,
                                String title,
-                               String textLocation) {}
+                               String textLocation,
+                               String chunkManifestLocation) {}
 
     public record ChunkManifest(List<Chunk> chunks,
                                 ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}

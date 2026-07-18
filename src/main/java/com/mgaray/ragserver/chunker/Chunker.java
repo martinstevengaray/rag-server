@@ -26,11 +26,12 @@ public class Chunker {
     public void chunk(Models.SourceManifest sourceManifest,
                                        Models.ChunkingSpec chunkingSpec) {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
-            Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
-            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifest.id(), sourceRecord.id());
-            dataFetcher.save(chunkManifestLocation, chunkManifest);
-            sourceManifest.sourceRecordIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
+            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+            if (!dataFetcher.exists(chunkManifestLocation)) {
+                List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
+                Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
+                dataFetcher.save(chunkManifestLocation, chunkManifest);
+            }
         }
     }
 

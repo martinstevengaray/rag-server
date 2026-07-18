@@ -5,7 +5,6 @@ import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +28,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                 //copy source.text file
                 String sourceRecordId = "title" + inputSourceRecordId;
                 String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+                String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
                 dataFetcher.save(textLocation, text);
                 //save source.json file
                 Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
@@ -37,11 +37,12 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
                         record.get("title").toString(),
-                        textLocation);
+                        textLocation,
+                        chunkManifestLocation);
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -57,6 +58,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
             //save source.text file
             String sourceRecordId = "ors" + inputSourceRecordId;
             String textLocation  = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             dataFetcher.save(textLocation, text);
             //save source.json file
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -64,10 +66,11 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("chapter_title").toString(),
-                    textLocation);
+                    textLocation,
+                    chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
     }
 
     public Models.SourceManifest sourceFolderForNabAndWebc(String sourceManifestId, String downloadsFolder) {
@@ -78,16 +81,18 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
             String text = record.get("text").toString();
             //save sourceRecord.text file
             String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             dataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
                     record.get("reference").toString(),
-                    textLocation);
+                    textLocation,
+                    chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new HashMap<>(), new ArrayList<>());
+        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
     }
 
 }
