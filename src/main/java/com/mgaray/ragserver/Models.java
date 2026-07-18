@@ -28,6 +28,8 @@ public class Models {
 
     public record ChunkingSpec(int wordCount, float percentOverlap) {}
 
+    public record ChunkMatch(Chunk chunk, double matchScore) {}
+
 /*
 
     Although sourceManifest can define any storage pattern, this is the convention we use
