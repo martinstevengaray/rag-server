@@ -2,7 +2,9 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
@@ -12,7 +14,7 @@ import java.util.List;
 
 public class VectorStore {
 
-    private InMemoryEmbeddingStore<Models.Chunk> store;  //todo change to TextSegment type if we want to rehydrate
+    private final InMemoryEmbeddingStore<TextSegment> store;
     private final DataFetcher dataFetcher;
 
     public VectorStore(DataFetcher dataFetcher) {
@@ -20,8 +22,18 @@ public class VectorStore {
         this.dataFetcher = dataFetcher;
     }
 
+    public VectorStore(DataFetcher dataFetcher, String sourceManifestId, String modelName) {
+        this.dataFetcher = dataFetcher;
+        String location = Models.vectorStore(sourceManifestId, modelName);
+        store = InMemoryEmbeddingStore.fromJson(dataFetcher.fetch(location));
+    }
+
+    public void load(Models.SourceManifest sourceManifest) {
+        //todo
+    }
+
     public void add(float[] vector, Models.Chunk chunk) {
-        store.add(new Embedding(vector), chunk);
+        store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
     }
 
     public List<Models.ChunkMatch> get(float[] searchVector, int count) {
@@ -30,23 +42,19 @@ public class VectorStore {
                 .queryEmbedding(new Embedding(searchVector))
                 .maxResults(count)
                 .build();
-        List<EmbeddingMatch<Models.Chunk>> matches = store.search(request).matches();
-        for (EmbeddingMatch<Models.Chunk> match : matches) {
-            Models.Chunk chunk = match.embedded();
+        List<EmbeddingMatch<TextSegment>> matches = store.search(request).matches();
+        for (EmbeddingMatch<TextSegment> match : matches) {
+            Models.Chunk chunk = JsonUtils.toObject(match.embedded().text(), Models.Chunk.class);
             double matchScore = match.score();
             chunkMatches.add(new Models.ChunkMatch(chunk, matchScore));
         }
         return chunkMatches;
     }
 
-    public void save(String location) {
+    public void save(String sourceManifestId, String modelName) {
+        String location = Models.vectorStore(sourceManifestId, modelName);
         String storeJson = store.serializeToJson();
         dataFetcher.save(location, storeJson);
     }
-
-//    public void load(String location) {
-//        String storeJson = dataFetcher.fetch(location);
-//        store = InMemoryEmbeddingStore.<Models.Chunk>fromJson(storeJson);
-//    }
 
 }

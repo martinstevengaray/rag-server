@@ -71,11 +71,4 @@ public class DataFetcher {
         }
     }
 
-//    public String fetchSourceRecordText(Models.SourceRecord sourceRecord) {
-//        if (sourceRecord.lazyText() != null) {
-//            return sourceRecord.lazyText();
-//        }
-//        return fetch(sourceRecord.textLocation());
-//    }
-
 }

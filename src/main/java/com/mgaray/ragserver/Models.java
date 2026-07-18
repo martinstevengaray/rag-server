@@ -28,16 +28,42 @@ public class Models {
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
 
-    public record ChunkMatch(Chunk chunk, double matchScore) {}
+    public record ChunkMatch(Chunk chunk,
+                             double matchScore) {}
 
+
+
+    public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
+    }
+
+    public static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+    }
+
+    public static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
+    }
+
+    public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String modelName, String chunkId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + modelName + "-" + chunkId + ".bin";
+    }
+
+    public static String sourceManifestLocation(String sourceManifestId) {
+        return "/" + sourceManifestId + "/sourceManifest.json";
+    }
+
+    public static String vectorStore(String sourceManifestId, String modelName) {
+        return "/" + sourceManifestId + "/embeddings/" + modelName + ".json";
+    }
 /*
 
     Although sourceManifest can support any storage pattern, this is the convention we use
 
     S3 folder structure:
         S3://bucket/sourceManifest.id/sourceManifest.json
-        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.bin
-        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.bin
+        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.json
+        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.json
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/sourceRecord.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunks/chunk.id.txt

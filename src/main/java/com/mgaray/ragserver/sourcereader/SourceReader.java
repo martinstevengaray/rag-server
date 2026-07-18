@@ -2,7 +2,6 @@ package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
-import com.mgaray.ragserver.chunker.LocationConventions;
 import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
                 String text = FileUtils.readFile(inputTextLocation);
                 //copy source.text file
                 String sourceRecordId = "title" + inputSourceRecordId;
-                String textLocation = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+                String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
                 dataFetcher.save(textLocation, text);
                 //save source.json file
                 Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
@@ -57,7 +56,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
             String text = FileUtils.readFile(inputTextLocation);
             //save source.text file
             String sourceRecordId = "ors" + inputSourceRecordId;
-            String textLocation  = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String textLocation  = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
             dataFetcher.save(textLocation, text);
             //save source.json file
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -78,7 +77,7 @@ public class SourceReader { //todo rename to sourceTransformer or sourceLoader
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
             //save sourceRecord.text file
-            String textLocation = LocationConventions.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
             dataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,

@@ -28,7 +28,7 @@ public class Chunker {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
             Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
-            String chunkManifestLocation = LocationConventions.chunkManifestLocation(sourceManifest.id(), sourceRecord.id());
+            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifest.id(), sourceRecord.id());
             dataFetcher.save(chunkManifestLocation, chunkManifest);
             sourceManifest.sourceRecordIdToChunkManifestLocation().put(sourceRecord.id(), chunkManifestLocation);
         }
@@ -44,11 +44,11 @@ public class Chunker {
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
-            String chuckTextLocation = LocationConventions.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
+            String chuckTextLocation = Models.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
             if (!dataFetcher.exists(chuckTextLocation)) {
                 dataFetcher.save(chuckTextLocation, chunkText);
             }
-            String embeddingLocation = LocationConventions.embeddingLocation(sourceManifestId, sourceRecord.id(),
+            String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(),
                     embedder.getModelName(), chunkId);
             if (!dataFetcher.exists(embeddingLocation)) {
                 float[] chunkEmbedding = embedder.embed(chunkText).vector();
