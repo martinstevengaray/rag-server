@@ -40,8 +40,9 @@ public class Chunker {
         String originalText = dataFetcher.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
+        int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
-            String chunkId = String.format("%03d", chunkIndex);  //the 3 should by dynamic todo!
+            String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
             String chuckTextLocation = LocationConventions.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
             if (!dataFetcher.exists(chuckTextLocation)) {

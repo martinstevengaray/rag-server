@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SourceReader { //todo rename to sourceTransformer
+public class SourceReader { //todo rename to sourceTransformer or sourceLoader
 
     private final DataFetcher dataFetcher;
 

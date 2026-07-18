@@ -17,14 +17,16 @@ public class Models {
                                String title,
                                String textLocation) {}
 
-    public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
+    public record ChunkManifest(List<Chunk> chunks,
+                                ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
                         String textLocation,
                         String embeddingLocation) {}
 
-    public record ChunkingSpec(int wordCount, float percentOverlap) {}
+    public record ChunkingSpec(int wordCount,
+                               float percentOverlap) {}
 
     public record ChunkMatch(Chunk chunk, double matchScore) {}
 
