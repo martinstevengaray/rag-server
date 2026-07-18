@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SourceReader { //todo rename to sourceTransformer or sourceLoader
+public class SourceTransformer {
 
     private final DataFetcher dataFetcher;
 
-    public SourceReader(DataFetcher dataFetcher) {
+    public SourceTransformer(DataFetcher dataFetcher) {
         this.dataFetcher = dataFetcher;
     }
 
