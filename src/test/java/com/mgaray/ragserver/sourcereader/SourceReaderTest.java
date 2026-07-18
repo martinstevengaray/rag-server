@@ -14,9 +14,9 @@ public class SourceReaderTest {
 
         String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForPortland("portland-city-code", inputPortland);
-        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
+        //System.out.println(JsonUtils.toJsonPretty(sourceManifest));
         System.out.println("errors: " + sourceValidator.validate(sourceManifest));
-//if(true) return;
+
         String inputOregon = "../rag-content-corpus-download/src/oregon-state-code/downloads-clean";
         sourceManifest = sourceReader.sourceFolderForOregon("oregon-state-code", inputOregon);
         //System.out.println(JsonUtils.toJsonPretty(source));

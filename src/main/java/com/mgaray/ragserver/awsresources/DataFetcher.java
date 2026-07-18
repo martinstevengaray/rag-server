@@ -1,6 +1,5 @@
 package com.mgaray.ragserver.awsresources;
 
-import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.common.FileUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 
@@ -37,12 +36,21 @@ public class DataFetcher {
             case IN_MEMORY -> JsonUtils.toObject((String) inMemoryDataStore.get(storageLocation), clazz);
             case ON_DISK -> JsonUtils.toObject(FileUtils.readFile(bucket + "/" + storageLocation), clazz);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        };
+    }
+
+    public boolean exists(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> inMemoryDataStore.containsKey(storageLocation);
+            case ON_DISK -> FileUtils.exists(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         };
     }
 
     public void save(String storageLocation, Object object) {
-        save(storageLocation, JsonUtils.toJson(object));
+        save(storageLocation, JsonUtils.toJsonPretty(object));
     }
 
     public void save(String storageLocation, String content) {
@@ -50,7 +58,7 @@ public class DataFetcher {
             case IN_MEMORY -> inMemoryDataStore.put(storageLocation, content);
             case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, content);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         }
     }
 
@@ -59,7 +67,7 @@ public class DataFetcher {
             case IN_MEMORY -> inMemoryDataStore.put(storageLocation, embedding);
             case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, Arrays.toString(embedding)); //todo bin format
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         }
     }
 

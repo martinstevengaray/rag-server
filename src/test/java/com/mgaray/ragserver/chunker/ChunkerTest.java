@@ -2,7 +2,6 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
-import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -9,8 +9,6 @@ import java.util.List;
 
 public class Chunker {
 
-    public enum Mode {IN_MEMORY, ON_DISK, ON_S3}
-
     private final DataFetcher dataFetcher;
     private final Embedder embedder;;
     private final boolean createVectorStore;
@@ -48,15 +46,15 @@ public class Chunker {
             String chunkId = String.format("%03d", chunkIndex);  //the 3 should by dynamic todo!
             String chunkText = chunkedText.get(chunkIndex);
             String checkTextStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/chunks/" + chunkId + ".txt";
-            dataFetcher.save(checkTextStorageLocation, chunkText);
-            float[] chunkEmbedding = embedder.embed(chunkText).vector();
+            if (!dataFetcher.exists(checkTextStorageLocation)) {
+                dataFetcher.save(checkTextStorageLocation, chunkText);
+            }
             String embeddingStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/embeddings/" + embedder.getModelName() + "-" + chunkId + ".bin";
-            dataFetcher.save(embeddingStorageLocation, chunkEmbedding);
-            chunks.add(new Models.Chunk(
-                        sourceRecord,
-                        chunkIndex,
-                        checkTextStorageLocation,
-                        embeddingStorageLocation));
+            if (!dataFetcher.exists(embeddingStorageLocation)) {
+                float[] chunkEmbedding = embedder.embed(chunkText).vector();
+                dataFetcher.save(embeddingStorageLocation, chunkEmbedding);
+            }
+            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, checkTextStorageLocation, embeddingStorageLocation));
         }
         return chunks;
     }
@@ -79,7 +77,5 @@ public class Chunker {
         }
         return chunks;
     }
-
-
 
 }

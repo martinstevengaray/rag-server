@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -21,7 +20,6 @@ import java.util.List;
 
 public class Embedder {
 
-
     public enum ModelType {
         DUMMY("dummy"),
         LOCAL("local-BgeSmallEnV15Quantized"),
@@ -33,9 +31,8 @@ public class Embedder {
         }
     }
 
-    public EmbeddingModel embeddingModel;
-
     private final ModelType modelType;
+    private final EmbeddingModel embeddingModel;
 
     public Embedder(ModelType modelType) {
         this.modelType = modelType;
@@ -73,13 +70,19 @@ public class Embedder {
     }
 
 
-}
+//}
 
 
 
-/*
 
-    private final DataFetcher dataFetcher = new DataFetcher();
+
+
+
+
+
+
+
+//    private final DataFetcher dataFetcher = new DataFetcher();
 
 
     public void mutateEmbedding(Models.Chunk chunk) {
@@ -214,4 +217,3 @@ public class Embedder {
         return sum;
     }
 }
-*/

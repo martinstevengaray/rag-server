@@ -5,9 +5,6 @@ import com.mgaray.ragserver.chunker.Chunker;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.sourcereader.SourceReader;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class InitializeDataMain {
 
 
