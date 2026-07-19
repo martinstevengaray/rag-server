@@ -17,11 +17,7 @@ public class DataInitializer {
         this.outputDataFetcher = outputDataFetcher;
     }
 
-    public List<String> create(String sourceManifestId) {
-        return create(inputDataFetcher.fetch(Models.originalSourceManifestLocation(sourceManifestId), Models.SourceManifest.class));
-    }
-
-    public List<String> create(Models.SourceManifest inputSourceManifest) {
+    public List<String> create(Models.SourceManifest inputSourceManifest, Models.RunDefinition runDefinition) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = inputSourceManifest.id();
         for (Models.SourceRecord inputSourceRecord : inputSourceManifest.sourceRecords()) {
@@ -41,7 +37,7 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
         String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
         outputDataFetcher.save(sourceManifestLocation, outputSourceManifest);
         return sourceValidator.validate(outputSourceManifest);

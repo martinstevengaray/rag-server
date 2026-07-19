@@ -5,10 +5,10 @@ import java.util.List;
 public class Models {
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
-                                EmbeddingSpec embeddingSpec) {} //todo
+                                EmbeddingSpec embeddingSpec) {}
 
     public record SourceManifest(String id,
-                                 //RunDefinition //todo
+                                 RunDefinition runDefinition,
                                  List<SourceRecord> sourceRecords,
                                  List<VectorStoreExport> vectorStoreExports) {}
 
@@ -19,8 +19,7 @@ public class Models {
                                String textLocation,
                                String chunkManifestLocation) {}
 
-    public record ChunkManifest(List<Chunk> chunks,
-                                ChunkingSpec chunkingSpec) {} ///todo remove, part of sourceManifest?
+    public record ChunkManifest(List<Chunk> chunks) {}
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
@@ -38,16 +37,6 @@ public class Models {
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}
 
-//todo move the first 2 SourceTransformer
-//    public static String originalSourceFolder(String sourceManifestId) {
-//        return "/" + sourceManifestId + "/sources";
-//    }
-    public static String originalSourceManifestLocation(String sourceManifestId) {
-        return "/" + sourceManifestId + "/sourceManifest.json";
-    }
-    public static String originalSourceTextLocation(String sourceManifestId, String sourceRecordId) {
-        return "/" + sourceManifestId + "/sources/" + sourceRecordId + ".txt";
-    }
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
     }
@@ -93,7 +82,7 @@ public class Models {
         S3://bucket/portland-city-code/sourceRecords/001/chunks/000.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/001.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/002.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-000.txt
+        S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-000.txt  //todo only one embedding per sourceManifestId
         S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-001.txt
         S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-002.txt
         S3://bucket/portland-city-code/sourceRecords/001/embeddings/open-ai-text-embedding-3-small-000.txt

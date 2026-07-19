@@ -23,13 +23,13 @@ public class Chunker {
         this.embedder = new Embedder(Embedder.ModelType.DUMMY);
     }
 
-    public void chunk(Models.SourceManifest sourceManifest,
-                                       Models.ChunkingSpec chunkingSpec) {
+    public void chunk(Models.SourceManifest sourceManifest) {
+        Models.ChunkingSpec chunkingSpec = sourceManifest.runDefinition().chunkingSpec();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             if (!dataFetcher.exists(chunkManifestLocation)) {
                 List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
-                Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
+                Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks);
                 dataFetcher.save(chunkManifestLocation, chunkManifest);
             }
         }

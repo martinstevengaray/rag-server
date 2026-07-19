@@ -15,11 +15,11 @@ public class ChunkerMain {
 
     public static void main(String[] args) {
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, bucket);
-        Models.SourceManifest sourceManifest = dataFetcher.fetch(Models.sourceManifestLocation(portlandSourceManifestId), Models.SourceManifest.class);
+        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
+        Models.SourceManifest sourceManifest = dataFetcher.fetch(sourceManifestLocation, Models.SourceManifest.class);
         Chunker chunker = new Chunker(dataFetcher);
-        Models.ChunkingSpec chunkingSpec = new Models.ChunkingSpec(500, 0.5f);
         System.out.println("start chunking");
-        chunker.chunk(sourceManifest, chunkingSpec);
+        chunker.chunk(sourceManifest);
         System.out.println(JsonUtils.toJsonPretty(sourceManifest));
     }
 

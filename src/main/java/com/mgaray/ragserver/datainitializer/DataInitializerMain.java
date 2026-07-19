@@ -16,12 +16,19 @@ public class DataInitializerMain {
     private static final String nabManifestId = "new-american-bible";
 
     public static void main(String[] args) {
+        String sourceManifestId = portlandSourceManifestId;
         DataFetcher inputDataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, inputBucket);
         DataFetcher outputDataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, outputBucket);
         DataInitializer dataInitializer = new DataInitializer(inputDataFetcher, outputDataFetcher);
-        List<String> errors = dataInitializer.create(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = outputDataFetcher.fetch(Models.sourceManifestLocation(portlandSourceManifestId), Models.SourceManifest.class);
-        System.out.println(portlandSourceManifestId + " sourceRecords: " + sourceManifest.sourceRecords().size() + ". errors: " + errors);
+        Models.RunDefinition runDefinition = new Models.RunDefinition(
+                new Models.ChunkingSpec(500, 0.5f),
+                new Models.EmbeddingSpec("modelName-placeholder")); //todo
+        Models.SourceManifest inputSourceManifest = inputDataFetcher.fetch(
+                "/" + sourceManifestId + "/sourceManifest.json", Models.SourceManifest.class);
+        List<String> errors = dataInitializer.create(inputSourceManifest, runDefinition);
+        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        Models.SourceManifest sourceManifest = outputDataFetcher.fetch(sourceManifestLocation, Models.SourceManifest.class);
+        System.out.println(sourceManifestId + " sourceRecords: " + sourceManifest.sourceRecords().size() + ". errors: " + errors);
     }
 
 }
