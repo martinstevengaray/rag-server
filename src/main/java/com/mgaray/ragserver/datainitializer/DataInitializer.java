@@ -29,7 +29,9 @@ public class DataInitializer {
             String inputTextLocation = inputSourceRecord.textLocation();
             String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
             String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-            outputDataFetcher.save(textLocation, inputDataFetcher.fetch(inputTextLocation)); //copy source text
+            if (!outputDataFetcher.exists(textLocation)) { // copy source text if not already done so
+                outputDataFetcher.save(textLocation, inputDataFetcher.fetch(inputTextLocation));
+            }
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
                     inputSourceRecord.sourceUrl(),
@@ -44,4 +46,5 @@ public class DataInitializer {
         outputDataFetcher.save(sourceManifestLocation, outputSourceManifest);
         return sourceValidator.validate(outputSourceManifest);
     }
+
 }
