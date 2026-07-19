@@ -5,7 +5,7 @@ import com.mgaray.ragserver.chunker.Chunker;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.sourcereader.SourceTransformerOld;
 
-public class InitializeDataMain {
+public class InitializeDataMainOld {
 
 
     private static final String inputPortland = "../rag-content-corpus-download/src/portland_city_code/downloads-clean";
