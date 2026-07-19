@@ -2,7 +2,6 @@ package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
-import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +11,7 @@ public class SourceTransformer {
 
     private final DataFetcher inputDataFetcher;
     private final DataFetcher outputDataFetcher;
+    private final SourceValidator sourceValidator = new SourceValidator();
 
     public SourceTransformer(DataFetcher inputDataFetcher, DataFetcher outputDataFetcher) {
         this.inputDataFetcher = inputDataFetcher;
@@ -19,7 +19,7 @@ public class SourceTransformer {
     }
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt   (recall: 08 does not exit)
-    public Models.SourceManifest sourceFolderForPortland(String sourceManifestId) {
+    public List<String> sourceFolderForPortland(String sourceManifestId) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
             String inputSourceRecordId = String.format("%02d", recordNumber);
@@ -29,7 +29,7 @@ public class SourceTransformer {
                 String text = inputDataFetcher.fetch(inputTextLocation);
                 //copy source.text file
                 String sourceRecordId = "title" + inputSourceRecordId;
-                String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+                String textLocation = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
                 String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
                 outputDataFetcher.save(textLocation, text);
                 Map<String, Object> record = inputDataFetcher.fetchJson(inputRecordLocation);
@@ -43,13 +43,16 @@ public class SourceTransformer {
                 sourceRecords.add(sourceRecord);
             }
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        outputDataFetcher.save(sourceManifestLocation, sourceManifest);
+        return sourceValidator.validate(sourceManifest);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
-    public Models.SourceManifest sourceFolderForOregon(String sourceManifestId) {
+    public List<String> sourceFolderForOregon(String sourceManifestId) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        List<Map<String, Object>> manifest = FileUtils.readJsonlFile("/manifest.jsonl");
+        List<Map<String, Object>> manifest = inputDataFetcher.fetchJsonl("/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
             String inputSourceRecordId = record.get("chapter").toString();
             if (inputSourceRecordId.length() == 1) { inputSourceRecordId = "00" + inputSourceRecordId; }
@@ -57,7 +60,7 @@ public class SourceTransformer {
             String inputTextLocation = "/text/ors" + inputSourceRecordId + ".txt";
             String text = inputDataFetcher.fetch(inputTextLocation);
             String sourceRecordId = "ors" + inputSourceRecordId;
-            String textLocation  = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String textLocation  = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
             String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             outputDataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -69,17 +72,20 @@ public class SourceTransformer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        outputDataFetcher.save(sourceManifestLocation, sourceManifest);
+        return sourceValidator.validate(sourceManifest);
     }
 
-    public Models.SourceManifest sourceFolderForNabAndWebc(String sourceManifestId, String downloadsFolder) {
+    public List<String> sourceFolderForNabAndWebc(String sourceManifestId) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        List<Map<String, Object>> chapters = FileUtils.readJsonlFile(downloadsFolder + "/chapters.jsonl");
+        List<Map<String, Object>> chapters = inputDataFetcher.fetchJsonl("/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
             //save sourceRecord.text file
-            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String textLocation = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
             String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             outputDataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -91,7 +97,10 @@ public class SourceTransformer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        outputDataFetcher.save(sourceManifestLocation, sourceManifest);
+        return sourceValidator.validate(sourceManifest);
     }
 
 }

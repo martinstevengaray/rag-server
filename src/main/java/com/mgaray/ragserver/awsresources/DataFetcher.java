@@ -59,6 +59,15 @@ public class DataFetcher {
         };
     }
 
+    public List<Map<String, Object>> fetchJsonl(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> JsonUtils.parseJsonl((String)inMemoryDataStore.get(storageLocation));
+            case ON_DISK -> FileUtils.readJsonlFile(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
+    }
+
     public <T> T fetch(String storageLocation, Class<T> clazz) {
         return switch(mode) {
             case IN_MEMORY -> JsonUtils.toObject((String) inMemoryDataStore.get(storageLocation), clazz);

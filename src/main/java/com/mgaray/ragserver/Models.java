@@ -43,6 +43,9 @@ public class Models {
     public static String sourceRecordFolder(String sourceManifestId) {
         return "/" + sourceManifestId + "/sourceRecords";
     }
+    public static String originalSourceTextLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sources/" + sourceRecordId + ".txt";
+    }
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
     }
