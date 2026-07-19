@@ -8,11 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class SourceTransformer {
+public class SourceTransformerOld {
 
     private final DataFetcher dataFetcher;
 
-    public SourceTransformer(DataFetcher dataFetcher) {
+    public SourceTransformerOld(DataFetcher dataFetcher) {
         this.dataFetcher = dataFetcher;
     }
 

@@ -3,7 +3,7 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.chunker.Chunker;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.sourcereader.SourceTransformer;
+import com.mgaray.ragserver.sourcereader.SourceTransformerOld;
 
 public class InitializeDataMain {
 
@@ -12,7 +12,7 @@ public class InitializeDataMain {
 
     public static void main(String[] args) {
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
-        SourceTransformer sourceTransformer = new SourceTransformer(dataFetcher);
+        SourceTransformerOld sourceTransformer = new SourceTransformerOld(dataFetcher);
         Chunker chunker = new Chunker(dataFetcher);
 
         Models.SourceManifest sourceManifest = sourceTransformer.sourceFolderForPortland("portland-city-code", inputPortland);

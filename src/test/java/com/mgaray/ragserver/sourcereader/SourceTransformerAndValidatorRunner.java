@@ -7,7 +7,7 @@ public class SourceTransformerAndValidatorRunner {
 
     public static void main(String[] args) {
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket");
-        SourceTransformer sourceTransformer = new SourceTransformer(dataFetcher);
+        SourceTransformerOld sourceTransformer = new SourceTransformerOld(dataFetcher);
         SourceValidator sourceValidator = new SourceValidator();
         Models.SourceManifest sourceManifest = null;
 
