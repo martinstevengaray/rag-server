@@ -1,41 +1,84 @@
-package com.mgaray.ragserver;
+package com.mgaray.ragserver.common;
 
 import java.util.List;
 
 public class Models {
 
-    public record RunDefinition() {} //todo
+    public record RunDefinition(ChunkingSpec chunkingSpec,
+                                EmbeddingSpec embeddingSpec) {} //todo
 
-    public record SourceManifest(String id, List<SourceRecord> sourceRecords) {}
+    public record SourceManifest(String id,
+                                 //RunDefinition //todo
+                                 List<SourceRecord> sourceRecords,
+                                 List<VectorStoreExport> vectorStoreExports) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
                                String retrievedAt,
                                String title,
                                String textLocation,
-                               String chunkManifestLocation) {
-        public SourceRecord withChunkManifestLocation(String chunkManifestLocation) {
-            return new SourceRecord(id, sourceUrl, retrievedAt, title, textLocation, chunkManifestLocation);
-        }
-    }
+                               String chunkManifestLocation) {}
 
-    public record ChunkManifest(List<Chunk> chunks, ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
+    public record ChunkManifest(List<Chunk> chunks,
+                                ChunkingSpec chunkingSpec) {} ///todo remove, part of sourceManifest?
 
-    public record Chunk(SourceRecord sourceRecord, //todo remove this field in favor of copying over relevant fields only (for example chunkManifestLocation makes no sense here)
+    public record Chunk(SourceRecord sourceRecord,
                         int index,
                         String textLocation,
                         String embeddingLocation) {}
 
-    public record ChunkingSpec(int wordCount, float percentOverlap) {}
+    public record VectorStoreExport(String modelName,
+                                    String location) {}
 
+    public record ChunkingSpec(int wordCount,
+                               float percentOverlap) {}
+
+    public record EmbeddingSpec(String modelName) {}
+
+    public record ChunkMatch(Chunk chunk,
+                             double matchScore) {}
+
+//todo move the first 2 SourceTransformer
+//    public static String originalSourceFolder(String sourceManifestId) {
+//        return "/" + sourceManifestId + "/sources";
+//    }
+    public static String originalSourceManifestLocation(String sourceManifestId) {
+        return "/" + sourceManifestId + "/sourceManifest.json";
+    }
+    public static String originalSourceTextLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sources/" + sourceRecordId + ".txt";
+    }
+    public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
+    }
+
+    public static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+    }
+
+    public static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
+    }
+
+    public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String modelName, String chunkId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + modelName + "-" + chunkId + ".bin";
+    }
+
+    public static String sourceManifestLocation(String sourceManifestId) {
+        return "/" + sourceManifestId + "/sourceManifest.json";
+    }
+
+    public static String vectorStore(String sourceManifestId, String modelName) {
+        return "/" + sourceManifestId + "/embeddings/" + modelName + ".json";
+    }
 /*
 
-    Although sourceManifest can define any storage pattern, this is the convention we use
+    Although sourceManifest can support any storage pattern, this is the convention we use
 
     S3 folder structure:
         S3://bucket/sourceManifest.id/sourceManifest.json
-        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.bin
-        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.bin
+        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.json
+        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.json
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/sourceRecord.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
         S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunks/chunk.id.txt

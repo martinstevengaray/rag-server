@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
@@ -19,31 +19,33 @@ public class ChunkerTest {
           """;
 
     public static void main(String[] args) {
-        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, "/Users/turtlemccully/projects/rag-server/local/ChunkerTest");
-
+        String localRootFolderBucket = "/Users/turtlemccully/projects/rag-server/local/ChunkerTest";
+        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, localRootFolderBucket);
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        String sourceLocation = "/source.txt";
-        dataFetcher.save(sourceLocation, chunkText);
+        String sourceManifestId = "ChunkerTest";
+        String sourceRecordId = "ChunkerTest-sourceRecord";
+        String sourceLocationTextLocation = Models.sourceRecordTextLocation(sourceManifestId,sourceRecordId);
+        dataFetcher.save(sourceLocationTextLocation, chunkText);
+        String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
         Models.SourceRecord sourceRecord = new Models.SourceRecord(
-                "ChunkerTest-sourceRecord",
+                sourceRecordId,
                 null,
                 null,
                 null,
-                sourceLocation,
-                null);
+                sourceLocationTextLocation,
+                chunkManifestLocation);
         sourceRecords.add(sourceRecord);
-        Models.SourceManifest sourceManifest = new Models.SourceManifest("ChunkerTest", sourceRecords);
+        Models.SourceManifest sourceManifest =
+                new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
 
         Chunker chunker = new Chunker(dataFetcher);
-        sourceManifest = chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
-        for (Models.SourceRecord sourceRecordUpdated : sourceManifest.sourceRecords()) {
-            Models.ChunkManifest chunkManifest = dataFetcher.fetch(sourceRecordUpdated.chunkManifestLocation(), Models.ChunkManifest.class);
-            for (Models.Chunk chunk : chunkManifest.chunks()) {
-                String text = dataFetcher.fetch(chunk.textLocation());
-                System.out.println(text);
-            }
-        }
+        chunker.chunk(sourceManifest, new Models.ChunkingSpec(8, 0.5f));
 
+        Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+        for (Models.Chunk chunk : chunkManifest.chunks()) {
+            String text = dataFetcher.fetch(chunk.textLocation());
+            System.out.println(text);
+        }
     }
 
 }

@@ -3,9 +3,7 @@ package com.mgaray.ragserver.awsresources;
 import com.mgaray.ragserver.common.FileUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DataFetcher {
 
@@ -22,10 +20,49 @@ public class DataFetcher {
         this.bucket = bucket;
     }
 
+    public List<String> list(String keyPrefix) {
+        return switch(mode) {
+            case IN_MEMORY -> {
+                List<String> matchingKeys = new ArrayList<>();
+                for (String key : inMemoryDataStore.keySet()) {
+                    if (key.startsWith(keyPrefix)) {
+                        String postfix = key.substring(keyPrefix.length());
+                        if (postfix.contains("/")) {
+                            postfix = postfix.split("/")[0];
+                        }
+                        matchingKeys.add(postfix);
+                    }
+                }
+                yield matchingKeys;
+            }
+            case ON_DISK -> FileUtils.listFolder(bucket + "/" + keyPrefix);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
+    }
+
     public String fetch(String storageLocation) {
         return switch(mode) {
             case IN_MEMORY -> (String) inMemoryDataStore.get(storageLocation);
             case ON_DISK -> FileUtils.readFile(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
+    }
+
+    public Map<String, Object> fetchJson(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> JsonUtils.parse((String)inMemoryDataStore.get(storageLocation));
+            case ON_DISK -> FileUtils.readJsonFile(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
+    }
+
+    public List<Map<String, Object>> fetchJsonl(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> JsonUtils.parseJsonl((String)inMemoryDataStore.get(storageLocation));
+            case ON_DISK -> FileUtils.readJsonlFile(bucket + "/" + storageLocation);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
             default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
         };
@@ -70,12 +107,5 @@ public class DataFetcher {
             default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         }
     }
-
-//    public String fetchSourceRecordText(Models.SourceRecord sourceRecord) {
-//        if (sourceRecord.lazyText() != null) {
-//            return sourceRecord.lazyText();
-//        }
-//        return fetch(sourceRecord.textLocation());
-//    }
 
 }

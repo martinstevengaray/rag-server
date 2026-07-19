@@ -2,6 +2,7 @@ package com.mgaray.ragserver.common;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -12,13 +13,26 @@ public class FileUtils {
         return  Files.exists(path);
     }
 
-    public static String readFile(String fileName) {
+    public static String readFile(String filename) {
         //System.out.print(".");
         try {
-            Path path = Path.of(fileName);
+            Path path = Path.of(filename);
             return Files.readString(path);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("filename: " + filename, e);
+        }
+    }
+
+    public static List<String> listFolder(String folder) {
+        try {
+            List<String> folderList = new ArrayList<>();
+            Path path = Path.of(folder);
+            for (Path result : Files.list(path).toList()) {
+                folderList.add(result.toString());
+            }
+            return folderList;
+        } catch (Exception e) {
+            throw new RuntimeException("folder: " + folder, e);
         }
     }
 

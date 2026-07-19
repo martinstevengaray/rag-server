@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
@@ -23,17 +23,16 @@ public class Chunker {
         this.embedder = new Embedder(Embedder.ModelType.DUMMY);
     }
 
-    public Models.SourceManifest chunk(Models.SourceManifest sourceManifest,
+    public void chunk(Models.SourceManifest sourceManifest,
                                        Models.ChunkingSpec chunkingSpec) {
-        List<Models.SourceRecord> updateSourceRecords = new ArrayList<>();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
-            Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
-            String chunkManifestLocation = "/" + sourceManifest.id() + "/sourceRecords/" + sourceRecord.id() + "/chunkManifest.json";
-            dataFetcher.save(chunkManifestLocation, chunkManifest);
-            updateSourceRecords.add(sourceRecord.withChunkManifestLocation(chunkManifestLocation));
+            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+            if (!dataFetcher.exists(chunkManifestLocation)) {
+                List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
+                Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks, chunkingSpec);
+                dataFetcher.save(chunkManifestLocation, chunkManifest);
+            }
         }
-        return new Models.SourceManifest(sourceManifest.id(), updateSourceRecords);
     }
 
     private List<Models.Chunk> chunk(String sourceManifestId,
@@ -42,19 +41,21 @@ public class Chunker {
         String originalText = dataFetcher.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
+        int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
-            String chunkId = String.format("%03d", chunkIndex);  //the 3 should by dynamic todo!
+            String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
-            String checkTextStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/chunks/" + chunkId + ".txt";
-            if (!dataFetcher.exists(checkTextStorageLocation)) {
-                dataFetcher.save(checkTextStorageLocation, chunkText);
+            String chuckTextLocation = Models.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
+            if (!dataFetcher.exists(chuckTextLocation)) {
+                dataFetcher.save(chuckTextLocation, chunkText);
             }
-            String embeddingStorageLocation = "/" + sourceManifestId + "/sourceRecords/" + sourceRecord.id() + "/embeddings/" + embedder.getModelName() + "-" + chunkId + ".bin";
-            if (!dataFetcher.exists(embeddingStorageLocation)) {
+            String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(),
+                    embedder.getModelName(), chunkId);
+            if (!dataFetcher.exists(embeddingLocation)) {
                 float[] chunkEmbedding = embedder.embed(chunkText).vector();
-                dataFetcher.save(embeddingStorageLocation, chunkEmbedding);
+                dataFetcher.save(embeddingLocation, chunkEmbedding);
             }
-            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, checkTextStorageLocation, embeddingStorageLocation));
+            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
         return chunks;
     }

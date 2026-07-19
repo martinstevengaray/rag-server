@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
