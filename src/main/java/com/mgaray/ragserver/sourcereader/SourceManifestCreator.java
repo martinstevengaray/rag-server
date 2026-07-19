@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+//loads data from disk in expected format and creates a manifest to location further chunking, embeddings and vector store exports
 public class SourceManifestCreator {
 
     private final DataFetcher dataFetcher;
@@ -16,31 +17,26 @@ public class SourceManifestCreator {
         this.dataFetcher = dataFetcher;
     }
 
-//    public Models.SourceManifest create(String sourceManifestId) {
+    public Models.SourceManifest create(String sourceManifestId) {
+        String sourceRecordFolder = Models.sourceRecordFolder(sourceManifestId);
+        List<String> sourceRecordIds = dataFetcher.list(sourceRecordFolder);
+        //we only want source folders! not everything under the list
 //        List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-//        for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
-//            String inputSourceRecordId = String.format("%02d", recordNumber);
-//            String inputRecordLocation = downloadsFolder + "/title-" + inputSourceRecordId + ".json";
-//            String inputTextLocation = downloadsFolder + "/title-" + inputSourceRecordId + ".txt";
-//            if (FileUtils.exists(inputRecordLocation) && FileUtils.exists(inputTextLocation)) {
-//                String text = FileUtils.readFile(inputTextLocation);
-//                //copy source.text file
-//                String sourceRecordId = "title" + inputSourceRecordId;
-//                String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
-//                String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-//                dataFetcher.save(textLocation, text);
-//                //save source.json file
-//                Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
-//                Models.SourceRecord sourceRecord = new Models.SourceRecord(
-//                        sourceRecordId,
-//                        record.get("source_url").toString(),
-//                        record.get("retrieved_at").toString(),
-//                        record.get("title").toString(),
-//                        textLocation,
-//                        chunkManifestLocation);
-//                sourceRecords.add(sourceRecord);
-//            }
+//        for (String sourceRecordId : sourceRecordIds) {
+//            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+//            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+//            //save source.json file
+//            Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
+//            Models.SourceRecord sourceRecord = new Models.SourceRecord(
+//                    sourceRecordId,
+//                    record.get("source_url").toString(),
+//                    record.get("retrieved_at").toString(),
+//                    record.get("title").toString(),
+//                    textLocation,
+//                    chunkManifestLocation);
+//            sourceRecords.add(sourceRecord);
 //        }
 //        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-//    }
+        return null;
+    }
 }

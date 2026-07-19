@@ -40,7 +40,9 @@ public class Models {
                              double matchScore) {}
 
 
-
+    public static String sourceRecordFolder(String sourceManifestId) {
+        return "/" + sourceManifestId + "/sourceRecords";
+    }
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
     }

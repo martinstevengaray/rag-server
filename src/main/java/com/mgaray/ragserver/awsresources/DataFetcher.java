@@ -3,9 +3,7 @@ package com.mgaray.ragserver.awsresources;
 import com.mgaray.ragserver.common.FileUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DataFetcher {
 
@@ -20,6 +18,27 @@ public class DataFetcher {
     public DataFetcher(Mode mode, String bucket) {
         this.mode = mode;
         this.bucket = bucket;
+    }
+
+    public List<String> list(String keyPrefix) {
+        return switch(mode) {
+            case IN_MEMORY -> {
+                List<String> matchingKeys = new ArrayList<>();
+                for (String key : inMemoryDataStore.keySet()) {
+                    if (key.startsWith(keyPrefix)) {
+                        String postfix = key.substring(keyPrefix.length());
+                        if (postfix.contains("/")) {
+                            postfix = postfix.split("/")[0];
+                        }
+                        matchingKeys.add(postfix);
+                    }
+                }
+                yield matchingKeys;
+            }
+            case ON_DISK -> FileUtils.listFolder(bucket + "/" + keyPrefix);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unsupported mode: " + mode);
+        };
     }
 
     public String fetch(String storageLocation) {
