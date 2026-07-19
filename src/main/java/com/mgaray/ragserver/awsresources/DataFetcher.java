@@ -99,13 +99,15 @@ public class DataFetcher {
         }
     }
 
-    public void save(String storageLocation, float[] embedding) {
+    public void saveEmbedding(String storageLocation, float[] embedding) {
         switch(mode) {
             case IN_MEMORY -> inMemoryDataStore.put(storageLocation, embedding);
-            case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, Arrays.toString(embedding)); //todo bin format
+            case ON_DISK -> FileUtils.writeEmbedding(bucket + "/" + storageLocation, embedding);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
             default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         }
     }
+
+
 
 }

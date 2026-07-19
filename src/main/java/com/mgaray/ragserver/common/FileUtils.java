@@ -1,8 +1,12 @@
 package com.mgaray.ragserver.common;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -39,16 +43,69 @@ public class FileUtils {
     //creates folder structure if it does not already exist
     public static void writeFile(String filename, String content) {
         try {
-            Path filePath = Path.of(filename);
-            Path parent = filePath.getParent();
-            if (parent != null) {
-                Files.createDirectories(parent);
-            }
-            Files.writeString(filePath, content);
+            Path path = Path.of(filename);
+            createDirectories(path);
+            Files.writeString(path, content);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    public static void writeEmbedding(String filename, float[] embedding) {
+        writeBytes(filename, toBytes(embedding));
+    }
+
+    public static float[] readEmbedding(String filename) {
+        return toFloatArray(readBytes(filename));
+    }
+
+    public static float[] toFloatArray(byte[] bytes) {
+        if (bytes.length % Float.BYTES != 0) {
+            throw new IllegalArgumentException("Byte array length must be a multiple of " + Float.BYTES);
+        }
+        ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
+        float[] values = new float[bytes.length / Float.BYTES];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = buffer.getFloat();
+        }
+        return values;
+    }
+
+    public static byte[] readBytes(String filename) {
+        try {
+            Path path = Path.of(filename);
+            return Files.readAllBytes(path);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static byte[] toBytes(float[] values) {
+        ByteBuffer buffer = ByteBuffer.allocate(values.length * Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
+        for (float value : values) {
+            buffer.putFloat(value);
+        }
+        return buffer.array();
+    }
+
+    //creates folder structure if it does not already exist
+    private static void writeBytes(String filename, byte[] bytes) {
+        try {
+            Path path = Path.of(filename);
+            createDirectories(path);
+            Files.write(path, bytes);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void createDirectories(Path path) throws IOException {
+        Path parent = path.getParent();
+        if (parent != null) {
+            Files.createDirectories(parent);
+        }
+    }
+
 
     public static Map<String, Object> readJsonFile(String fileName) {
         return JsonUtils.parse(readFile(fileName));

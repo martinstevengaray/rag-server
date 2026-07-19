@@ -53,7 +53,7 @@ public class Chunker {
                     embedder.getModelName(), chunkId);
             if (!dataFetcher.exists(embeddingLocation)) {
                 float[] chunkEmbedding = embedder.embed(chunkText).vector();
-                dataFetcher.save(embeddingLocation, chunkEmbedding);
+                dataFetcher.saveEmbedding(embeddingLocation, chunkEmbedding);
             }
             chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
