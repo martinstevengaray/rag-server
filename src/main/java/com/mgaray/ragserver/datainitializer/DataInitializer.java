@@ -1,18 +1,18 @@
-package com.mgaray.ragserver.sourcereader;
+package com.mgaray.ragserver.datainitializer;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SourceManifestCreator { //todo rename to DataInitializer
+public class DataInitializer {
 
     private final SourceValidator sourceValidator = new SourceValidator();
     private final DataFetcher inputDataFetcher;
     private final DataFetcher outputDataFetcher;
 
-    public SourceManifestCreator(DataFetcher inputDataFetcher, DataFetcher outputDataFetcher) {
+    public DataInitializer(DataFetcher inputDataFetcher, DataFetcher outputDataFetcher) {
         this.inputDataFetcher = inputDataFetcher;
         this.outputDataFetcher = outputDataFetcher;
     }

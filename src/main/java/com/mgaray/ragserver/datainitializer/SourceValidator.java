@@ -1,6 +1,6 @@
-package com.mgaray.ragserver.sourcereader;
+package com.mgaray.ragserver.datainitializer;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 
 import java.util.ArrayList;
 import java.util.HashSet;

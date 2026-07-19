@@ -1,11 +1,10 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.service.V;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;

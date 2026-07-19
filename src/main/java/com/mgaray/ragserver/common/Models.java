@@ -1,4 +1,4 @@
-package com.mgaray.ragserver;
+package com.mgaray.ragserver.common;
 
 import java.util.List;
 

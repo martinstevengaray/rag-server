@@ -1,15 +1,13 @@
-package com.mgaray.ragserver;
+package com.mgaray.ragserver.datainitializer;
 
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.chunker.Chunker;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.server.Main;
-import com.mgaray.ragserver.sourcereader.SourceManifestCreator;
-import com.mgaray.ragserver.sourcereader.SourceTransformerOld;
 
 import java.util.List;
 
-public class InitializeDataMain {
+public class DataInitializerMain {
 
     private static final String inputBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
     private static final String outputBucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
@@ -23,9 +21,9 @@ public class InitializeDataMain {
         DataFetcher inputDataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, inputBucket);
         DataFetcher outputDataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, outputBucket);
 
-        SourceManifestCreator sourceManifestCreator = new SourceManifestCreator(inputDataFetcher, outputDataFetcher);
+        DataInitializer dataInitializer = new DataInitializer(inputDataFetcher, outputDataFetcher);
 
-        List<String> errors = sourceManifestCreator.create(portlandSourceManifestId);
+        List<String> errors = dataInitializer.create(portlandSourceManifestId);
         Models.SourceManifest sourceManifest = outputDataFetcher.fetch(Models.sourceManifestLocation(portlandSourceManifestId), Models.SourceManifest.class);
         System.out.println(portlandSourceManifestId + " sourceRecords: " + sourceManifest.sourceRecords().size() + ". errors: " + errors);
 

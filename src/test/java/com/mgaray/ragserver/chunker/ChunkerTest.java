@@ -1,10 +1,9 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 public class ChunkerTest {
