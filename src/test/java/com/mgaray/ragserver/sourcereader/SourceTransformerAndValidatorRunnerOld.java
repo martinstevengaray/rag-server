@@ -3,7 +3,7 @@ package com.mgaray.ragserver.sourcereader;
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
 
-public class SourceTransformerAndValidatorRunner {
+public class SourceTransformerAndValidatorRunnerOld {
 
     public static void main(String[] args) {
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket");

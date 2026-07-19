@@ -1,7 +1,6 @@
 package com.mgaray.ragserver;
 
 import java.util.List;
-import java.util.Map;
 
 public class Models {
 
@@ -21,7 +20,7 @@ public class Models {
                                String chunkManifestLocation) {}
 
     public record ChunkManifest(List<Chunk> chunks,
-                                ChunkingSpec chunkingSpec) {} //}, List<StorageLocation> embeddings) {}
+                                ChunkingSpec chunkingSpec) {} ///todo remove, part of sourceManifest?
 
     public record Chunk(SourceRecord sourceRecord,
                         int index,
@@ -39,9 +38,12 @@ public class Models {
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}
 
-
-    public static String sourceRecordFolder(String sourceManifestId) {
-        return "/" + sourceManifestId + "/sourceRecords";
+//todo move the first 2 SourceTransformer
+//    public static String originalSourceFolder(String sourceManifestId) {
+//        return "/" + sourceManifestId + "/sources";
+//    }
+    public static String originalSourceManifestLocation(String sourceManifestId) {
+        return "/" + sourceManifestId + "/sourceManifest.json";
     }
     public static String originalSourceTextLocation(String sourceManifestId, String sourceRecordId) {
         return "/" + sourceManifestId + "/sources/" + sourceRecordId + ".txt";

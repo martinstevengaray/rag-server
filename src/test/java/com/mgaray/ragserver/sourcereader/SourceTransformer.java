@@ -27,10 +27,9 @@ public class SourceTransformer {
             String inputTextLocation = "/title-" + inputSourceRecordId + ".txt";
             if (inputDataFetcher.exists(inputRecordLocation) && inputDataFetcher.exists(inputTextLocation)) {
                 String text = inputDataFetcher.fetch(inputTextLocation);
-                //copy source.text file
                 String sourceRecordId = "title" + inputSourceRecordId;
                 String textLocation = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
-                String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+                String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
                 outputDataFetcher.save(textLocation, text);
                 Map<String, Object> record = inputDataFetcher.fetchJson(inputRecordLocation);
                 Models.SourceRecord sourceRecord = new Models.SourceRecord(
@@ -44,7 +43,7 @@ public class SourceTransformer {
             }
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        String sourceManifestLocation = Models.originalSourceManifestLocation(sourceManifestId);
         outputDataFetcher.save(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }
@@ -61,7 +60,7 @@ public class SourceTransformer {
             String text = inputDataFetcher.fetch(inputTextLocation);
             String sourceRecordId = "ors" + inputSourceRecordId;
             String textLocation  = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
-            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+            String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             outputDataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
@@ -73,7 +72,7 @@ public class SourceTransformer {
             sourceRecords.add(sourceRecord);
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        String sourceManifestLocation = Models.originalSourceManifestLocation(sourceManifestId);
         outputDataFetcher.save(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }
@@ -86,7 +85,7 @@ public class SourceTransformer {
             String text = record.get("text").toString();
             //save sourceRecord.text file
             String textLocation = Models.originalSourceTextLocation(sourceManifestId, sourceRecordId);
-            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+            String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
             outputDataFetcher.save(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
@@ -98,7 +97,7 @@ public class SourceTransformer {
             sourceRecords.add(sourceRecord);
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        String sourceManifestLocation = Models.originalSourceManifestLocation(sourceManifestId);
         outputDataFetcher.save(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }

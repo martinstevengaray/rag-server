@@ -13,13 +13,13 @@ public class FileUtils {
         return  Files.exists(path);
     }
 
-    public static String readFile(String fileName) {
+    public static String readFile(String filename) {
         //System.out.print(".");
         try {
-            Path path = Path.of(fileName);
+            Path path = Path.of(filename);
             return Files.readString(path);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("filename: " + filename, e);
         }
     }
 
@@ -32,7 +32,7 @@ public class FileUtils {
             }
             return folderList;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("folder: " + folder, e);
         }
     }
 

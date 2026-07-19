@@ -2,41 +2,46 @@ package com.mgaray.ragserver.sourcereader;
 
 import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.awsresources.DataFetcher;
-import com.mgaray.ragserver.common.FileUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-//loads data from disk in expected format and creates a manifest to location further chunking, embeddings and vector store exports
-public class SourceManifestCreator {
+public class SourceManifestCreator { //todo rename to DataInitializer
 
-    private final DataFetcher dataFetcher;
+    private final SourceValidator sourceValidator = new SourceValidator();
+    private final DataFetcher inputDataFetcher;
+    private final DataFetcher outputDataFetcher;
 
-    public SourceManifestCreator(DataFetcher dataFetcher) {
-        this.dataFetcher = dataFetcher;
+    public SourceManifestCreator(DataFetcher inputDataFetcher, DataFetcher outputDataFetcher) {
+        this.inputDataFetcher = inputDataFetcher;
+        this.outputDataFetcher = outputDataFetcher;
     }
 
-    public Models.SourceManifest create(String sourceManifestId) {
-        String sourceRecordFolder = Models.sourceRecordFolder(sourceManifestId);
-        List<String> sourceRecordIds = dataFetcher.list(sourceRecordFolder);
-        //we only want source folders! not everything under the list
-//        List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-//        for (String sourceRecordId : sourceRecordIds) {
-//            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
-//            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-//            //save source.json file
-//            Map<String, Object> record = FileUtils.readJsonFile(inputRecordLocation);
-//            Models.SourceRecord sourceRecord = new Models.SourceRecord(
-//                    sourceRecordId,
-//                    record.get("source_url").toString(),
-//                    record.get("retrieved_at").toString(),
-//                    record.get("title").toString(),
-//                    textLocation,
-//                    chunkManifestLocation);
-//            sourceRecords.add(sourceRecord);
-//        }
-//        return new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-        return null;
+    public List<String> create(String sourceManifestId) {
+        return create(inputDataFetcher.fetch(Models.originalSourceManifestLocation(sourceManifestId), Models.SourceManifest.class));
+    }
+
+    public List<String> create(Models.SourceManifest inputSourceManifest) {
+        List<Models.SourceRecord> sourceRecords = new ArrayList<>();
+        String sourceManifestId = inputSourceManifest.id();
+        for (Models.SourceRecord inputSourceRecord : inputSourceManifest.sourceRecords()) {
+            String sourceRecordId = inputSourceRecord.id();
+            String inputTextLocation = inputSourceRecord.textLocation();
+            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+            outputDataFetcher.save(textLocation, inputDataFetcher.fetch(inputTextLocation)); //copy source text
+            Models.SourceRecord sourceRecord = new Models.SourceRecord(
+                    sourceRecordId,
+                    inputSourceRecord.sourceUrl(),
+                    inputSourceRecord.retrievedAt(),
+                    inputSourceRecord.title(),
+                    textLocation,
+                    chunkManifestLocation);
+            sourceRecords.add(sourceRecord);
+        }
+        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        outputDataFetcher.save(sourceManifestLocation, outputSourceManifest);
+        return sourceValidator.validate(outputSourceManifest);
     }
 }
