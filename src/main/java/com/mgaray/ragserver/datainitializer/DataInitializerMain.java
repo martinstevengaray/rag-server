@@ -22,7 +22,7 @@ public class DataInitializerMain {
         DataInitializer dataInitializer = new DataInitializer(inputDataFetcher, outputDataFetcher);
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(500, 0.5f),
-                new Models.EmbeddingSpec(Models.ModelType.DUMMY));
+                new Models.EmbeddingSpec(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED));
         Models.SourceManifest inputSourceManifest = inputDataFetcher.fetch(
                 "/" + sourceManifestId + "/sourceManifest.json", Models.SourceManifest.class);
         List<String> errors = dataInitializer.create(inputSourceManifest, runDefinition);
