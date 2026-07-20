@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.Models;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
@@ -29,56 +30,74 @@ public class Embedder {
         ModelType(String name) {
             this.name = name;
         }
-    }
 
-    private final ModelType modelType;
-    private final EmbeddingModel embeddingModel;
-
-    public Embedder(ModelType modelType) {
-        this.modelType = modelType;
-        switch (modelType) {
-            case DUMMY -> {
-                final float[] embedding;
-                this.embeddingModel = new EmbeddingModel() {
-                @Override
-                public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
-                    float[] dummyVector = new float[]{0f, 0.1f, 0.2f, 0.3f};
-                    List<Embedding> embeddings = new ArrayList<>();
-                    for (TextSegment textSegment : textSegments) {
-                        embeddings.add(new Embedding(dummyVector));
-                    }
-                    return new Response<List<Embedding>>(embeddings);
+        static ModelType fromName(String name) {
+            for (ModelType modelType : values()) {
+                if (modelType.name.equals(name)) {
+                    return modelType;
                 }
-            };
             }
-            case LOCAL -> this.embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
-            case OPEN_AI -> this.embeddingModel = OpenAiEmbeddingModel.builder()
-                        .apiKey(System.getenv("OPENAI_API_KEY"))
-                        .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
-                        .build();
-            default -> throw new IllegalArgumentException("Unsupported modelType: " + modelType);
+            throw new IllegalArgumentException("no model with name " + name + " available.");
         }
     }
 
-    public Embedding embed(String text) {
-        //System.out.print("*");
-        return embeddingModel.embed(text).content();
+    private final DataFetcher dataFetcher;
+
+    public Embedder(DataFetcher dataFetcher) {
+        this.dataFetcher = dataFetcher;
     }
 
-    public String getModelName() {
-        return this.modelType.name;
+    public void embed(Models.SourceManifest sourceManifest) {
+        Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
+        EmbeddingModel embeddingModel = createModel(ModelType.fromName(embeddingSpec.modelName()));
+        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+            Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            for (Models.Chunk chunk : chunkManifest.chunks()) {
+                String chunkTextLocation = chunk.textLocation();
+                String embeddingLocation = chunk.embeddingLocation();
+                String chunkText = dataFetcher.fetch(chunkTextLocation);
+                if (!dataFetcher.exists(embeddingLocation)) {
+                    float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
+                    dataFetcher.saveEmbedding(embeddingLocation, chunkEmbedding);
+                }
+            }
+        }
     }
 
+    private EmbeddingModel createModel(ModelType modelType) {
+        return switch (modelType) {
+            case DUMMY -> {
+                final float[] embedding;
+                yield new EmbeddingModel() {
+                    @Override
+                    public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
+                        float[] dummyVector = new float[]{0f, 0.1f, 0.2f, 0.3f};
+                        List<Embedding> embeddings = new ArrayList<>();
+                        for (TextSegment textSegment : textSegments) {
+                            embeddings.add(new Embedding(dummyVector));
+                        }
+                        return new Response<List<Embedding>>(embeddings);
+                    }
+                };
+            }
+            case LOCAL -> new BgeSmallEnV15QuantizedEmbeddingModel();
+            case OPEN_AI -> OpenAiEmbeddingModel.builder()
+                    .apiKey(System.getenv("OPENAI_API_KEY"))
+                    .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
+                    .build();
+            default -> throw new IllegalArgumentException("Unsupported modelType: " + modelType);
+        };
+    }
+}
 
-//}
 
 
 
 
 
 
-
-
+/*
 
 
 
@@ -217,3 +236,4 @@ public class Embedder {
         return sum;
     }
 }
+*/

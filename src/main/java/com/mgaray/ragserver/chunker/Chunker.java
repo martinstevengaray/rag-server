@@ -10,17 +10,9 @@ import java.util.List;
 public class Chunker {
 
     private final DataFetcher dataFetcher;
-    private final Embedder embedder;;
-    private final boolean createVectorStore;
 
     public Chunker(DataFetcher dataFetcher) {
-        this(dataFetcher, false);
-    }
-
-    private Chunker(DataFetcher dataFetcher, boolean createVectorStore) {
-        this.createVectorStore = createVectorStore;
         this.dataFetcher = dataFetcher;
-        this.embedder = new Embedder(Embedder.ModelType.DUMMY);
     }
 
     public void chunk(Models.SourceManifest sourceManifest) {
@@ -50,11 +42,7 @@ public class Chunker {
                 dataFetcher.save(chuckTextLocation, chunkText);
             }
             String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(),
-                    embedder.getModelName(), chunkId);
-            if (!dataFetcher.exists(embeddingLocation)) {
-                float[] chunkEmbedding = embedder.embed(chunkText).vector();
-                dataFetcher.saveEmbedding(embeddingLocation, chunkEmbedding);
-            }
+                    "embeddingModelName", chunkId); //todo remove embedding model name?
             chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
         return chunks;

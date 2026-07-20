@@ -4,7 +4,7 @@ import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models;
 
-public class ChunkerMain {
+public class EmbeddMain {
 
     private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
 
@@ -17,8 +17,8 @@ public class ChunkerMain {
         DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
         Models.SourceManifest sourceManifest = dataFetcher.fetch(sourceManifestLocation, Models.SourceManifest.class);
-        Chunker chunker = new Chunker(dataFetcher);
-        chunker.chunk(sourceManifest);
+        Embedder embedder = new Embedder(dataFetcher);
+        embedder.embed(sourceManifest);
         System.out.println(JsonUtils.toJsonPretty(sourceManifest));
     }
 
