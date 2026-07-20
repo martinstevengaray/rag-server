@@ -10,7 +10,6 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -21,20 +20,32 @@ import java.util.List;
 public class VectorStore {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
-    private final IDatastore dataStore;
+    private final IDatastore datastore;
 
-    public VectorStore(IDatastore dataStore) {
-        this.store = new InMemoryEmbeddingStore<>();
-        this.dataStore = dataStore;
+
+    public static VectorStore load(IDatastore datastore, String sourceManifestId) {
+        byte[] vectorStoreJsonGzBytes = datastore.fetchBytes(Models.vectorStore(sourceManifestId));
+        String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
+        InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
+        return new VectorStore(datastore, vectorStore);
+    }
+
+    public VectorStore(IDatastore datastore) {
+        this(datastore, new InMemoryEmbeddingStore<>());
+    }
+
+    private VectorStore(IDatastore datastore, InMemoryEmbeddingStore<TextSegment> store) {
+        this.datastore = datastore;
+        this.store = store;
     }
 
     public void load(Models.SourceManifest sourceManifest) {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            Models.ChunkManifest chunkManifest = datastore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String embeddingLocation = chunk.embeddingLocation();
-                float[] vector = dataStore.fetchEmbedding(embeddingLocation);
+                float[] vector = datastore.fetchEmbedding(embeddingLocation);
                 add(vector, chunk);
             }
         }
@@ -63,7 +74,7 @@ public class VectorStore {
     public void save(String sourceManifestId) {
         String location = Models.vectorStore(sourceManifestId);
         String storeJson = store.serializeToJson();
-        dataStore.saveBytes(location, compress(storeJson));
+        datastore.saveBytes(location, compress(storeJson));
     }
 
     public static byte[] compress(String value) {

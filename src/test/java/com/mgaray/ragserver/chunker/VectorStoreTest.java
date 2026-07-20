@@ -15,10 +15,12 @@ public class VectorStoreTest {
 
     public static void main(String[] args) {
         IDatastore dataStore = new DataStore(DataStore.Mode.ON_DISK, bucket);
-        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
-        VectorStore vectorStore = new VectorStore(dataStore);
-        vectorStore.load(sourceManifest);
+//        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
+//        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
+//        VectorStore vectorStore = new VectorStore(dataStore);
+//        vectorStore.load(sourceManifest);
+
+        VectorStore vectorStore = VectorStore.load(dataStore, portlandSourceManifestId);
 
 
         EmbeddingModel embeddingModel = Embedder.createModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
