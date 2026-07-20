@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
@@ -8,69 +9,62 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.store.embedding.CosineSimilarity;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
 public class Embedder {
 
-    public enum ModelType {
-        DUMMY("dummy"),
-        LOCAL("local-BgeSmallEnV15Quantized"),
-        OPEN_AI("open-ai-text-embedding-3-small");
-        public final String name;
+    private final IDatastore dataStore;
 
-        ModelType(String name) {
-            this.name = name;
+    public Embedder(IDatastore dataStore) {
+        this.dataStore = dataStore;
+    }
+
+    public void embed(Models.SourceManifest sourceManifest) {
+        Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
+        EmbeddingModel embeddingModel = createModel(embeddingSpec.modelType());
+        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            for (Models.Chunk chunk : chunkManifest.chunks()) {
+                String chunkTextLocation = chunk.textLocation();
+                String embeddingLocation = chunk.embeddingLocation();
+                String chunkText = dataStore.fetch(chunkTextLocation);
+                if (!dataStore.exists(embeddingLocation)) {
+                    float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
+                    dataStore.saveEmbedding(embeddingLocation, chunkEmbedding);
+                }
+            }
         }
     }
 
-    private final ModelType modelType;
-    private final EmbeddingModel embeddingModel;
-
-    public Embedder(ModelType modelType) {
-        this.modelType = modelType;
-        switch (modelType) {
+    public static EmbeddingModel createModel(Models.ModelType modelType) {
+        return switch (modelType) {
             case DUMMY -> {
                 final float[] embedding;
-                this.embeddingModel = new EmbeddingModel() {
-                @Override
-                public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
-                    float[] dummyVector = new float[]{0f, 0.1f, 0.2f, 0.3f};
-                    List<Embedding> embeddings = new ArrayList<>();
-                    for (TextSegment textSegment : textSegments) {
-                        embeddings.add(new Embedding(dummyVector));
+                yield new EmbeddingModel() {
+                    @Override
+                    public Response<List<Embedding>> embedAll(List<TextSegment> textSegments) {
+                        float[] dummyVector = new float[]{0f, 0.1f, 0.2f, 0.3f};
+                        List<Embedding> embeddings = new ArrayList<>();
+                        for (TextSegment textSegment : textSegments) {
+                            embeddings.add(new Embedding(dummyVector));
+                        }
+                        return new Response<List<Embedding>>(embeddings);
                     }
-                    return new Response<List<Embedding>>(embeddings);
-                }
-            };
+                };
             }
-            case LOCAL -> this.embeddingModel = new BgeSmallEnV15QuantizedEmbeddingModel();
-            case OPEN_AI -> this.embeddingModel = OpenAiEmbeddingModel.builder()
-                        .apiKey(System.getenv("OPENAI_API_KEY"))
-                        .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
-                        .build();
-            default -> throw new IllegalArgumentException("Unsupported modelType: " + modelType);
-        }
+            case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
+            case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
+                    .apiKey(System.getenv("OPENAI_API_KEY"))
+                    .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
+                    .build();
+            default -> throw new IllegalArgumentException("Unsupported embedding ModelType: " + modelType);
+        };
     }
-
-    public Embedding embed(String text) {
-        //System.out.print("*");
-        return embeddingModel.embed(text).content();
-    }
-
-    public String getModelName() {
-        return this.modelType.name;
-    }
-
-
-//}
+}
 
 
 
@@ -78,7 +72,7 @@ public class Embedder {
 
 
 
-
+/*
 
 
 
@@ -217,3 +211,4 @@ public class Embedder {
         return sum;
     }
 }
+*/

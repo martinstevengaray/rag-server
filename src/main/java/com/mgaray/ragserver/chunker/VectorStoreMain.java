@@ -2,10 +2,9 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.DataStore;
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models;
 
-public class ChunkerMain {
+public class VectorStoreMain {
 
     private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
 
@@ -18,9 +17,8 @@ public class ChunkerMain {
         IDatastore dataStore = new DataStore(DataStore.Mode.ON_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
         Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
-        Chunker chunker = new Chunker(dataStore);
-        chunker.chunk(sourceManifest);
-        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
+        VectorStore vectorStore = new VectorStore(dataStore);
+        vectorStore.load(sourceManifest);
     }
 
 }

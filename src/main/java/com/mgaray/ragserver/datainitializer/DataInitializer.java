@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.datainitializer;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,28 +9,23 @@ import java.util.List;
 public class DataInitializer {
 
     private final SourceValidator sourceValidator = new SourceValidator();
-    private final DataFetcher inputDataFetcher;
-    private final DataFetcher outputDataFetcher;
+    private final IDatastore inputDataStore;
+    private final IDatastore outputDataStore;
 
-    public DataInitializer(DataFetcher inputDataFetcher, DataFetcher outputDataFetcher) {
-        this.inputDataFetcher = inputDataFetcher;
-        this.outputDataFetcher = outputDataFetcher;
+    public DataInitializer(IDatastore inputDataStore, IDatastore outputDataStore) {
+        this.inputDataStore = inputDataStore;
+        this.outputDataStore = outputDataStore;
     }
 
-    public List<String> create(String sourceManifestId) {
-        return create(inputDataFetcher.fetch(Models.originalSourceManifestLocation(sourceManifestId), Models.SourceManifest.class));
-    }
-
-    public List<String> create(Models.SourceManifest inputSourceManifest) {
+    public List<String> create(Models.SourceManifest inputSourceManifest, String outputSourceManifestId, Models.RunDefinition runDefinition) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        String sourceManifestId = inputSourceManifest.id();
         for (Models.SourceRecord inputSourceRecord : inputSourceManifest.sourceRecords()) {
             String sourceRecordId = inputSourceRecord.id();
             String inputTextLocation = inputSourceRecord.textLocation();
-            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
-            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-            if (!outputDataFetcher.exists(textLocation)) { // copy source text if not already done so
-                outputDataFetcher.save(textLocation, inputDataFetcher.fetch(inputTextLocation));
+            String textLocation = Models.sourceRecordTextLocation(outputSourceManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(outputSourceManifestId, sourceRecordId);
+            if (!outputDataStore.exists(textLocation)) { // copy source text if not already done so
+                outputDataStore.save(textLocation, inputDataStore.fetch(inputTextLocation));
             }
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
@@ -41,9 +36,9 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(sourceManifestId, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
-        outputDataFetcher.save(sourceManifestLocation, outputSourceManifest);
+        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
+        outputDataStore.save(sourceManifestLocation, outputSourceManifest);
         return sourceValidator.validate(outputSourceManifest);
     }
 

@@ -1,13 +1,19 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,24 +21,25 @@ import java.util.List;
 public class VectorStore {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
-    private final DataFetcher dataFetcher;
+    private final IDatastore dataStore;
 
-    public VectorStore(DataFetcher dataFetcher) {
+    public VectorStore(IDatastore dataStore) {
         this.store = new InMemoryEmbeddingStore<>();
-        this.dataFetcher = dataFetcher;
+        this.dataStore = dataStore;
     }
 
-//    public VectorStore(DataFetcher dataFetcher, String sourceManifestId) { //, String modelName) {
-//        this.dataFetcher = dataFetcher;
-//        String location = Models.vectorStore(sourceManifestId, modelName);
-//        this.store = InMemoryEmbeddingStore.fromJson(dataFetcher.fetch(location));
-//    }
-
-//    public void load(Models.SourceManifest sourceManifest) {
-//        manifest.
-//
-//        //todo
-//    }
+    public void load(Models.SourceManifest sourceManifest) {
+        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            for (Models.Chunk chunk : chunkManifest.chunks()) {
+                String embeddingLocation = chunk.embeddingLocation();
+                float[] vector = dataStore.fetchEmbedding(embeddingLocation);
+                add(vector, chunk);
+            }
+        }
+        save(sourceManifest.id());
+    }
 
     public void add(float[] vector, Models.Chunk chunk) {
         store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
@@ -53,10 +60,32 @@ public class VectorStore {
         return chunkMatches;
     }
 
-    public void save(String sourceManifestId, String modelName) {
-        String location = Models.vectorStore(sourceManifestId, modelName);
+    public void save(String sourceManifestId) {
+        String location = Models.vectorStore(sourceManifestId);
         String storeJson = store.serializeToJson();
-        dataFetcher.save(location, storeJson);
+        dataStore.saveBytes(location, compress(storeJson));
     }
+
+    public static byte[] compress(String value) {
+        try {
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
+                gzip.write(value.getBytes(StandardCharsets.UTF_8));
+                gzip.finish();
+                return output.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String decompress(byte[] compressed) {
+        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
+            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

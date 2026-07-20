@@ -5,7 +5,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 
 import java.util.*;
 
-public class DataFetcher {
+public class DataStore implements IDatastore {
 
     public enum Mode {IN_MEMORY, ON_DISK, ON_S3}
 
@@ -15,7 +15,7 @@ public class DataFetcher {
     private final Mode mode;
     private final String bucket;
 
-    public DataFetcher(Mode mode, String bucket) {
+    public DataStore(Mode mode, String bucket) {
         this.mode = mode;
         this.bucket = bucket;
     }
@@ -41,6 +41,7 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public String fetch(String storageLocation) {
         return switch(mode) {
             case IN_MEMORY -> (String) inMemoryDataStore.get(storageLocation);
@@ -50,6 +51,7 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public Map<String, Object> fetchJson(String storageLocation) {
         return switch(mode) {
             case IN_MEMORY -> JsonUtils.parse((String)inMemoryDataStore.get(storageLocation));
@@ -59,6 +61,7 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public List<Map<String, Object>> fetchJsonl(String storageLocation) {
         return switch(mode) {
             case IN_MEMORY -> JsonUtils.parseJsonl((String)inMemoryDataStore.get(storageLocation));
@@ -68,6 +71,7 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public <T> T fetch(String storageLocation, Class<T> clazz) {
         return switch(mode) {
             case IN_MEMORY -> JsonUtils.toObject((String) inMemoryDataStore.get(storageLocation), clazz);
@@ -77,6 +81,7 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public boolean exists(String storageLocation) {
         return switch(mode) {
             case IN_MEMORY -> inMemoryDataStore.containsKey(storageLocation);
@@ -86,10 +91,12 @@ public class DataFetcher {
         };
     }
 
+    @Override
     public void save(String storageLocation, Object object) {
         save(storageLocation, JsonUtils.toJsonPretty(object));
     }
 
+    @Override
     public void save(String storageLocation, String content) {
         switch(mode) {
             case IN_MEMORY -> inMemoryDataStore.put(storageLocation, content);
@@ -99,13 +106,44 @@ public class DataFetcher {
         }
     }
 
-    public void save(String storageLocation, float[] embedding) {
+    @Override
+    public float[] fetchEmbedding(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> (float []) inMemoryDataStore.get(storageLocation);
+            case ON_DISK -> FileUtils.readEmbedding(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        };
+    }
+
+    @Override
+    public void saveEmbedding(String storageLocation, float[] embedding) {
         switch(mode) {
             case IN_MEMORY -> inMemoryDataStore.put(storageLocation, embedding);
-            case ON_DISK -> FileUtils.writeFile(bucket + "/" + storageLocation, Arrays.toString(embedding)); //todo bin format
+            case ON_DISK -> FileUtils.writeEmbedding(bucket + "/" + storageLocation, embedding);
             case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
             default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
         }
     }
+
+    public byte[] fetchBytes(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> (byte []) inMemoryDataStore.get(storageLocation);
+            case ON_DISK -> FileUtils.readBytes(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        };
+    }
+
+    public void saveBytes(String storageLocation, byte[] bytes)  {
+        switch(mode) {
+            case IN_MEMORY -> inMemoryDataStore.put(storageLocation, bytes);
+            case ON_DISK -> FileUtils.writeBytes(bucket + "/" + storageLocation, bytes);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        }
+    }
+
+
 
 }
