@@ -32,10 +32,13 @@ public class Models {
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
 
-    public record EmbeddingSpec(String modelName) {}
+    public record EmbeddingSpec(ModelType modelType) {}
 
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}
+
+    public enum ModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
+
 
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
@@ -49,8 +52,8 @@ public class Models {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
     }
 
-    public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String modelName, String chunkId) {
-        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + modelName + "-" + chunkId + ".bin";
+    public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
     public static String sourceManifestLocation(String sourceManifestId) {

@@ -41,8 +41,7 @@ public class Chunker {
             if (!dataFetcher.exists(chuckTextLocation)) {
                 dataFetcher.save(chuckTextLocation, chunkText);
             }
-            String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(),
-                    "embeddingModelName", chunkId); //todo remove embedding model name?
+            String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
             chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
         return chunks;

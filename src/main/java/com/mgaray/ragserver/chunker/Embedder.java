@@ -15,31 +15,10 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
 public class Embedder {
-
-    public enum ModelType {
-        DUMMY("dummy"),
-        LOCAL("local-BgeSmallEnV15Quantized"),
-        OPEN_AI("open-ai-text-embedding-3-small");
-        public final String name;
-
-        ModelType(String name) {
-            this.name = name;
-        }
-
-        static ModelType fromName(String name) {
-            for (ModelType modelType : values()) {
-                if (modelType.name.equals(name)) {
-                    return modelType;
-                }
-            }
-            throw new IllegalArgumentException("no model with name " + name + " available.");
-        }
-    }
 
     private final DataFetcher dataFetcher;
 
@@ -49,7 +28,7 @@ public class Embedder {
 
     public void embed(Models.SourceManifest sourceManifest) {
         Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
-        EmbeddingModel embeddingModel = createModel(ModelType.fromName(embeddingSpec.modelName()));
+        EmbeddingModel embeddingModel = createModel(embeddingSpec.modelType());
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
@@ -65,7 +44,7 @@ public class Embedder {
         }
     }
 
-    private EmbeddingModel createModel(ModelType modelType) {
+    private EmbeddingModel createModel(Models.ModelType modelType) {
         return switch (modelType) {
             case DUMMY -> {
                 final float[] embedding;
@@ -81,12 +60,12 @@ public class Embedder {
                     }
                 };
             }
-            case LOCAL -> new BgeSmallEnV15QuantizedEmbeddingModel();
-            case OPEN_AI -> OpenAiEmbeddingModel.builder()
+            case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
+            case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
                     .apiKey(System.getenv("OPENAI_API_KEY"))
                     .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
                     .build();
-            default -> throw new IllegalArgumentException("Unsupported modelType: " + modelType);
+            default -> throw new IllegalArgumentException("Unsupported embedding ModelType: " + modelType);
         };
     }
 }
