@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,20 +9,20 @@ import java.util.List;
 
 public class Chunker {
 
-    private final DataFetcher dataFetcher;
+    private final IDatastore dataStore;
 
-    public Chunker(DataFetcher dataFetcher) {
-        this.dataFetcher = dataFetcher;
+    public Chunker(IDatastore dataStore) {
+        this.dataStore = dataStore;
     }
 
     public void chunk(Models.SourceManifest sourceManifest) {
         Models.ChunkingSpec chunkingSpec = sourceManifest.runDefinition().chunkingSpec();
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            if (!dataFetcher.exists(chunkManifestLocation)) {
+            if (!dataStore.exists(chunkManifestLocation)) {
                 List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
                 Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks);
-                dataFetcher.save(chunkManifestLocation, chunkManifest);
+                dataStore.save(chunkManifestLocation, chunkManifest);
             }
         }
     }
@@ -30,7 +30,7 @@ public class Chunker {
     private List<Models.Chunk> chunk(String sourceManifestId,
                                      Models.SourceRecord sourceRecord,
                                      Models.ChunkingSpec chunkingSpec) {
-        String originalText = dataFetcher.fetch(sourceRecord.textLocation());
+        String originalText = dataStore.fetch(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
@@ -38,8 +38,8 @@ public class Chunker {
             String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
             String chuckTextLocation = Models.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
-            if (!dataFetcher.exists(chuckTextLocation)) {
-                dataFetcher.save(chuckTextLocation, chunkText);
+            if (!dataStore.exists(chuckTextLocation)) {
+                dataStore.save(chuckTextLocation, chunkText);
             }
             String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
             chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));

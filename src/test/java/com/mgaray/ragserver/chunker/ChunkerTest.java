@@ -1,7 +1,8 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.awsresources.DataStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +21,12 @@ public class ChunkerTest {
 
     public static void main(String[] args) {
         String localRootFolderBucket = "/Users/turtlemccully/projects/rag-server/local/ChunkerTest";
-        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.IN_MEMORY, localRootFolderBucket);
+        IDatastore dataStore = new DataStore(DataStore.Mode.IN_MEMORY, localRootFolderBucket);
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
         String sourceLocationTextLocation = Models.sourceRecordTextLocation(sourceManifestId,sourceRecordId);
-        dataFetcher.save(sourceLocationTextLocation, chunkText);
+        dataStore.save(sourceLocationTextLocation, chunkText);
         String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
         Models.SourceRecord sourceRecord = new Models.SourceRecord(
                 sourceRecordId,
@@ -40,12 +41,12 @@ public class ChunkerTest {
         Models.SourceManifest sourceManifest =
                 new Models.SourceManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
 
-        Chunker chunker = new Chunker(dataFetcher);
+        Chunker chunker = new Chunker(dataStore);
         chunker.chunk(sourceManifest);
 
-        Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+        Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
         for (Models.Chunk chunk : chunkManifest.chunks()) {
-            String text = dataFetcher.fetch(chunk.textLocation());
+            String text = dataStore.fetch(chunk.textLocation());
             System.out.println(text);
         }
     }

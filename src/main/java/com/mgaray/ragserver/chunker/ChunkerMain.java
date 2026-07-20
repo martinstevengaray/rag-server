@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.awsresources.DataStore;
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models;
 
@@ -14,10 +15,10 @@ public class ChunkerMain {
     private static final String nabManifestId = "new-american-bible";
 
     public static void main(String[] args) {
-        DataFetcher dataFetcher = new DataFetcher(DataFetcher.Mode.ON_DISK, bucket);
+        IDatastore dataStore = new DataStore(DataStore.Mode.ON_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = dataFetcher.fetch(sourceManifestLocation, Models.SourceManifest.class);
-        Chunker chunker = new Chunker(dataFetcher);
+        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
+        Chunker chunker = new Chunker(dataStore);
         chunker.chunk(sourceManifest);
         System.out.println(JsonUtils.toJsonPretty(sourceManifest));
     }

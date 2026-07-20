@@ -1,11 +1,10 @@
 package com.mgaray.ragserver.chunker;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataFetcher;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
@@ -16,23 +15,24 @@ import java.util.List;
 public class VectorStore {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
-    private final DataFetcher dataFetcher;
+    private final IDatastore dataStore;
 
-    public VectorStore(DataFetcher dataFetcher) {
+    public VectorStore(IDatastore dataStore) {
         this.store = new InMemoryEmbeddingStore<>();
-        this.dataFetcher = dataFetcher;
+        this.dataStore = dataStore;
     }
 
     public void load(Models.SourceManifest sourceManifest) {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String embeddingLocation = chunk.embeddingLocation();
-                float[] vector = dataFetcher.fetchEmbedding(embeddingLocation);
+                float[] vector = dataStore.fetchEmbedding(embeddingLocation);
                 add(vector, chunk);
             }
         }
+        save(sourceManifest.id());
     }
 
     public void add(float[] vector, Models.Chunk chunk) {
@@ -54,10 +54,10 @@ public class VectorStore {
         return chunkMatches;
     }
 
-    public void save(String sourceManifestId, String modelName) {
-        String location = Models.vectorStore(sourceManifestId, modelName);
+    public void save(String sourceManifestId) {
+        String location = Models.vectorStore(sourceManifestId);
         String storeJson = store.serializeToJson();
-        dataFetcher.save(location, storeJson);
+        dataStore.save(location, storeJson);
     }
 
 }

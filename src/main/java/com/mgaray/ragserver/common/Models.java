@@ -60,8 +60,8 @@ public class Models {
         return "/" + sourceManifestId + "/sourceManifest.json";
     }
 
-    public static String vectorStore(String sourceManifestId, String modelName) {
-        return "/" + sourceManifestId + "/embeddings/" + modelName + ".json";
+    public static String vectorStore(String sourceManifestId) {
+        return "/" + sourceManifestId + "/vectorStore.json.zip";
     }
 /*
 

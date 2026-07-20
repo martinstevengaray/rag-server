@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.awsresources.DataFetcher;
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
@@ -9,10 +9,6 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.store.embedding.CosineSimilarity;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +16,10 @@ import java.util.List;
 
 public class Embedder {
 
-    private final DataFetcher dataFetcher;
+    private final IDatastore dataStore;
 
-    public Embedder(DataFetcher dataFetcher) {
-        this.dataFetcher = dataFetcher;
+    public Embedder(IDatastore dataStore) {
+        this.dataStore = dataStore;
     }
 
     public void embed(Models.SourceManifest sourceManifest) {
@@ -31,14 +27,14 @@ public class Embedder {
         EmbeddingModel embeddingModel = createModel(embeddingSpec.modelType());
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataFetcher.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String chunkTextLocation = chunk.textLocation();
                 String embeddingLocation = chunk.embeddingLocation();
-                String chunkText = dataFetcher.fetch(chunkTextLocation);
-                if (!dataFetcher.exists(embeddingLocation)) {
+                String chunkText = dataStore.fetch(chunkTextLocation);
+                if (!dataStore.exists(embeddingLocation)) {
                     float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                    dataFetcher.saveEmbedding(embeddingLocation, chunkEmbedding);
+                    dataStore.saveEmbedding(embeddingLocation, chunkEmbedding);
                 }
             }
         }
