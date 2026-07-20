@@ -25,7 +25,7 @@ public class VectorStoreMain {
         vectorStore.load(sourceManifest);
 
         //test:
-        EmbeddingModel embeddingModel = Embedder.createModel(Models.ModelType.DUMMY);
+        EmbeddingModel embeddingModel = Embedder.createModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
         String searchQuery = "street parking";
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
         List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);
