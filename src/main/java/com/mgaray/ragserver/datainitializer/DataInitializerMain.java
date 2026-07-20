@@ -2,7 +2,7 @@ package com.mgaray.ragserver.datainitializer;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataStore;
+import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.List;
 
@@ -19,8 +19,8 @@ public class DataInitializerMain {
     public static void main(String[] args) {
         String inputSourceManifestId = portlandSourceManifestId;
         String outputSourceManifestId = inputSourceManifestId;
-        IDatastore inputDataStore = new DataStore(DataStore.Mode.ON_DISK, inputBucket);
-        IDatastore outputDataStore = new DataStore(DataStore.Mode.ON_DISK, outputBucket);
+        IDatastore inputDataStore = new Datastore(Datastore.Mode.ON_DISK, inputBucket);
+        IDatastore outputDataStore = new Datastore(Datastore.Mode.ON_DISK, outputBucket);
         DataInitializer dataInitializer = new DataInitializer(inputDataStore, outputDataStore);
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(500, 0.5f),

@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.awsresources.DataStore;
+import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -14,7 +14,7 @@ public class VectorStoreTest {
     private static final String portlandSourceManifestId = "local-embedding-portland-city-code";
 
     public static void main(String[] args) {
-        IDatastore datastore = new DataStore(DataStore.Mode.ON_DISK, bucket);
+        IDatastore datastore = new Datastore(Datastore.Mode.ON_DISK, bucket);
 //        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
 //        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
 //        VectorStore vectorStore = new VectorStore(dataStore);

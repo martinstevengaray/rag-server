@@ -5,7 +5,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 
 import java.util.*;
 
-public class DataStore implements IDatastore {
+public class Datastore implements IDatastore {
 
     public enum Mode {IN_MEMORY, ON_DISK, ON_S3}
 
@@ -15,7 +15,7 @@ public class DataStore implements IDatastore {
     private final Mode mode;
     private final String bucket;
 
-    public DataStore(Mode mode, String bucket) {
+    public Datastore(Mode mode, String bucket) {
         this.mode = mode;
         this.bucket = bucket;
     }

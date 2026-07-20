@@ -1,49 +1,25 @@
 package com.mgaray.ragserver.server;
 
-import com.mgaray.ragserver.awsresources.DataStore;
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.chunker.Embedder;
-import com.mgaray.ragserver.chunker.VectorStore;
-import com.mgaray.ragserver.common.Models;
-import dev.langchain4j.model.embedding.EmbeddingModel;
+import com.mgaray.ragserver.rag.QueryHandler;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class WebappHandler implements JavaCoreServer.IListener {
 
-    private final IDatastore datastore;
-    private final VectorStore vectorStore;
-    private final EmbeddingModel embeddingModel;
+    private final QueryHandler queryHandler;
 
-    public WebappHandler() {
-        this(new DataStore(DataStore.Mode.ON_DISK, "/Users/turtlemccully/projects/rag-server/local/s3bucket"),
-                "local-embedding-portland-city-code");
-    }
-
-    public WebappHandler(IDatastore datastore, String sourceManifestId) {
-        this.datastore = datastore;
-        this.vectorStore = VectorStore.load(datastore, sourceManifestId);
-        this.embeddingModel = Embedder.createModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
+    public WebappHandler(QueryHandler queryHandler) {
+        this.queryHandler = queryHandler;
     }
 
     @Override
     public String handlePost(String path, String body) {
         System.out.println("Post: " + path + ", " + body);
-        float[] searchVector = embeddingModel.embed(body).content().vector();
-        vectorStore.get(searchVector, 5);
-        List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Models.ChunkMatch chunkMatch : chunkMatches) {
-            Models.Chunk chunk = chunkMatch.chunk();
-            String chunkText = datastore.fetch(chunk.textLocation());
-            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-            stringBuilder.append(chunkText);
-        }
+        String response = this.queryHandler.query(body);
         return readResource("/confirm.html")
                 .replace("{{length}}", String.valueOf(body.length()))
-                .replace("{{content}}", escapeHtml(stringBuilder.toString()));
+                .replace("{{content}}", escapeHtml(response));
     }
 
     @Override

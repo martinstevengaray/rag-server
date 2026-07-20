@@ -2,7 +2,7 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import com.mgaray.ragserver.awsresources.DataStore;
+import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class ChunkerTest {
 
     public static void main(String[] args) {
         String localRootFolderBucket = "/Users/turtlemccully/projects/rag-server/local/ChunkerTest";
-        IDatastore dataStore = new DataStore(DataStore.Mode.IN_MEMORY, localRootFolderBucket);
+        IDatastore dataStore = new Datastore(Datastore.Mode.IN_MEMORY, localRootFolderBucket);
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";

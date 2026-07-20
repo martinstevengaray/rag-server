@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.chunker;
 
-import com.mgaray.ragserver.awsresources.DataStore;
+import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models;
 
@@ -14,7 +14,7 @@ public class EmbeddMain {
     private static final String nabManifestId = "new-american-bible";
 
     public static void main(String[] args) {
-        DataStore dataStore = new DataStore(DataStore.Mode.ON_DISK, bucket);
+        Datastore dataStore = new Datastore(Datastore.Mode.ON_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
         Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
         Embedder embedder = new Embedder(dataStore);
