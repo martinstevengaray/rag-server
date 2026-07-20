@@ -61,7 +61,7 @@ public class Models {
     }
 
     public static String vectorStore(String sourceManifestId) {
-        return "/" + sourceManifestId + "/vectorStore.json.zip";
+        return "/" + sourceManifestId + "/vectorStore.json.gz";
     }
 /*
 
@@ -69,7 +69,7 @@ public class Models {
 
     S3 folder structure:
         S3://bucket/sourceManifestId/sourceManifest.json
-        S3://bucket/sourceManifestId/vectorStore.json.zip
+        S3://bucket/sourceManifestId/vectorStore.json.gz
         S3://bucket/sourceManifestId/embeddings/local-BgeSmallEnV15Quantized.json
         S3://bucket/sourceManifestId/embeddings/open-ai-text-embedding-3-small.json
         S3://bucket/sourceManifestId/sourceRecords/sourceRecordId/sourceRecord.txt
@@ -79,7 +79,7 @@ public class Models {
 
     Example:
         S3://bucket/portland-city-code/sourceManifest.json
-        S3://bucket/portland-city-code/vectorStore.json.zip
+        S3://bucket/portland-city-code/vectorStore.json.gz
         S3://bucket/portland-city-code/sourceRecords/001/sourceRecord.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/000.txt

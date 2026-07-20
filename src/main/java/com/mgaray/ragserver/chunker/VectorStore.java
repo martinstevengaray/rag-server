@@ -8,6 +8,12 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +63,29 @@ public class VectorStore {
     public void save(String sourceManifestId) {
         String location = Models.vectorStore(sourceManifestId);
         String storeJson = store.serializeToJson();
-        dataStore.save(location, storeJson);
+        dataStore.saveBytes(location, compress(storeJson));
     }
+
+    public static byte[] compress(String value) {
+        try {
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
+                gzip.write(value.getBytes(StandardCharsets.UTF_8));
+                gzip.finish();
+                return output.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String decompress(byte[] compressed) {
+        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
+            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
 }

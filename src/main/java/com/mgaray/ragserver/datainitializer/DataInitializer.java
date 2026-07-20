@@ -17,14 +17,13 @@ public class DataInitializer {
         this.outputDataStore = outputDataStore;
     }
 
-    public List<String> create(Models.SourceManifest inputSourceManifest, Models.RunDefinition runDefinition) {
+    public List<String> create(Models.SourceManifest inputSourceManifest, String outputSourceManifestId, Models.RunDefinition runDefinition) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        String sourceManifestId = inputSourceManifest.id();
         for (Models.SourceRecord inputSourceRecord : inputSourceManifest.sourceRecords()) {
             String sourceRecordId = inputSourceRecord.id();
             String inputTextLocation = inputSourceRecord.textLocation();
-            String textLocation = Models.sourceRecordTextLocation(sourceManifestId, sourceRecordId);
-            String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
+            String textLocation = Models.sourceRecordTextLocation(outputSourceManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(outputSourceManifestId, sourceRecordId);
             if (!outputDataStore.exists(textLocation)) { // copy source text if not already done so
                 outputDataStore.save(textLocation, inputDataStore.fetch(inputTextLocation));
             }
@@ -37,8 +36,8 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
+        String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
         outputDataStore.save(sourceManifestLocation, outputSourceManifest);
         return sourceValidator.validate(outputSourceManifest);
     }

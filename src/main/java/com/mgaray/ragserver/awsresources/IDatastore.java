@@ -23,4 +23,8 @@ public interface IDatastore {
 
     void saveEmbedding(String storageLocation, float[] embedding);
 
+    byte[] fetchBytes(String storageLocation);
+
+    void saveBytes(String storageLocation, byte[] bytes);
+
 }

@@ -89,7 +89,7 @@ public class FileUtils {
     }
 
     //creates folder structure if it does not already exist
-    private static void writeBytes(String filename, byte[] bytes) {
+    public static void writeBytes(String filename, byte[] bytes) {
         try {
             Path path = Path.of(filename);
             createDirectories(path);

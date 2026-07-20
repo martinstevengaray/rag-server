@@ -126,6 +126,24 @@ public class DataStore implements IDatastore {
         }
     }
 
+    public byte[] fetchBytes(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> (byte []) inMemoryDataStore.get(storageLocation);
+            case ON_DISK -> FileUtils.readBytes(bucket + "/" + storageLocation);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        };
+    }
+
+    public void saveBytes(String storageLocation, byte[] bytes)  {
+        switch(mode) {
+            case IN_MEMORY -> inMemoryDataStore.put(storageLocation, bytes);
+            case ON_DISK -> FileUtils.writeBytes(bucket + "/" + storageLocation, bytes);
+            case ON_S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+        }
+    }
+
 
 
 }

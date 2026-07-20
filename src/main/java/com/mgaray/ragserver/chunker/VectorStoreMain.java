@@ -3,9 +3,6 @@ package com.mgaray.ragserver.chunker;
 import com.mgaray.ragserver.awsresources.DataStore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-
-import java.util.List;
 
 public class VectorStoreMain {
 
