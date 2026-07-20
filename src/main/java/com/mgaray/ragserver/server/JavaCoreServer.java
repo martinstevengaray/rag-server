@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public class JavaCoreServer {
 
@@ -35,7 +36,7 @@ public class JavaCoreServer {
             String path = httpExchange.getRequestURI().getPath();
             String body = new String(httpExchange.getRequestBody().readAllBytes());
             httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            String response = "";
+            byte[] response = new byte[0];
             switch (method) {
                 case "OPTIONS": //cors
                     httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
@@ -44,17 +45,17 @@ public class JavaCoreServer {
                     break;
                 case "POST":
                     httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-                    response = iListener.handlePost(path, body);
-                    httpExchange.sendResponseHeaders(200, response.length());
+                    response = iListener.handlePost(path, body).getBytes(StandardCharsets.UTF_8);
+                    httpExchange.sendResponseHeaders(200, response.length);
                     break;
                 case "GET":
-                    httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-                    response = iListener.handleGet(path);
-                    httpExchange.sendResponseHeaders(200, response.length());
+                    httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+                    response = iListener.handleGet(path).getBytes(StandardCharsets.UTF_8);
+                    httpExchange.sendResponseHeaders(200, response.length);
                     break;
             }
             OutputStream os = httpExchange.getResponseBody();
-            os.write(response.getBytes());
+            os.write(response);
             os.close();
         }
 
