@@ -14,13 +14,13 @@ public class VectorStoreTest {
     private static final String portlandSourceManifestId = "local-embedding-portland-city-code";
 
     public static void main(String[] args) {
-        IDatastore dataStore = new DataStore(DataStore.Mode.ON_DISK, bucket);
+        IDatastore datastore = new DataStore(DataStore.Mode.ON_DISK, bucket);
 //        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
 //        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
 //        VectorStore vectorStore = new VectorStore(dataStore);
 //        vectorStore.load(sourceManifest);
 
-        VectorStore vectorStore = VectorStore.load(dataStore, portlandSourceManifestId);
+        VectorStore vectorStore = VectorStore.load(datastore, portlandSourceManifestId);
 
 
         EmbeddingModel embeddingModel = Embedder.createModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
@@ -29,7 +29,7 @@ public class VectorStoreTest {
         List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);
         for (Models.ChunkMatch chunkMatch : chunkMatches) {
             Models.Chunk chunk = chunkMatch.chunk();
-            String chunkText = dataStore.fetch(chunk.textLocation());
+            String chunkText = datastore.fetch(chunk.textLocation());
             System.out.println(("\n\n--------------------------------------------------------------\n\n"));
             System.out.println(chunkText);
         }
