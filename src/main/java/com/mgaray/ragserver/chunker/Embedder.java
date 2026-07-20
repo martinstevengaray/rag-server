@@ -44,7 +44,7 @@ public class Embedder {
         }
     }
 
-    private EmbeddingModel createModel(Models.ModelType modelType) {
+    public static EmbeddingModel createModel(Models.ModelType modelType) {
         return switch (modelType) {
             case DUMMY -> {
                 final float[] embedding;
