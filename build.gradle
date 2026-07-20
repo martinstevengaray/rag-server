@@ -21,5 +21,5 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j:1.17.2'
     implementation 'dev.langchain4j:langchain4j-open-ai:1.17.2'
     implementation 'dev.langchain4j:langchain4j-embeddings-bge-small-en-v15-q:1.17.2-beta27'
-    implementation 'com.openai:openai-java:4.43.0'
+//    implementation 'com.openai:openai-java:4.43.0'
 }
