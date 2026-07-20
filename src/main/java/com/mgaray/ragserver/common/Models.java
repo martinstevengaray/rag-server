@@ -68,40 +68,34 @@ public class Models {
     Although sourceManifest can support any storage pattern, this is the convention we use
 
     S3 folder structure:
-        S3://bucket/sourceManifest.id/sourceManifest.json
-        S3://bucket/sourceManifest.id/embeddings/local-BgeSmallEnV15Quantized.json
-        S3://bucket/sourceManifest.id/embeddings/open-ai-text-embedding-3-small.json
-        S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/sourceRecord.txt
-        S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunkManifest.txt
-        S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/chunks/chunk.id.txt
-        S3://bucket/sourceManifest.id/sourceRecords/sourceRecord.id/embeddings/embeddingtype-chunk.id.txt
+        S3://bucket/sourceManifestId/sourceManifest.json
+        S3://bucket/sourceManifestId/vectorStore.json.zip
+        S3://bucket/sourceManifestId/embeddings/local-BgeSmallEnV15Quantized.json
+        S3://bucket/sourceManifestId/embeddings/open-ai-text-embedding-3-small.json
+        S3://bucket/sourceManifestId/sourceRecords/sourceRecordId/sourceRecord.txt
+        S3://bucket/sourceManifestId/sourceRecords/sourceRecordId/chunkManifest.txt
+        S3://bucket/sourceManifestId/sourceRecords/ssurceRecordId/chunks/chunk.id.txt
+        S3://bucket/sourceManifestId/sourceRecords/sourceRecordId/embeddings/chunk.id.txt
 
     Example:
         S3://bucket/portland-city-code/sourceManifest.json
-        S3://bucket/portland-city-code/embeddings/local-BgeSmallEnV15Quantized.bin
-        S3://bucket/portland-city-code/embeddings/open-ai-text-embedding-3-small.bin
+        S3://bucket/portland-city-code/vectorStore.json.zip
         S3://bucket/portland-city-code/sourceRecords/001/sourceRecord.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/000.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/001.txt
         S3://bucket/portland-city-code/sourceRecords/001/chunks/002.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-000.txt  //todo only one embedding per sourceManifestId
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-001.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/local-BgeSmallEnV15Quantized-002.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/open-ai-text-embedding-3-small-000.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/open-ai-text-embedding-3-small-001.txt
-        S3://bucket/portland-city-code/sourceRecords/001/embeddings/open-ai-text-embedding-3-small-002.txt
+        S3://bucket/portland-city-code/sourceRecords/001/embeddings/000.bin
+        S3://bucket/portland-city-code/sourceRecords/001/embeddings/001.bin
+        S3://bucket/portland-city-code/sourceRecords/001/embeddings/002.bin
         S3://bucket/portland-city-code/sourceRecords/002/sourceRecord.txt
         S3://bucket/portland-city-code/sourceRecords/002/chunkManifest.txt
         S3://bucket/portland-city-code/sourceRecords/002/chunks/000.txt
         S3://bucket/portland-city-code/sourceRecords/002/chunks/001.txt
         S3://bucket/portland-city-code/sourceRecords/002/chunks/002.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/local-BgeSmallEnV15Quantized-000-000.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/local-BgeSmallEnV15Quantized-000-001.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/local-BgeSmallEnV15Quantized-000-002.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/open-ai-text-embedding-3-small-000.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/open-ai-text-embedding-3-small-001.txt
-        S3://bucket/portland-city-code/sourceRecords/002/embeddings/open-ai-text-embedding-3-small-002.txt
+        S3://bucket/portland-city-code/sourceRecords/002/embeddings/000.bin
+        S3://bucket/portland-city-code/sourceRecords/002/embeddings/001.bin
+        S3://bucket/portland-city-code/sourceRecords/002/embeddings/002.bin
 
 
 
