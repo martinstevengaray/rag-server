@@ -3,6 +3,9 @@ package com.mgaray.ragserver.rag;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.chunker.Embedder;
 import com.mgaray.ragserver.chunker.VectorStore;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mgaray.ragserver.common.Models;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
@@ -12,6 +15,11 @@ import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class QueryHandler {
@@ -84,8 +92,51 @@ public class QueryHandler {
     }
 
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private static String callOpenAiWithRestApi(String prompt) {
-        return null;
+        try {
+            // Build the JSON request body with Jackson (already a project dependency) rather
+            // than hand-concatenating strings — this way the prompt is escaped correctly even
+            // if it contains quotes or newlines.
+            //   { "model": "...", "temperature": 0.0,
+            //     "messages": [ { "role": "user", "content": "<prompt>" } ] }
+            ObjectNode body = OBJECT_MAPPER.createObjectNode();
+            body.put("model", "gpt-4o-mini"); // swap for "gpt-4o" if you need stronger reasoning
+            body.put("temperature", 0.0);     // deterministic output for RAG-style answers
+            ObjectNode message = OBJECT_MAPPER.createObjectNode();
+            message.put("role", "user");
+            message.put("content", prompt);
+            body.putArray("messages").add(message);
+            String requestJson = OBJECT_MAPPER.writeValueAsString(body);
+
+            // Authenticate with the API key from the environment via a Bearer token header.
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.openai.com/v1/chat/completions"))
+                    .header("Authorization", "Bearer " + System.getenv("OPENAI_API_KEY"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestJson, StandardCharsets.UTF_8))
+                    .build();
+
+            // Send the request. HttpClient is thread-safe and reusable — hoist it into a
+            // static field if you call this often, rather than rebuilding per request.
+            HttpClient httpClient = HttpClient.newHttpClient();
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new RuntimeException("OpenAI request failed (HTTP " + response.statusCode() + "): " + response.body());
+            }
+
+            // Parse the response and pull out the assistant's text:
+            //   choices[0].message.content
+            JsonNode root = OBJECT_MAPPER.readTree(response.body());
+            return root.path("choices").path(0).path("message").path("content").asText();
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Failed to call OpenAI REST API", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore the interrupt flag
+            throw new RuntimeException("Interrupted while calling OpenAI REST API", e);
+        }
     }
 
 }
