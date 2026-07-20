@@ -44,7 +44,7 @@ public class JavaCoreServer {
                     httpExchange.sendResponseHeaders(204, -1);
                     break;
                 case "POST":
-                    httpExchange.getResponseHeaders().add("Content-Type", "application/json");
+                    httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
                     response = iListener.handlePost(path, body).getBytes(StandardCharsets.UTF_8);
                     httpExchange.sendResponseHeaders(200, response.length);
                     break;

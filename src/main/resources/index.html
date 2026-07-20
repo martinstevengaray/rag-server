@@ -43,15 +43,17 @@
         const status = document.getElementById("status");
 
         button.addEventListener("click", async () => {
-            status.textContent = "Sending...";
+            status.textContent = "";
             try {
                 const response = await fetch("/text", {
                     method: "POST",
                     headers: { "Content-Type": "text/plain" },
                     body: input.value
                 });
-                const text = await response.text();
-                status.textContent = "Server responded: " + (text || "(empty)");
+                const html = await response.text();
+                document.open();
+                document.write(html);
+                document.close();
             } catch (err) {
                 status.textContent = "Error: " + err;
             }
