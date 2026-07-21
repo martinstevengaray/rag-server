@@ -1,6 +1,5 @@
 package com.mgaray.ragserver.server;
 
-import com.mgaray.ragserver.rag.QueryHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
@@ -45,7 +44,7 @@ public class JavaCoreServer {
                     httpExchange.sendResponseHeaders(204, -1);
                     break;
                 case "POST":
-                    httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+                    httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
                     response = iListener.handlePost(path, body).getBytes(StandardCharsets.UTF_8);
                     httpExchange.sendResponseHeaders(200, response.length);
                     break;

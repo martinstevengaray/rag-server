@@ -29,6 +29,16 @@
             white-space: pre-wrap;
             color: #444;
         }
+        #result {
+            margin-top: 20px;
+        }
+        #result pre {
+            background: #f4f4f4;
+            padding: 12px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -37,25 +47,47 @@
     <button id="send">Send</button>
     <div id="status"></div>
 
+    <div id="result" hidden>
+        <p>The server received <strong id="length"></strong> characters:</p>
+        <pre id="content"></pre>
+    </div>
+
     <script>
         const button = document.getElementById("send");
         const input = document.getElementById("input");
         const status = document.getElementById("status");
+        const result = document.getElementById("result");
+        const lengthEl = document.getElementById("length");
+        const contentEl = document.getElementById("content");
+
+        let inFlight = false;   // guard against overlapping requests
 
         button.addEventListener("click", async () => {
+            if (inFlight) return;
+            inFlight = true;
+            button.disabled = true;
+            button.textContent = "Sending…";
             status.textContent = "";
+
             try {
                 const response = await fetch("/text", {
                     method: "POST",
-                    headers: { "Content-Type": "text/plain" },
-                    body: input.value
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: input.value })
                 });
-                const html = await response.text();
-                document.open();
-                document.write(html);
-                document.close();
+                if (!response.ok) {
+                    throw new Error("HTTP " + response.status);
+                }
+                const data = await response.json();   // { length, content }
+                lengthEl.textContent = data.length;
+                contentEl.textContent = data.content; // textContent avoids any HTML injection
+                result.hidden = false;
             } catch (err) {
                 status.textContent = "Error: " + err;
+            } finally {
+                inFlight = false;
+                button.disabled = false;
+                button.textContent = "Send";
             }
         });
     </script>
