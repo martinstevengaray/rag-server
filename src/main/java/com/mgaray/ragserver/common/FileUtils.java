@@ -6,7 +6,6 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -80,7 +79,7 @@ public class FileUtils {
         }
     }
 
-    private static byte[] toBytes(float[] values) {
+    public static byte[] toBytes(float[] values) {
         ByteBuffer buffer = ByteBuffer.allocate(values.length * Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
         for (float value : values) {
             buffer.putFloat(value);
