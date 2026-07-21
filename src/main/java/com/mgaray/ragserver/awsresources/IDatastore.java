@@ -9,10 +9,12 @@ import java.util.Map;
 
 public interface IDatastore {
 
+    //primary operations that need to be overwritten per datastore technology
     boolean exists(String storageLocation);
     void write(String storageLocation, byte[] bytes);
     byte[] read(String storageLocation);
 
+    //convenience write methods
     default void writeObject(String storageLocation, Object object) {
         write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
     }
@@ -23,6 +25,7 @@ public interface IDatastore {
         write(storageLocation, FileUtils.toBytes(embedding));
     }
 
+    //convenience read methods
     default <T> T readObject(String storageLocation, Class<T> clazz) {
         String json = new String(read(storageLocation), StandardCharsets.UTF_8);
         return JsonUtils.toObject(json, clazz);
@@ -34,6 +37,7 @@ public interface IDatastore {
         return FileUtils.toFloatArray(read(storageLocation));
     }
 
+    //used upstream only as convenience methods for transforming arbitrary sources
     default Map<String, Object> readJson(String storageLocation) {
         String json = new String(read(storageLocation), StandardCharsets.UTF_8);
         return JsonUtils.parse(json);
