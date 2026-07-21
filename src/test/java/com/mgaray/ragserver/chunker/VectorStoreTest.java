@@ -23,7 +23,7 @@ public class VectorStoreTest {
         VectorStore vectorStore = VectorStore.load(datastore, portlandSourceManifestId);
 
 
-        EmbeddingModel embeddingModel = Embedder.createModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
+        EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(Models.ModelType.BGE_SMALL_EN_V15_QUANTIZED);
         String searchQuery = "street parking";
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
         List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);

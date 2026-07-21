@@ -24,7 +24,7 @@ public class Embedder {
 
     public void embed(Models.SourceManifest sourceManifest) {
         Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
-        EmbeddingModel embeddingModel = createModel(embeddingSpec.modelType());
+        EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
@@ -40,7 +40,7 @@ public class Embedder {
         }
     }
 
-    public static EmbeddingModel createModel(Models.ModelType modelType) {
+    public static EmbeddingModel createEmbeddingModel(Models.ModelType modelType) {
         return switch (modelType) {
             case DUMMY -> {
                 final float[] embedding;

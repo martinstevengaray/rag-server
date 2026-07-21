@@ -16,8 +16,7 @@ public class Main {
 
     static {
         openAiApiKey = readKeyFromConfig(
-                "/Users/turtlemccully/projects/rag-server/local/config.sh",
-                "OPEN_AI_API_KEY");
+                "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
     }
 
     // curl "http://localhost/mypath"
@@ -30,33 +29,19 @@ public class Main {
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
     }
 
-
-    private static String readKeyFromConfig(String filePath, String varName) {
+    private static String readKeyFromConfig(String configFilename, String key) {
         try {
-            List<String> lines = Files.readAllLines(Path.of(filePath));
+            List<String> lines = Files.readAllLines(Path.of(configFilename));
             for (String line : lines) {
-                String trimmed = line.trim();
-                // strip a leading "export "
-                if (trimmed.startsWith("export ")) {
-                    trimmed = trimmed.substring("export ".length()).trim();
-                }
-                // match "<varName>=..."
-                String prefix = varName + "=";
-                if (trimmed.startsWith(prefix)) {
-                    String value = trimmed.substring(prefix.length()).trim();
-                    // strip surrounding single or double quotes, if present
-                    if (value.length() >= 2
-                            && (value.charAt(0) == '"' || value.charAt(0) == '\'')
-                            && value.charAt(value.length() - 1) == value.charAt(0)) {
-                        value = value.substring(1, value.length() - 1);
-                    }
-                    return value;
+                String prefix = "export " + key + "=";
+                if (line.startsWith(prefix)) {
+                    return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
                 }
             }
-            throw new RuntimeException(varName + " not found in " + filePath);
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Failed to read config file: " + filePath, e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        throw new IllegalArgumentException(key +" not found in " + configFilename);
     }
 
 }
