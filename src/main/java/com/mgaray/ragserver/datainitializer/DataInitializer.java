@@ -25,7 +25,7 @@ public class DataInitializer {
             String textLocation = Models.sourceRecordTextLocation(outputSourceManifestId, sourceRecordId);
             String chunkManifestLocation = Models.chunkManifestLocation(outputSourceManifestId, sourceRecordId);
             if (!outputDataStore.exists(textLocation)) { // copy source text if not already done so
-                outputDataStore.save(textLocation, inputDataStore.fetch(inputTextLocation));
+                outputDataStore.writeString(textLocation, inputDataStore.readString(inputTextLocation));
             }
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
@@ -38,7 +38,7 @@ public class DataInitializer {
         }
         Models.SourceManifest outputSourceManifest = new Models.SourceManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
         String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
-        outputDataStore.save(sourceManifestLocation, outputSourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, outputSourceManifest);
         return sourceValidator.validate(outputSourceManifest);
     }
 

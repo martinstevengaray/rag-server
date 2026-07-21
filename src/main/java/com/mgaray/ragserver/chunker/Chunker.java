@@ -22,7 +22,7 @@ public class Chunker {
             if (!dataStore.exists(chunkManifestLocation)) {
                 List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
                 Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks);
-                dataStore.save(chunkManifestLocation, chunkManifest);
+                dataStore.writeObject(chunkManifestLocation, chunkManifest);
             }
         }
     }
@@ -30,7 +30,7 @@ public class Chunker {
     private List<Models.Chunk> chunk(String sourceManifestId,
                                      Models.SourceRecord sourceRecord,
                                      Models.ChunkingSpec chunkingSpec) {
-        String originalText = dataStore.fetch(sourceRecord.textLocation());
+        String originalText = dataStore.readString(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Models.Chunk> chunks = new ArrayList<>();
         int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
@@ -39,7 +39,7 @@ public class Chunker {
             String chunkText = chunkedText.get(chunkIndex);
             String chuckTextLocation = Models.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
             if (!dataStore.exists(chuckTextLocation)) {
-                dataStore.save(chuckTextLocation, chunkText);
+                dataStore.writeString(chuckTextLocation, chunkText);
             }
             String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
             chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));

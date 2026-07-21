@@ -27,14 +27,14 @@ public class Embedder {
         EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String chunkTextLocation = chunk.textLocation();
                 String embeddingLocation = chunk.embeddingLocation();
-                String chunkText = dataStore.fetch(chunkTextLocation);
+                String chunkText = dataStore.readString(chunkTextLocation);
                 if (!dataStore.exists(embeddingLocation)) {
                     float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                    dataStore.saveEmbedding(embeddingLocation, chunkEmbedding);
+                    dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
                 }
             }
         }

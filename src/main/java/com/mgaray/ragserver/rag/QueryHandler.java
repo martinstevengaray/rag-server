@@ -21,7 +21,7 @@ public class QueryHandler {
         this.datastore = datastore;
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
         String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
-        Models.SourceManifest sourceManifest = datastore.fetch(sourceManifestLocation, Models.SourceManifest.class);
+        Models.SourceManifest sourceManifest = datastore.readObject(sourceManifestLocation, Models.SourceManifest.class);
         Models.ModelType modelType = sourceManifest.runDefinition().embeddingSpec().modelType();
         this.embeddingModel = Embedder.createEmbeddingModel(modelType);
         this.chatModel = createChatModel(openAiApiKey);
@@ -34,7 +34,7 @@ public class QueryHandler {
         StringBuilder stringBuilder = new StringBuilder();
         for (Models.ChunkMatch chunkMatch : chunkMatches) {
             Models.Chunk chunk = chunkMatch.chunk();
-            String chunkText = datastore.fetch(chunk.textLocation());
+            String chunkText = datastore.readString(chunk.textLocation());
             stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
             stringBuilder.append(chunkText);
         }

@@ -30,16 +30,7 @@ public class Datastore implements IDatastore {
     }
 
     @Override
-    public byte[] fetchBytes(String storageLocation) {
-        return switch(mode) {
-            case IN_MEMORY -> inMemoryDatastore.get(storageLocation);
-            case LOCAL_DISK -> FileUtils.readBytes(bucket + "/" + storageLocation);
-            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-        };
-    }
-
-    @Override
-    public void saveBytes(String storageLocation, byte[] bytes)  {
+    public void write(String storageLocation, byte[] bytes)  {
         switch(mode) {
             case IN_MEMORY -> inMemoryDatastore.put(storageLocation, bytes);
             case LOCAL_DISK -> FileUtils.writeBytes(bucket + "/" + storageLocation, bytes);
@@ -49,52 +40,63 @@ public class Datastore implements IDatastore {
     }
 
     @Override
-    public String fetch(String storageLocation) {
-        byte[] bytes = fetchBytes(storageLocation);
+    public byte[] read(String storageLocation) {
+        return switch(mode) {
+            case IN_MEMORY -> inMemoryDatastore.get(storageLocation);
+            case LOCAL_DISK -> FileUtils.readBytes(bucket + "/" + storageLocation);
+            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+        };
+    }
+
+    @Override
+    public void writeObject(String storageLocation, Object object) {
+        write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void writeString(String storageLocation, String content) {
+        write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Override
+    public void writeEmbedding(String storageLocation, float[] embedding) {
+        write(storageLocation, FileUtils.toBytes(embedding));
+    }
+
+    @Override
+    public String readString(String storageLocation) {
+        byte[] bytes = read(storageLocation);
         return new String(bytes, StandardCharsets.UTF_8);
     }
 
     @Override
-    public Map<String, Object> fetchJson(String storageLocation) {
-        byte[] bytes = fetchBytes(storageLocation);
+    public Map<String, Object> readJson(String storageLocation) {
+        byte[] bytes = read(storageLocation);
         String json = new String(bytes, StandardCharsets.UTF_8);
         return JsonUtils.parse(json);
     }
 
     @Override
-    public List<Map<String, Object>> fetchJsonl(String storageLocation) {
-        byte[] bytes = fetchBytes(storageLocation);
+    public List<Map<String, Object>> readJsonl(String storageLocation) {
+        byte[] bytes = read(storageLocation);
         String json = new String(bytes, StandardCharsets.UTF_8);
         return JsonUtils.parseJsonl(json);
     }
 
     @Override
-    public <T> T fetch(String storageLocation, Class<T> clazz) {
-        byte[] bytes = fetchBytes(storageLocation);
+    public <T> T readObject(String storageLocation, Class<T> clazz) {
+        byte[] bytes = read(storageLocation);
         String json = new String(bytes, StandardCharsets.UTF_8);
         return JsonUtils.toObject(json, clazz);
     }
 
     @Override
-    public float[] fetchEmbedding(String storageLocation) {
-        byte[] bytes = fetchBytes(storageLocation);
+    public float[] readEmbedding(String storageLocation) {
+        byte[] bytes = read(storageLocation);
         return FileUtils.toFloatArray(bytes);
     }
 
-    @Override
-    public void save(String storageLocation, Object object) {
-        saveBytes(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
-    }
 
-    @Override
-    public void save(String storageLocation, String content) {
-        saveBytes(storageLocation, content.getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Override
-    public void saveEmbedding(String storageLocation, float[] embedding) {
-        saveBytes(storageLocation, FileUtils.toBytes(embedding));
-    }
 
     public List<String> list(String keyPrefix) {
         return switch(mode) {

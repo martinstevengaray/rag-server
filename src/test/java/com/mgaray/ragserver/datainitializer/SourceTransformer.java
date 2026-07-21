@@ -26,12 +26,12 @@ public class SourceTransformer {
             String inputRecordLocation =  "/title-" + inputSourceRecordId + ".json";
             String inputTextLocation = "/title-" + inputSourceRecordId + ".txt";
             if (inputDataStore.exists(inputRecordLocation) && inputDataStore.exists(inputTextLocation)) {
-                String text = inputDataStore.fetch(inputTextLocation);
+                String text = inputDataStore.readString(inputTextLocation);
                 String sourceRecordId = "title" + inputSourceRecordId;
                 String textLocation = originalSourceTextLocation(sourceManifestId, sourceRecordId);
                 String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-                outputDataStore.save(textLocation, text);
-                Map<String, Object> record = inputDataStore.fetchJson(inputRecordLocation);
+                outputDataStore.writeString(textLocation, text);
+                Map<String, Object> record = inputDataStore.readJson(inputRecordLocation);
                 Models.SourceRecord sourceRecord = new Models.SourceRecord(
                         sourceRecordId,
                         record.get("source_url").toString(),
@@ -44,24 +44,24 @@ public class SourceTransformer {
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.save(sourceManifestLocation, sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
     public List<String> sourceFolderForOregon(String sourceManifestId) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        List<Map<String, Object>> manifest = inputDataStore.fetchJsonl("/manifest.jsonl");
+        List<Map<String, Object>> manifest = inputDataStore.readJsonl("/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
             String inputSourceRecordId = record.get("chapter").toString();
             if (inputSourceRecordId.length() == 1) { inputSourceRecordId = "00" + inputSourceRecordId; }
             else if (inputSourceRecordId.length() == 2) { inputSourceRecordId = "0" + inputSourceRecordId; }
             String inputTextLocation = "/text/ors" + inputSourceRecordId + ".txt";
-            String text = inputDataStore.fetch(inputTextLocation);
+            String text = inputDataStore.readString(inputTextLocation);
             String sourceRecordId = "ors" + inputSourceRecordId;
             String textLocation  = originalSourceTextLocation(sourceManifestId, sourceRecordId);
             String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-            outputDataStore.save(textLocation, text);
+            outputDataStore.writeString(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
                     record.get("source_url").toString(),
@@ -73,20 +73,20 @@ public class SourceTransformer {
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.save(sourceManifestLocation, sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceManifestId) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        List<Map<String, Object>> chapters = inputDataStore.fetchJsonl("/chapters.jsonl");
+        List<Map<String, Object>> chapters = inputDataStore.readJsonl("/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
             //save sourceRecord.text file
             String textLocation = originalSourceTextLocation(sourceManifestId, sourceRecordId);
             String chunkManifestLocation = null;//Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-            outputDataStore.save(textLocation, text);
+            outputDataStore.writeString(textLocation, text);
             Models.SourceRecord sourceRecord = new Models.SourceRecord(
                     sourceRecordId,
                     record.get("source_url").toString(),
@@ -98,7 +98,7 @@ public class SourceTransformer {
         }
         Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.save(sourceManifestLocation, sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
         return sourceValidator.validate(sourceManifest);
     }
 

@@ -29,7 +29,7 @@ public class VectorStoreTest {
         List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);
         for (Models.ChunkMatch chunkMatch : chunkMatches) {
             Models.Chunk chunk = chunkMatch.chunk();
-            String chunkText = datastore.fetch(chunk.textLocation());
+            String chunkText = datastore.readString(chunk.textLocation());
             System.out.println(("\n\n--------------------------------------------------------------\n\n"));
             System.out.println(chunkText);
         }

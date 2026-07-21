@@ -24,7 +24,7 @@ public class VectorStore {
 
 
     public static VectorStore load(IDatastore datastore, String sourceManifestId) {
-        byte[] vectorStoreJsonGzBytes = datastore.fetchBytes(Models.vectorStore(sourceManifestId));
+        byte[] vectorStoreJsonGzBytes = datastore.read(Models.vectorStore(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         return new VectorStore(datastore, vectorStore);
@@ -42,10 +42,10 @@ public class VectorStore {
     public void load(Models.SourceManifest sourceManifest) {
         for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = datastore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+            Models.ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
                 String embeddingLocation = chunk.embeddingLocation();
-                float[] vector = datastore.fetchEmbedding(embeddingLocation);
+                float[] vector = datastore.readEmbedding(embeddingLocation);
                 add(vector, chunk);
             }
         }
@@ -74,7 +74,7 @@ public class VectorStore {
     public void save(String sourceManifestId) {
         String location = Models.vectorStore(sourceManifestId);
         String storeJson = store.serializeToJson();
-        datastore.saveBytes(location, compress(storeJson));
+        datastore.write(location, compress(storeJson));
     }
 
     public static byte[] compress(String value) {

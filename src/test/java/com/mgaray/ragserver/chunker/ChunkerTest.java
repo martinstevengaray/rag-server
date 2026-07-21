@@ -26,7 +26,7 @@ public class ChunkerTest {
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
         String sourceLocationTextLocation = Models.sourceRecordTextLocation(sourceManifestId,sourceRecordId);
-        dataStore.save(sourceLocationTextLocation, chunkText);
+        dataStore.writeString(sourceLocationTextLocation, chunkText);
         String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
         Models.SourceRecord sourceRecord = new Models.SourceRecord(
                 sourceRecordId,
@@ -44,9 +44,9 @@ public class ChunkerTest {
         Chunker chunker = new Chunker(dataStore);
         chunker.chunk(sourceManifest);
 
-        Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
+        Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
         for (Models.Chunk chunk : chunkManifest.chunks()) {
-            String text = dataStore.fetch(chunk.textLocation());
+            String text = dataStore.readString(chunk.textLocation());
             System.out.println(text);
         }
     }
