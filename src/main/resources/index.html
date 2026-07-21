@@ -46,6 +46,7 @@
     <textarea id="input" placeholder="Enter text here..."></textarea>
     <button id="send">Send</button>
     <div id="status"></div>
+    <div id="session">Session state: <code id="sessionValue">(none)</code></div>
 
     <div id="result" hidden>
         <p>The server received <strong id="length"></strong> characters:</p>
@@ -59,8 +60,10 @@
         const result = document.getElementById("result");
         const lengthEl = document.getElementById("length");
         const contentEl = document.getElementById("content");
+        const sessionValueEl = document.getElementById("sessionValue");
 
-        let inFlight = false;   // guard against overlapping requests
+        let inFlight = false;      // guard against overlapping requests
+        let sessionState = null;   // null on first request, then echoed back from the server
 
         button.addEventListener("click", async () => {
             if (inFlight) return;
@@ -73,14 +76,16 @@
                 const response = await fetch("/text", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query: input.value })
+                    body: JSON.stringify({ query: input.value, sessionState })
                 });
                 if (!response.ok) {
                     throw new Error("HTTP " + response.status);
                 }
-                const data = await response.json();   // { length, content }
+                const data = await response.json();   // { length, content, sessionState }
                 lengthEl.textContent = data.length;
                 contentEl.textContent = data.content; // textContent avoids any HTML injection
+                sessionState = data.sessionState;     // echo this back on the next request
+                sessionValueEl.textContent = sessionState ?? "(none)";
                 result.hidden = false;
             } catch (err) {
                 status.textContent = "Error: " + err;

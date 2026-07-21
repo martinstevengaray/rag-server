@@ -8,6 +8,7 @@ import com.mgaray.ragserver.rag.QueryHandler;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class WebappHandler implements JavaCoreServer.IListener {
 
@@ -23,17 +24,25 @@ public class WebappHandler implements JavaCoreServer.IListener {
     public String handlePost(String path, String body) {
         System.out.println("Post: " + path + ", " + body);
         try {
-            // Parse the JSON request from the client: { "query": "..." }
+            // Parse the JSON request from the client: { "query": "...", "sessionState": "..." | null }
             JsonNode request = OBJECT_MAPPER.readTree(body);
             String query = request.path("query").asText();
 
+            // The client sends null on its first request and echoes back whatever we
+            // returned on subsequent requests. Mint a new session id when it is absent.
+            JsonNode sessionStateNode = request.path("sessionState");
+            String sessionState = sessionStateNode.isMissingNode() || sessionStateNode.isNull()
+                    ? UUID.randomUUID().toString()
+                    : sessionStateNode.asText();
+
             String answer = this.queryHandler.query(query);
 
-            // Build the JSON response: { "length": N, "content": "..." }.
+            // Build the JSON response: { "length": N, "content": "...", "sessionState": "..." }.
             // Jackson handles all string escaping, so no manual HTML/JSON escaping is needed.
             ObjectNode response = OBJECT_MAPPER.createObjectNode();
             response.put("length", query.length());
             response.put("content", answer);
+            response.put("sessionState", sessionState);
             return OBJECT_MAPPER.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to process request JSON: " + body, e);
