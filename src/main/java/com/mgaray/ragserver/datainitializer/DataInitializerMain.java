@@ -19,8 +19,8 @@ public class DataInitializerMain {
     public static void main(String[] args) {
         String inputSourceManifestId = portlandSourceManifestId;
         String outputSourceManifestId = inputSourceManifestId;
-        IDatastore inputDataStore = new Datastore(Datastore.Mode.ON_DISK, inputBucket);
-        IDatastore outputDataStore = new Datastore(Datastore.Mode.ON_DISK, outputBucket);
+        IDatastore inputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, inputBucket);
+        IDatastore outputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, outputBucket);
         DataInitializer dataInitializer = new DataInitializer(inputDataStore, outputDataStore);
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(500, 0.5f),

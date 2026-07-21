@@ -23,7 +23,7 @@ public class Main {
     // curl -X POST -H "Content-Type: application/json" -d '{"username": "Bob", "password": "bob-secret"}' http://localhost/somepath
 
     public static void main(String[] args) throws Exception {
-        IDatastore dataStore = new Datastore(Datastore.Mode.ON_DISK, bucket);
+        IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         QueryHandler queryHandler = new QueryHandler(dataStore, openAiApiKey, sourceManifestId);
         JavaCoreServer javaCoreServer = new JavaCoreServer();
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);

@@ -14,7 +14,7 @@ public class VectorStoreTest {
     private static final String portlandSourceManifestId = "local-embedding-portland-city-code";
 
     public static void main(String[] args) {
-        IDatastore datastore = new Datastore(Datastore.Mode.ON_DISK, bucket);
+        IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
 //        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
 //        Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
 //        VectorStore vectorStore = new VectorStore(dataStore);

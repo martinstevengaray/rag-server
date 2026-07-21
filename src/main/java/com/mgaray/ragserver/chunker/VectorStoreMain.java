@@ -14,7 +14,7 @@ public class VectorStoreMain {
     private static final String nabManifestId = "new-american-bible";
 
     public static void main(String[] args) {
-        IDatastore dataStore = new Datastore(Datastore.Mode.ON_DISK, bucket);
+        IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
         Models.SourceManifest sourceManifest = dataStore.fetch(sourceManifestLocation, Models.SourceManifest.class);
         VectorStore vectorStore = new VectorStore(dataStore);
