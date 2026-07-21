@@ -28,7 +28,6 @@ public class QueryHandler {
     }
 
     public String query(String queryString) {
-        if (true) return chatModel.chat(queryString);
         float[] searchVector = embeddingModel.embed(queryString).content().vector();
         vectorStore.get(searchVector, 5);
         List<Models.ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);
@@ -39,7 +38,12 @@ public class QueryHandler {
             stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
             stringBuilder.append(chunkText);
         }
-        return stringBuilder.toString();
+        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
+        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
+                "If unable to answer the question based on the chunk sources say so.\n\n" +
+                "chunks: " + stringBuilder.toString() + "\n\n" +
+                "questin to answer: " + queryString;
+        return chatModel.chat(prompt) + "\n\n\n\n" + prompt;
     }
 
     public static ChatModel createChatModel(String openAiApiKey) {
