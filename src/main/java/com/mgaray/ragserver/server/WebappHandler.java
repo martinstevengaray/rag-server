@@ -37,12 +37,14 @@ public class WebappHandler implements JavaCoreServer.IListener {
 
             String answer = this.queryHandler.query(query);
 
-            // Build the JSON response: { "length": N, "content": "...", "sessionState": "..." }.
+            // Build the JSON response: { "length": N, "content": "...", "sessionState": "...", "debug": "..." | null }.
             // Jackson handles all string escaping, so no manual HTML/JSON escaping is needed.
             ObjectNode response = OBJECT_MAPPER.createObjectNode();
             response.put("length", query.length());
             response.put("content", answer);
             response.put("sessionState", sessionState);
+            // "debug" carries an arbitrary diagnostic string; may be null when there is nothing to report.
+            response.put("debug", "query.length=" + query.length() + ", sessionState=" + sessionState);
             return OBJECT_MAPPER.writeValueAsString(response);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to process request JSON: " + body, e);

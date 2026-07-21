@@ -71,10 +71,15 @@
             white-space: pre-wrap;
             color: #444;
         }
-        #session {
+        #session,
+        #debug {
             margin-top: 4px;
             color: #444;
             font-size: 13px;
+        }
+        #debug code {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -90,6 +95,7 @@
 
     <div id="status"></div>
     <div id="session">Session state: <code id="sessionValue">(none)</code></div>
+    <div id="debug">Debug: <code id="debugValue">(none)</code></div>
 
     <script>
         const button = document.getElementById("send");
@@ -97,6 +103,7 @@
         const status = document.getElementById("status");
         const conversation = document.getElementById("conversation");
         const sessionValueEl = document.getElementById("sessionValue");
+        const debugValueEl = document.getElementById("debugValue");
 
         let inFlight = false;      // guard against overlapping requests
         let sessionState = null;   // null on first request, then echoed back from the server
@@ -134,10 +141,12 @@
                 if (!response.ok) {
                     throw new Error("HTTP " + response.status);
                 }
-                const data = await response.json();   // { length, content, sessionState }
+                const data = await response.json();   // { length, content, sessionState, debug }
                 addMessage("assistant", data.content);
                 sessionState = data.sessionState;     // echo this back on the next request
                 sessionValueEl.textContent = sessionState ?? "(none)";
+                // debug is an arbitrary diagnostic string and may be null/absent.
+                debugValueEl.textContent = data.debug ?? "(none)";
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {
