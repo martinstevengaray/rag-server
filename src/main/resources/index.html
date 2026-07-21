@@ -10,89 +10,151 @@
             max-width: 640px;
             margin: 40px auto;
             padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+        }
+        h1 {
+            margin: 0 0 12px;
+        }
+        #conversation {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #fafafa;
+        }
+        .msg {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .msg.user {
+            align-self: flex-end;
+            background: #d6eaff;
+            border-bottom-right-radius: 2px;
+        }
+        .msg.assistant {
+            align-self: flex-start;
+            background: #eee;
+            border-bottom-left-radius: 2px;
+        }
+        #composer {
+            display: flex;
+            flex-direction: column;
+            margin-top: 12px;
         }
         textarea {
             width: 100%;
-            min-height: 160px;
+            min-height: 72px;
             box-sizing: border-box;
             font-size: 14px;
             padding: 8px;
         }
         button {
-            margin-top: 12px;
+            align-self: flex-end;
+            margin-top: 8px;
             padding: 8px 20px;
             font-size: 14px;
             cursor: pointer;
         }
         #status {
-            margin-top: 12px;
+            margin-top: 8px;
             white-space: pre-wrap;
             color: #444;
         }
-        #result {
-            margin-top: 20px;
-        }
-        #result pre {
-            background: #f4f4f4;
-            padding: 12px;
-            border-radius: 4px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+        #session {
+            margin-top: 4px;
+            color: #444;
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
     <h1>RAG Server</h1>
-    <textarea id="input" placeholder="Enter text here..."></textarea>
-    <button id="send">Send</button>
+
+    <div id="conversation"></div>
+
+    <div id="composer">
+        <textarea id="input" placeholder="Enter text here..."></textarea>
+        <button id="send">Send</button>
+    </div>
+
     <div id="status"></div>
     <div id="session">Session state: <code id="sessionValue">(none)</code></div>
-
-    <div id="result" hidden>
-        <p>The server received <strong id="length"></strong> characters:</p>
-        <pre id="content"></pre>
-    </div>
 
     <script>
         const button = document.getElementById("send");
         const input = document.getElementById("input");
         const status = document.getElementById("status");
-        const result = document.getElementById("result");
-        const lengthEl = document.getElementById("length");
-        const contentEl = document.getElementById("content");
+        const conversation = document.getElementById("conversation");
         const sessionValueEl = document.getElementById("sessionValue");
 
         let inFlight = false;      // guard against overlapping requests
         let sessionState = null;   // null on first request, then echoed back from the server
 
-        button.addEventListener("click", async () => {
+        // Append a chat bubble and keep the newest message in view.
+        // textContent (not innerHTML) avoids any HTML injection.
+        function addMessage(role, text) {
+            const msg = document.createElement("div");
+            msg.className = "msg " + role;   // role is "user" or "assistant"
+            msg.textContent = text;
+            conversation.appendChild(msg);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        async function send() {
             if (inFlight) return;
+            const query = input.value.trim();
+            if (query === "") return;
+
             inFlight = true;
             button.disabled = true;
             button.textContent = "Sending…";
             status.textContent = "";
 
+            // Show the user's message immediately and clear the input.
+            addMessage("user", query);
+            input.value = "";
+
             try {
                 const response = await fetch("/text", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query: input.value, sessionState })
+                    body: JSON.stringify({ query, sessionState })
                 });
                 if (!response.ok) {
                     throw new Error("HTTP " + response.status);
                 }
                 const data = await response.json();   // { length, content, sessionState }
-                lengthEl.textContent = data.length;
-                contentEl.textContent = data.content; // textContent avoids any HTML injection
+                addMessage("assistant", data.content);
                 sessionState = data.sessionState;     // echo this back on the next request
                 sessionValueEl.textContent = sessionState ?? "(none)";
-                result.hidden = false;
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {
                 inFlight = false;
                 button.disabled = false;
                 button.textContent = "Send";
+                input.focus();
+            }
+        }
+
+        button.addEventListener("click", send);
+
+        // Enter sends; Shift+Enter inserts a newline.
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
             }
         });
     </script>
