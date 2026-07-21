@@ -1,9 +1,9 @@
 package com.mgaray.ragserver.awsresources;
 
 import com.mgaray.ragserver.common.FileUtils;
-import com.mgaray.ragserver.common.JsonUtils;
-
-import java.nio.charset.StandardCharsets;
+//import com.mgaray.ragserver.common.JsonUtils;
+//
+//import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class Datastore implements IDatastore {
@@ -47,7 +47,7 @@ public class Datastore implements IDatastore {
             case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
         };
     }
-
+/*
     @Override
     public void writeObject(String storageLocation, Object object) {
         write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
@@ -96,7 +96,7 @@ public class Datastore implements IDatastore {
         return FileUtils.toFloatArray(bytes);
     }
 
-
+*/
 
     public List<String> list(String keyPrefix) {
         return switch(mode) {

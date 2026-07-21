@@ -1,5 +1,9 @@
 package com.mgaray.ragserver.awsresources;
 
+import com.mgaray.ragserver.common.FileUtils;
+import com.mgaray.ragserver.common.JsonUtils;
+
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -9,15 +13,34 @@ public interface IDatastore {
     void write(String storageLocation, byte[] bytes);
     byte[] read(String storageLocation);
 
-    void writeObject(String storageLocation, Object object);
-    void writeString(String storageLocation, String content);
-    void writeEmbedding(String storageLocation, float[] embedding);
+    default void writeObject(String storageLocation, Object object) {
+        write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
+    }
+    default void writeString(String storageLocation, String content) {
+        write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
+    }
+    default void writeEmbedding(String storageLocation, float[] embedding) {
+        write(storageLocation, FileUtils.toBytes(embedding));
+    }
 
-    <T> T readObject(String storageLocation, Class<T> clazz);
-    String readString(String storageLocation);
-    float[] readEmbedding(String storageLocation);
+    default <T> T readObject(String storageLocation, Class<T> clazz) {
+        String json = new String(read(storageLocation), StandardCharsets.UTF_8);
+        return JsonUtils.toObject(json, clazz);
+    }
+    default String readString(String storageLocation) {
+        return new String(read(storageLocation), StandardCharsets.UTF_8);
+    }
+    default float[] readEmbedding(String storageLocation) {
+        return FileUtils.toFloatArray(read(storageLocation));
+    }
 
-    Map<String, Object> readJson(String storageLocation);
-    List<Map<String, Object>> readJsonl(String storageLocation);
+    default Map<String, Object> readJson(String storageLocation) {
+        String json = new String(read(storageLocation), StandardCharsets.UTF_8);
+        return JsonUtils.parse(json);
+    }
+    default List<Map<String, Object>> readJsonl(String storageLocation) {
+        String json = new String(read(storageLocation), StandardCharsets.UTF_8);
+        return JsonUtils.parseJsonl(json);
+    }
 
 }
