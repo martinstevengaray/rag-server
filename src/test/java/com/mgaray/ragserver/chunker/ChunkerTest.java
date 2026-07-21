@@ -38,11 +38,11 @@ public class ChunkerTest {
         sourceRecords.add(sourceRecord);
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(8, 0.5f), null);
-        Models.SourceManifest sourceManifest =
-                new Models.SourceManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
+        Models.IngestionManifest ingestionManifest =
+                new Models.IngestionManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
 
         Chunker chunker = new Chunker(dataStore);
-        chunker.chunk(sourceManifest);
+        chunker.chunk(ingestionManifest);
 
         Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
         for (Models.Chunk chunk : chunkManifest.chunks()) {

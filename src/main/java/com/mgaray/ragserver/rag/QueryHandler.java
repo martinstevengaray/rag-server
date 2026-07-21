@@ -21,8 +21,8 @@ public class QueryHandler {
         this.datastore = datastore;
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
         String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
-        Models.SourceManifest sourceManifest = datastore.readObject(sourceManifestLocation, Models.SourceManifest.class);
-        Models.ModelType modelType = sourceManifest.runDefinition().embeddingSpec().modelType();
+        Models.IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
+        Models.ModelType modelType = ingestionManifest.runDefinition().embeddingSpec().modelType();
         this.embeddingModel = Embedder.createEmbeddingModel(modelType);
         this.chatModel = createChatModel(openAiApiKey);
     }

@@ -15,12 +15,12 @@ public class Chunker {
         this.dataStore = dataStore;
     }
 
-    public void chunk(Models.SourceManifest sourceManifest) {
-        Models.ChunkingSpec chunkingSpec = sourceManifest.runDefinition().chunkingSpec();
-        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+    public void chunk(Models.IngestionManifest ingestionManifest) {
+        Models.ChunkingSpec chunkingSpec = ingestionManifest.runDefinition().chunkingSpec();
+        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             if (!dataStore.exists(chunkManifestLocation)) {
-                List<Models.Chunk> chunks = chunk(sourceManifest.id(), sourceRecord, chunkingSpec);
+                List<Models.Chunk> chunks = chunk(ingestionManifest.id(), sourceRecord, chunkingSpec);
                 Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks);
                 dataStore.writeObject(chunkManifestLocation, chunkManifest);
             }

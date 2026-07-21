@@ -22,10 +22,10 @@ public class Embedder {
         this.dataStore = dataStore;
     }
 
-    public void embed(Models.SourceManifest sourceManifest) {
-        Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
+    public void embed(Models.IngestionManifest ingestionManifest) {
+        Models.EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
-        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {

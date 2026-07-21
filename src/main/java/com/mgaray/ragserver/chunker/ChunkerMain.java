@@ -17,10 +17,10 @@ public class ChunkerMain {
     public static void main(String[] args) {
         IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = dataStore.readObject(sourceManifestLocation, Models.SourceManifest.class);
+        Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
         Chunker chunker = new Chunker(dataStore);
-        chunker.chunk(sourceManifest);
-        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
+        chunker.chunk(ingestionManifest);
+        System.out.println(JsonUtils.toJsonPretty(ingestionManifest));
     }
 
 }

@@ -25,12 +25,12 @@ public class DataInitializerMain {
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(500, 0.5f),
                 new Models.EmbeddingSpec(Models.ModelType.DUMMY));
-        Models.SourceManifest inputSourceManifest = inputDataStore.readObject(
-                "/" + inputSourceManifestId + "/sourceManifest.json", Models.SourceManifest.class);
-        List<String> errors = dataInitializer.create(inputSourceManifest, outputSourceManifestId, runDefinition);
+        Models.IngestionManifest inputIngestionManifest = inputDataStore.readObject(
+                "/" + inputSourceManifestId + "/sourceManifest.json", Models.IngestionManifest.class);
+        List<String> errors = dataInitializer.create(inputIngestionManifest, outputSourceManifestId, runDefinition);
         String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
-        Models.SourceManifest sourceManifest = outputDataStore.readObject(sourceManifestLocation, Models.SourceManifest.class);
-        System.out.println(outputSourceManifestId + " sourceRecords: " + sourceManifest.sourceRecords().size() + ". errors: " + errors);
+        Models.IngestionManifest ingestionManifest = outputDataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
+        System.out.println(outputSourceManifestId + " sourceRecords: " + ingestionManifest.sourceRecords().size() + ". errors: " + errors);
     }
 
 }

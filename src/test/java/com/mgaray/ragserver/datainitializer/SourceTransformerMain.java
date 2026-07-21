@@ -16,7 +16,7 @@ public class SourceTransformerMain {
         String inputBucket = null;
         SourceTransformer sourceTransformer = null;
         IDatastore inputDataStore = null;
-        Models.SourceManifest sourceManifest = null;
+        Models.IngestionManifest ingestionManifest = null;
         List<String> errors = null;
 
         sourceManifestId = "portland-city-code";

@@ -7,10 +7,10 @@ public class Models {
     public record RunDefinition(ChunkingSpec chunkingSpec,
                                 EmbeddingSpec embeddingSpec) {}
 
-    public record SourceManifest(String id,
-                                 RunDefinition runDefinition,
-                                 List<SourceRecord> sourceRecords,
-                                 List<VectorStoreExport> vectorStoreExports) {}
+    public record IngestionManifest(String id,
+                                    RunDefinition runDefinition,
+                                    List<SourceRecord> sourceRecords,
+                                    List<VectorStoreExport> vectorStoreExports) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,

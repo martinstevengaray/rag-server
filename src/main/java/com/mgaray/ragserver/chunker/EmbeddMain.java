@@ -16,10 +16,10 @@ public class EmbeddMain {
     public static void main(String[] args) {
         Datastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = dataStore.readObject(sourceManifestLocation, Models.SourceManifest.class);
+        Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
         Embedder embedder = new Embedder(dataStore);
-        embedder.embed(sourceManifest);
-        System.out.println(JsonUtils.toJsonPretty(sourceManifest));
+        embedder.embed(ingestionManifest);
+        System.out.println(JsonUtils.toJsonPretty(ingestionManifest));
     }
 
 }

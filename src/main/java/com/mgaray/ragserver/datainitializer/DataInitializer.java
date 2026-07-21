@@ -17,9 +17,9 @@ public class DataInitializer {
         this.outputDataStore = outputDataStore;
     }
 
-    public List<String> create(Models.SourceManifest inputSourceManifest, String outputSourceManifestId, Models.RunDefinition runDefinition) {
+    public List<String> create(Models.IngestionManifest inputIngestionManifest, String outputSourceManifestId, Models.RunDefinition runDefinition) {
         List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        for (Models.SourceRecord inputSourceRecord : inputSourceManifest.sourceRecords()) {
+        for (Models.SourceRecord inputSourceRecord : inputIngestionManifest.sourceRecords()) {
             String sourceRecordId = inputSourceRecord.id();
             String inputTextLocation = inputSourceRecord.textLocation();
             String textLocation = Models.sourceRecordTextLocation(outputSourceManifestId, sourceRecordId);
@@ -36,10 +36,10 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest outputSourceManifest = new Models.SourceManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
+        Models.IngestionManifest outputIngestionManifest = new Models.IngestionManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
         String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
-        outputDataStore.writeObject(sourceManifestLocation, outputSourceManifest);
-        return sourceValidator.validate(outputSourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, outputIngestionManifest);
+        return sourceValidator.validate(outputIngestionManifest);
     }
 
 }

@@ -42,10 +42,10 @@ public class SourceTransformer {
                 sourceRecords.add(sourceRecord);
             }
         }
-        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
+        Models.IngestionManifest ingestionManifest = new Models.IngestionManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
-        return sourceValidator.validate(sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, ingestionManifest);
+        return sourceValidator.validate(ingestionManifest);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -71,10 +71,10 @@ public class SourceTransformer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
+        Models.IngestionManifest ingestionManifest = new Models.IngestionManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
-        return sourceValidator.validate(sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, ingestionManifest);
+        return sourceValidator.validate(ingestionManifest);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceManifestId) {
@@ -96,10 +96,10 @@ public class SourceTransformer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.SourceManifest sourceManifest = new Models.SourceManifest(sourceManifestId, null, sourceRecords, null);
+        Models.IngestionManifest ingestionManifest = new Models.IngestionManifest(sourceManifestId, null, sourceRecords, null);
         String sourceManifestLocation = originalSourceManifestLocation(sourceManifestId);
-        outputDataStore.writeObject(sourceManifestLocation, sourceManifest);
-        return sourceValidator.validate(sourceManifest);
+        outputDataStore.writeObject(sourceManifestLocation, ingestionManifest);
+        return sourceValidator.validate(ingestionManifest);
     }
 
     private static String originalSourceManifestLocation(String sourceManifestId) {

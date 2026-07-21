@@ -16,9 +16,9 @@ public class VectorStoreMain {
     public static void main(String[] args) {
         IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
-        Models.SourceManifest sourceManifest = dataStore.readObject(sourceManifestLocation, Models.SourceManifest.class);
+        Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
         VectorStore vectorStore = new VectorStore(dataStore);
-        vectorStore.load(sourceManifest);
+        vectorStore.load(ingestionManifest);
     }
 
 }

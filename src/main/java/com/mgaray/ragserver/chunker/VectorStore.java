@@ -39,8 +39,8 @@ public class VectorStore {
         this.store = store;
     }
 
-    public void load(Models.SourceManifest sourceManifest) {
-        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
+    public void load(Models.IngestionManifest ingestionManifest) {
+        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             Models.ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
             for (Models.Chunk chunk : chunkManifest.chunks()) {
@@ -49,7 +49,7 @@ public class VectorStore {
                 add(vector, chunk);
             }
         }
-        save(sourceManifest.id());
+        save(ingestionManifest.id());
     }
 
     public void add(float[] vector, Models.Chunk chunk) {
