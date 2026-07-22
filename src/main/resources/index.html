@@ -52,6 +52,29 @@
             background: #eee;
             border-bottom-left-radius: 2px;
         }
+        .sources {
+            max-width: 80%;
+            font-size: 12px;
+            color: #555;
+        }
+        .sources.assistant {
+            align-self: flex-start;
+        }
+        .sources.user {
+            align-self: flex-end;
+        }
+        .sources-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .sources ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .sources a {
+            color: #0b5cad;
+            word-break: break-all;
+        }
         #composer {
             display: flex;
             flex-direction: column;
@@ -137,11 +160,40 @@
         }
 
         // Append a chat bubble and keep the newest message in view.
-        function addMessage(role, text) {
+        // `sources` is an optional array of strings shown beneath the bubble.
+        function addMessage(role, text, sources) {
             const msg = document.createElement("div");
             msg.className = "msg " + role;   // role is "user" or "assistant"
             msg.textContent = text;
             conversation.appendChild(msg);
+
+            if (Array.isArray(sources) && sources.length > 0) {
+                const box = document.createElement("div");
+                box.className = "sources " + role;
+                const title = document.createElement("div");
+                title.className = "sources-title";
+                title.textContent = "Sources";
+                box.appendChild(title);
+
+                const list = document.createElement("ul");
+                for (const src of sources) {
+                    const li = document.createElement("li");
+                    if (/^https?:\/\//i.test(src)) {
+                        const a = document.createElement("a");
+                        a.href = src;
+                        a.textContent = src;
+                        a.target = "_blank";
+                        a.rel = "noopener noreferrer";
+                        li.appendChild(a);
+                    } else {
+                        li.textContent = src;
+                    }
+                    list.appendChild(li);
+                }
+                box.appendChild(list);
+                conversation.appendChild(box);
+            }
+
             conversation.scrollTop = conversation.scrollHeight;
         }
 
@@ -168,8 +220,8 @@
                 if (!response.ok) {
                     throw new Error("HTTP " + response.status);
                 }
-                const data = await response.json();   // { length, content, sessionState, debug }
-                addMessage("assistant", data.chatResponse);
+                const data = await response.json();   // { chatResponse, sources, sessionState, details }
+                addMessage("assistant", data.chatResponse, data.sources);
                 sessionState = data.sessionState;     // echo this back on the next request
                 sessionValueEl.textContent = formatJson(sessionState);
                 // debug is an arbitrary diagnostic string and may be null/absent.

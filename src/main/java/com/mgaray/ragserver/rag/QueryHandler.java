@@ -77,10 +77,10 @@ public class QueryHandler {
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
-        String response = chatModelResponse.response();
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, response, chatModelResponse.dataSourcesUsed()));
+        String chatResponse = chatModelResponse.response();
+        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chatModelResponse.dataSourcesUsed()));
         String sessionStateJson = JsonUtils.toJson(sessionState);
-        return new Response(chatModelResponse.response(), sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+        return new Response(chatResponse, List.of("someUrl1", "someUrl2"), sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
     private SessionState getSessionState(Request request) {
@@ -115,6 +115,14 @@ public class QueryHandler {
         }
         return dataSources;
     }
+
+//    private List<String> sources(ChatModelResponse chatModelResponse) {
+//        List<String> sources = new ArrayList<>();
+//        for (ChunkMatch chunkMatch : chatModelResponse.dataSourcesUsed()) {
+//            sources.add(chunkMatch.chunk().sourceRecord().sourceUrl());
+//        }
+//        return sources;
+//    }
 
     private String createPrompt(List<DataSource> dataSources, List<PromptExchange> promptExchanges, String userPrompt) {
         StringBuilder prompt = new StringBuilder();
