@@ -116,7 +116,7 @@
         const debugValueEl = document.getElementById("debugValue");
 
         let inFlight = false;      // guard against overlapping requests
-        let sessionState = "{}";   // null on first request, then echoed back from the server
+        let sessionState = null;   // null on first request, then echoed back from the server
 
         // Append a chat bubble and keep the newest message in view.
         function addMessage(role, text) {

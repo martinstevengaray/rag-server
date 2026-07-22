@@ -10,6 +10,7 @@ import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
+import dev.langchain4j.internal.Json;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
@@ -68,23 +69,37 @@ public class QueryHandler {
 
     public Response query(Request request) {
         String userPrompt = request.userPrompt();
-        SessionState sessionState = JsonUtils.toObject(request.sessionState(), SessionState.class);
+        SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
         List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 5);  //todo hardcoded count
         List<DataSource> dataSources = lossyTransform(chunkMatches);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
-        String chatResponse = chatModel.chat(prompt);
-        return new Response(chatResponse, request.sessionState(), prompt);
+        String chatModelResponseJson = chatModel.chat(prompt);
+        System.out.println(chatModelResponseJson);
+        ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo add exception handling here
+        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatModelResponse.response(), chatModelResponse.dataSourcesUsed()));
+        String sessionStateJson = JsonUtils.toJson(sessionState);
+        return new Response(chatModelResponse.response(), sessionStateJson, prompt);
+    }
+
+    private SessionState getSessionState(Request request) {
+        String sessionStateJson = request.sessionState();
+        if (sessionStateJson == null) {
+            return new SessionState(new ArrayList<>());
+        }
+        SessionState sessionState = JsonUtils.toObject(request.sessionState(), SessionState.class);
+        if (sessionState.promptExchanges() == null) {
+            return new SessionState(new ArrayList<>());
+        }
+        return sessionState;
     }
 
     private String createVectorStoreQuery(SessionState sessionState, String userPrompt) {
         StringBuilder stringBuilder = new StringBuilder();
-        if (sessionState.promptExchanges() != null) {
-            for (PromptExchange promptExchange : sessionState.promptExchanges()) {
-                stringBuilder.append(promptExchange.prompt() + "\n");
-                stringBuilder.append(promptExchange.response() + "\n");
-            }
+        for (PromptExchange promptExchange : sessionState.promptExchanges()) {
+            stringBuilder.append(promptExchange.prompt() + "\n");
+            stringBuilder.append(promptExchange.response() + "\n");
         }
         stringBuilder.append(userPrompt);
         return stringBuilder.toString();
@@ -108,24 +123,21 @@ public class QueryHandler {
         for (DataSource dataSource : dataSources) {
             prompt.append(JsonUtils.toJson(dataSource) + "\n");
         }
-        if (promptExchanges != null) {
-            for (PromptExchange promptExchange : promptExchanges) {
-                prompt.append("\nPROMPT:\n");
-                prompt.append("     " + promptExchange.prompt);
-                prompt.append("\nRESPONSE:\n");
-                prompt.append("     " + promptExchange.response);
-            }
+        for (PromptExchange promptExchange : promptExchanges) {
+            prompt.append("\nPROMPT:\n");
+            prompt.append("     " + promptExchange.prompt);
+            prompt.append("\nRESPONSE:\n");
+            prompt.append("     " + promptExchange.response);
         }
         prompt.append("\nPROMPT:\n");
         prompt.append("     " + userPrompt);
-
         return prompt.toString();
     }
 
     private final String promptPrefix = """
 Use the following data sources only to continue the conversation.
 Include the ids of the data sources you used to form your response.
-Please respond in the following json format:
+Please respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 
 """;
@@ -141,6 +153,8 @@ Please respond in the following json format:
 //RESPONSE:
 //PROMPT:
 //            """;
+
+    private record ChatModelResponse(List<String> dataSourcesUsed, String response) {}
 
     private record SessionState(List<PromptExchange> promptExchanges) {}
 
