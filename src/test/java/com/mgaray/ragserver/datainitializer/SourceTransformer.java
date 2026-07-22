@@ -10,7 +10,6 @@ public class SourceTransformer {
 
     private final IDatastore inputDataStore;
     private final IDatastore outputDataStore;
-    private final SourceValidator sourceValidator = new SourceValidator();
 
     public SourceTransformer(IDatastore inputDataStore, IDatastore outputDataStore) {
         this.inputDataStore = inputDataStore;
@@ -42,7 +41,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validate(sourceCatalog);
+        return validateSourceCatalog(sourceCatalog);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -69,7 +68,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validate(sourceCatalog);
+        return validateSourceCatalog(sourceCatalog);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceCatalogId) {
@@ -91,7 +90,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validate(sourceCatalog);
+        return validateSourceCatalog(sourceCatalog);
     }
 
     private static String sourceCatalogLocation(String sourceCatalogId) {
@@ -102,7 +101,7 @@ public class SourceTransformer {
         return "/" + sourceManifestId + "/sources/" + sourceId + ".txt";
     }
 
-    private static List<String> validate(SourceCatalog sourceCatalog) {
+    private static List<String> validateSourceCatalog(SourceCatalog sourceCatalog) {
         List<String> errors = new ArrayList<>();
         Set<String> ids = new HashSet<>();;
         Set<String> sourceUrls = new HashSet<>();

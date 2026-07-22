@@ -37,7 +37,7 @@ public interface IDatastore {
         return FileUtils.toFloatArray(read(storageLocation));
     }
 
-    //used upstream only as convenience methods for transforming arbitrary sources
+    //used upstream only, as convenience methods for transforming arbitrary sources
     default Map<String, Object> readJson(String storageLocation) {
         String json = new String(read(storageLocation), StandardCharsets.UTF_8);
         return JsonUtils.parse(json);

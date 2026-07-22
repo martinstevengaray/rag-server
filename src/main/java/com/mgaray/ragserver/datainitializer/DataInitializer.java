@@ -17,7 +17,7 @@ import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 
 public class DataInitializer {
 
-    private final SourceValidator sourceValidator = new SourceValidator();
+    private final IngestManifestValidator ingestManifestValidator = new IngestManifestValidator();
     private final IDatastore sourceDatastore;
     private final IDatastore outDatastore;
 
@@ -46,11 +46,11 @@ public class DataInitializer {
             sourceRecords.add(sourceRecord);
         }
         String vectorStoreLocation = vectorStoreLocation(ingestManifestId);
-        IngestionManifest outputIngestionManifest =
+        IngestionManifest ingestionManifest =
                 new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreLocation);
-        String sourceManifestLocation = ingestManifestLocation(ingestManifestId);
-        outDatastore.writeObject(sourceManifestLocation, outputIngestionManifest);
-        return sourceValidator.validate(outputIngestionManifest);
+        String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
+        outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
+        return ingestManifestValidator.validate(ingestionManifest);
     }
 
 }

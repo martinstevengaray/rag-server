@@ -1,9 +1,6 @@
 package com.mgaray.ragserver.awsresources;
 
 import com.mgaray.ragserver.common.FileUtils;
-//import com.mgaray.ragserver.common.JsonUtils;
-//
-//import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,56 +45,6 @@ public class Datastore implements IDatastore {
             case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
         };
     }
-/*
-    @Override
-    public void writeObject(String storageLocation, Object object) {
-        write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Override
-    public void writeString(String storageLocation, String content) {
-        write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
-    }
-
-    @Override
-    public void writeEmbedding(String storageLocation, float[] embedding) {
-        write(storageLocation, FileUtils.toBytes(embedding));
-    }
-
-    @Override
-    public String readString(String storageLocation) {
-        byte[] bytes = read(storageLocation);
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
-
-    @Override
-    public Map<String, Object> readJson(String storageLocation) {
-        byte[] bytes = read(storageLocation);
-        String json = new String(bytes, StandardCharsets.UTF_8);
-        return JsonUtils.parse(json);
-    }
-
-    @Override
-    public List<Map<String, Object>> readJsonl(String storageLocation) {
-        byte[] bytes = read(storageLocation);
-        String json = new String(bytes, StandardCharsets.UTF_8);
-        return JsonUtils.parseJsonl(json);
-    }
-
-    @Override
-    public <T> T readObject(String storageLocation, Class<T> clazz) {
-        byte[] bytes = read(storageLocation);
-        String json = new String(bytes, StandardCharsets.UTF_8);
-        return JsonUtils.toObject(json, clazz);
-    }
-
-    @Override
-    public float[] readEmbedding(String storageLocation) {
-        byte[] bytes = read(storageLocation);
-        return FileUtils.toFloatArray(bytes);
-    }
-
-*/
 
     public List<String> list(String keyPrefix) {
         return switch(mode) {
