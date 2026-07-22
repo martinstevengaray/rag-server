@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>RAG Server</title>
+    <title>Portland City Code</title>
     <style>
         body {
             font-family: system-ui, sans-serif;
@@ -109,7 +109,6 @@
         let sessionState = null;   // null on first request, then echoed back from the server
 
         // Append a chat bubble and keep the newest message in view.
-        // textContent (not innerHTML) avoids any HTML injection.
         function addMessage(role, text) {
             const msg = document.createElement("div");
             msg.className = "msg " + role;   // role is "user" or "assistant"
@@ -120,8 +119,8 @@
 
         async function send() {
             if (inFlight) return;
-            const query = input.value.trim();
-            if (query === "") return;
+            const userPrompt = input.value.trim();
+            if (userPrompt === "") return;
 
             inFlight = true;
             button.disabled = true;
@@ -129,24 +128,24 @@
             status.textContent = "";
 
             // Show the user's message immediately and clear the input.
-            addMessage("user", query);
+            addMessage("user", userPrompt);
             input.value = "";
 
             try {
-                const response = await fetch("/text", {
+                const response = await fetch("/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ query, sessionState })
+                    body: JSON.stringify({ userPrompt, sessionState })
                 });
                 if (!response.ok) {
                     throw new Error("HTTP " + response.status);
                 }
                 const data = await response.json();   // { length, content, sessionState, debug }
-                addMessage("assistant", data.content);
+                addMessage("assistant", data.chatResponse);
                 sessionState = data.sessionState;     // echo this back on the next request
                 sessionValueEl.textContent = sessionState ?? "(none)";
                 // debug is an arbitrary diagnostic string and may be null/absent.
-                debugValueEl.textContent = data.debug ?? "(none)";
+                debugValueEl.textContent = data.rawPrompt ?? "(none)";
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {

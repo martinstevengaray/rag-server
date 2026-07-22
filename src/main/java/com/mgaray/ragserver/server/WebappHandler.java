@@ -17,16 +17,19 @@ public class WebappHandler implements JavaCoreServer.IListener {
         this.queryHandler = queryHandler;
     }
 
-    private record Request(String query, String sessionState) {}
-    private record Response(String content, String sessionState, String debug) {}
+    private record Request(String userPrompt, String sessionState) {}
+    private record Response(String chatResponse, String sessionState, String rawPrompt) {}
 
     @Override
     public String handlePost(String path, String body) {
         System.out.println("Post: " + path + ", " + body);
         Request request = JsonUtils.toObject(body, Request.class);
-        String answer = this.queryHandler.query(request.query);
+        String answer = this.queryHandler.query(request.userPrompt());
         Response response = new Response(answer, request.sessionState(), "debug-content-goes-here");
-        return JsonUtils.toJson(response);
+        String responseJson = JsonUtils.toJson(response);
+
+        System.out.println("Response: " + responseJson);
+        return responseJson;
     }
 
     @Override
