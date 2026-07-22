@@ -16,7 +16,11 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
@@ -73,14 +77,16 @@ public class QueryHandler {
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
         List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 5);  //todo hardcoded count
-        List<DataSource> dataSources = lossyTransform(chunkMatches);
+        Map<String, ChunkMatch> lookup = new HashMap<>();
+        List<DataSource> dataSources = lossyTransform(chunkMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
+        List<String> sources = sources(chatModelResponse, lookup);
         String chatResponse = chatModelResponse.response();
         sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chatModelResponse.dataSourcesUsed()));
         String sessionStateJson = JsonUtils.toJson(sessionState);
-        return new Response(chatResponse, List.of("someUrl1", "someUrl2"), sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+        return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
     private SessionState getSessionState(Request request) {
@@ -105,24 +111,26 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<ChunkMatch> chunkMatches) {
+    private List<DataSource> lossyTransform(List<ChunkMatch> chunkMatches, Map<String, ChunkMatch> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
         for (ChunkMatch chunkMatch : chunkMatches) {
             Chunk chunk = chunkMatch.chunk();
             String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
             String dataText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(dataId, dataText));
+            lookup.put(dataId, chunkMatch);
         }
         return dataSources;
     }
 
-//    private List<String> sources(ChatModelResponse chatModelResponse) {
-//        List<String> sources = new ArrayList<>();
-//        for (ChunkMatch chunkMatch : chatModelResponse.dataSourcesUsed()) {
-//            sources.add(chunkMatch.chunk().sourceRecord().sourceUrl());
-//        }
-//        return sources;
-//    }
+    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, ChunkMatch> lookup) {
+        Set<String> sources = new HashSet<>();
+        for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
+            ChunkMatch chunkMatch = lookup.get(dataSourceKey);
+            sources.add(chunkMatch.chunk().sourceRecord().sourceUrl());
+        }
+        return new ArrayList<>(sources);
+    }
 
     private String createPrompt(List<DataSource> dataSources, List<PromptExchange> promptExchanges, String userPrompt) {
         StringBuilder prompt = new StringBuilder();
@@ -144,8 +152,9 @@ public class QueryHandler {
 
     private final String promptPrefix = """
 Use the following data sources only to continue the conversation.
+If the source data does not include data to answer the prompt, say so.
 Include the ids of the data sources you used to form your response.
-Please respond in the following json format, without a prefix or suffix:
+Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 
 """;
