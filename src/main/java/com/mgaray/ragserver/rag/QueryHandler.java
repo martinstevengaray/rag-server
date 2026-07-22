@@ -7,6 +7,8 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.server.ServerModels.Request;
+import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
@@ -32,8 +34,9 @@ public class QueryHandler {
         this.chatModel = createChatModel(openAiApiKey);
     }
 
-    public String query(String queryString) {
-        float[] searchVector = embeddingModel.embed(queryString).content().vector();
+    public Response query(Request request) {
+        String userPrompt = request.userPrompt();
+        float[] searchVector = embeddingModel.embed(userPrompt).content().vector();
         vectorStore.get(searchVector, 5);
         List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 50); //todo count hardcode
         StringBuilder stringBuilder = new StringBuilder();
@@ -47,9 +50,30 @@ public class QueryHandler {
         String prompt = "only use the the following chunks of data to answer the question presented at the end." +
                 "If unable to answer the question based on the chunk sources say so.\n\n" +
                 "chunks: " + stringBuilder.toString() + "\n\n" +
-                "question to answer: " + queryString;
-        return chatModel.chat(prompt) + "\n\n\n\n" + prompt;
+                "question to answer: " + userPrompt;
+        String chatResponse = chatModel.chat(prompt);
+
+        return new Response(chatResponse, request.sessionState(), prompt);
     }
+
+//    public String query(String queryString) {
+//        float[] searchVector = embeddingModel.embed(queryString).content().vector();
+//        vectorStore.get(searchVector, 5);
+//        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 50); //todo count hardcode
+//        StringBuilder stringBuilder = new StringBuilder();
+//        for (ChunkMatch chunkMatch : chunkMatches) {
+//            Chunk chunk = chunkMatch.chunk();
+//            String chunkText = datastore.readString(chunk.textLocation());
+//            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
+//            stringBuilder.append(chunkText);
+//        }
+//        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
+//        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
+//                "If unable to answer the question based on the chunk sources say so.\n\n" +
+//                "chunks: " + stringBuilder.toString() + "\n\n" +
+//                "question to answer: " + queryString;
+//        return chatModel.chat(prompt) + "\n\n\n\n" + prompt;
+//    }
 
     public static ChatModel createChatModel(String openAiApiKey) {
         return OpenAiChatModel.builder()

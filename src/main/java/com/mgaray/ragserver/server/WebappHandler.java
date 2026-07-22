@@ -3,6 +3,8 @@ package com.mgaray.ragserver.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.rag.QueryHandler;
+import com.mgaray.ragserver.server.ServerModels.Request;
+import com.mgaray.ragserver.server.ServerModels.Response;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -17,15 +19,14 @@ public class WebappHandler implements JavaCoreServer.IListener {
         this.queryHandler = queryHandler;
     }
 
-    private record Request(String userPrompt, String sessionState) {}
-    private record Response(String chatResponse, String sessionState, String rawPrompt) {}
-
     @Override
     public String handlePost(String path, String body) {
         System.out.println("Post: " + path + ", " + body);
         Request request = JsonUtils.toObject(body, Request.class);
-        String answer = this.queryHandler.query(request.userPrompt());
-        Response response = new Response(answer, request.sessionState(), "debug-content-goes-here");
+//        String answer = queryHandler.query(request.userPrompt());
+//        Response response = new Response(answer, request.sessionState(), "debug-content-goes-here");
+
+        Response response = queryHandler.query(request);
         String responseJson = JsonUtils.toJson(response);
 
         System.out.println("Response: " + responseJson);
