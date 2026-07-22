@@ -1,46 +1,39 @@
 package com.mgaray.ragserver.awsresources;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class DatastoreCache implements IDatastore {
 
-    private IDatastore primary;
-    private IDatastore[] secondaries;
+    private IDatastore[] datastores; //ordered from most volatile to the least volatile
 
-    public DatastoreCache(IDatastore primary, IDatastore... secondaries) { //secondaries in order of search
-        this.primary = primary;
-        this.secondaries = secondaries;
+    //instantiate in with datastore sequence from most volatile to the least volatile
+    //for example: new DatastoreCache(inMemoryDataStore, localDiskMemoryStore, s3Datastore);
+    public DatastoreCache(IDatastore... datastores) {
+        this.datastores = datastores;
     }
 
     @Override
     public boolean exists(String storageLocation) {
-        for (IDatastore secondary : secondaries) {
-           if (secondary.exists(storageLocation)) {
+        for (IDatastore datastore : datastores) {
+           if (datastore.exists(storageLocation)) {
                return true;
            }
         }
-        return primary.exists(storageLocation);
+        return false;
     }
 
     @Override
     public void write(String storageLocation, byte[] bytes) {
-        primary.write(storageLocation, bytes);
-        for (IDatastore secondary : secondaries) {
-            secondary.write(storageLocation, bytes);
+        for (IDatastore datastore : datastores) {
+            datastore.write(storageLocation, bytes);
         }
     }
 
     @Override
     public byte[] read(String storageLocation) {
-        List<IDatastore> missedReads = new ArrayList<>();
-        for (IDatastore secondary : secondaries) {
-            byte[] bytes = secondary.read(storageLocation);
-            if (bytes == null) {
-                missedReads.add(secondary);
-            } else {
-                for (IDatastore missed : missedReads) {
-                    missed.write(storageLocation, bytes);
+        for (int datastoreIndex = 0; datastoreIndex < datastores.length; datastoreIndex++) {
+            byte[] bytes = datastores[datastoreIndex].read(storageLocation);
+            if (bytes != null) {
+                for (int missedIndex = 0; missedIndex < datastoreIndex; missedIndex++) {
+                    datastores[missedIndex].write(storageLocation, bytes);
                 }
                 return bytes;
             }
