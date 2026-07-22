@@ -8,17 +8,19 @@
         body {
             font-family: system-ui, sans-serif;
             max-width: 640px;
-            margin: 40px auto;
-            padding: 0 16px;
+            margin: 0 auto;
+            padding: 40px 16px;
+            box-sizing: border-box;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            height: calc(100vh - 80px);
         }
         h1 {
             margin: 0 0 12px;
         }
         #conversation {
             flex: 1;
+            min-height: 200px;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -77,9 +79,17 @@
             color: #444;
             font-size: 13px;
         }
+        #session code,
         #debug code {
+            display: block;
             white-space: pre-wrap;
             word-wrap: break-word;
+            height: 40px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            padding: 4px 6px;
+            background: #fafafa;
         }
     </style>
 </head>
