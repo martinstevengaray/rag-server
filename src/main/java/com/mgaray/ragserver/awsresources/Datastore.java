@@ -5,6 +5,7 @@ import com.mgaray.ragserver.common.FileUtils;
 //
 //import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Datastore implements IDatastore {
 
@@ -17,7 +18,7 @@ public class Datastore implements IDatastore {
     public Datastore(Mode mode, String bucket) {
         this.mode = mode;
         this.bucket = bucket;
-        this.inMemoryDatastore = Mode.IN_MEMORY.equals(mode) ? new HashMap<>() : null;
+        this.inMemoryDatastore = Mode.IN_MEMORY.equals(mode) ? new ConcurrentHashMap<>() : null;
     }
 
     @Override
