@@ -45,27 +45,27 @@ public class QueryHandler {
                 .build();
     }
 
-    public Response queryOLD(Request request) {
-        String userPrompt = request.userPrompt();
-        float[] searchVector = embeddingModel.embed(userPrompt).content().vector();
-        //vectorStore.get(searchVector, 5);
-        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5); //todo count hardcode
-        StringBuilder stringBuilder = new StringBuilder();
-        for (ChunkMatch chunkMatch : chunkMatches) {
-            Chunk chunk = chunkMatch.chunk();
-            String chunkText = datastore.readString(chunk.textLocation());
-            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-            stringBuilder.append(chunkText);
-        }
-        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
-                "If unable to answer the question based on the chunk sources say so.\n\n" +
-                "chunks: " + stringBuilder.toString() + "\n\n" +
-                "question to answer: " + userPrompt;
-        String chatResponse = chatModel.chat(prompt);
-
-        return new Response(chatResponse, request.sessionState(), prompt);
-    }
+//    public Response queryOLD(Request request) {
+//        String userPrompt = request.userPrompt();
+//        float[] searchVector = embeddingModel.embed(userPrompt).content().vector();
+//        //vectorStore.get(searchVector, 5);
+//        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5); //todo count hardcode
+//        StringBuilder stringBuilder = new StringBuilder();
+//        for (ChunkMatch chunkMatch : chunkMatches) {
+//            Chunk chunk = chunkMatch.chunk();
+//            String chunkText = datastore.readString(chunk.textLocation());
+//            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
+//            stringBuilder.append(chunkText);
+//        }
+//        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
+//        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
+//                "If unable to answer the question based on the chunk sources say so.\n\n" +
+//                "chunks: " + stringBuilder.toString() + "\n\n" +
+//                "question to answer: " + userPrompt;
+//        String chatResponse = chatModel.chat(prompt);
+//
+//        return new Response(chatResponse, request.sessionState(), prompt);
+//    }
 
     public Response query(Request request) {
         String userPrompt = request.userPrompt();
@@ -76,11 +76,11 @@ public class QueryHandler {
         List<DataSource> dataSources = lossyTransform(chunkMatches);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
-        System.out.println(chatModelResponseJson);
-        ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo add exception handling here
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatModelResponse.response(), chatModelResponse.dataSourcesUsed()));
+        ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
+        String response = chatModelResponse.response();
+        sessionState.promptExchanges().add(new PromptExchange(userPrompt, response, chatModelResponse.dataSourcesUsed()));
         String sessionStateJson = JsonUtils.toJson(sessionState);
-        return new Response(chatModelResponse.response(), sessionStateJson, prompt);
+        return new Response(chatModelResponse.response(), sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
     private SessionState getSessionState(Request request) {

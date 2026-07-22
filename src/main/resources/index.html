@@ -95,7 +95,7 @@
 
     <div id="status"></div>
     <div id="session">Session state: <code id="sessionValue">(none)</code></div>
-    <div id="debug">Debug: <code id="debugValue">(none)</code></div>
+    <div id="debug">Details: <code id="debugValue">(none)</code></div>
 
     <script>
         const button = document.getElementById("send");
@@ -145,7 +145,7 @@
                 sessionState = data.sessionState;     // echo this back on the next request
                 sessionValueEl.textContent = sessionState ?? "(none)";
                 // debug is an arbitrary diagnostic string and may be null/absent.
-                debugValueEl.textContent = data.rawPrompt ?? "(none)";
+                debugValueEl.textContent = data.details ?? "(none)";
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {
