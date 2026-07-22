@@ -2,6 +2,11 @@ package com.mgaray.ragserver.datainitializer;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.SourceCatalog;
+import com.mgaray.ragserver.common.Models.Source;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.RunDefinition;
+import com.mgaray.ragserver.common.Models.SourceRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,27 +22,29 @@ public class DataInitializer {
         this.outputDataStore = outputDataStore;
     }
 
-    public List<String> create(Models.IngestionManifest inputIngestionManifest, String outputSourceManifestId, Models.RunDefinition runDefinition) {
-        List<Models.SourceRecord> sourceRecords = new ArrayList<>();
-        for (Models.SourceRecord inputSourceRecord : inputIngestionManifest.sourceRecords()) {
-            String sourceRecordId = inputSourceRecord.id();
-            String inputTextLocation = inputSourceRecord.textLocation();
-            String textLocation = Models.sourceRecordTextLocation(outputSourceManifestId, sourceRecordId);
-            String chunkManifestLocation = Models.chunkManifestLocation(outputSourceManifestId, sourceRecordId);
+    public List<String> create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
+        List<SourceRecord> sourceRecords = new ArrayList<>();
+        for (Source source : sourceCatalog.sources()) {
+            String sourceRecordId = source.id();
+            String inputTextLocation = source.location();
+            String textLocation = Models.sourceRecordTextLocation(ingestManifestId, sourceRecordId);
+            String chunkManifestLocation = Models.chunkManifestLocation(ingestManifestId, sourceRecordId);
             if (!outputDataStore.exists(textLocation)) { // copy source text if not already done so
                 outputDataStore.writeString(textLocation, inputDataStore.readString(inputTextLocation));
             }
-            Models.SourceRecord sourceRecord = new Models.SourceRecord(
+            SourceRecord sourceRecord = new SourceRecord(
                     sourceRecordId,
-                    inputSourceRecord.sourceUrl(),
-                    inputSourceRecord.retrievedAt(),
-                    inputSourceRecord.title(),
+                    source.sourceUrl(),
+                    source.retrievedAt(),
+                    source.title(),
                     textLocation,
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        Models.IngestionManifest outputIngestionManifest = new Models.IngestionManifest(outputSourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
-        String sourceManifestLocation = Models.sourceManifestLocation(outputSourceManifestId);
+        String vectorStoreLocation = Models.vectorStoreLocation(ingestManifestId);
+        IngestionManifest outputIngestionManifest =
+                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreLocation);
+        String sourceManifestLocation = Models.sourceManifestLocation(ingestManifestId);
         outputDataStore.writeObject(sourceManifestLocation, outputIngestionManifest);
         return sourceValidator.validate(outputIngestionManifest);
     }

@@ -39,7 +39,7 @@ public class ChunkerTest {
         Models.RunDefinition runDefinition = new Models.RunDefinition(
                 new Models.ChunkingSpec(8, 0.5f), null);
         Models.IngestionManifest ingestionManifest =
-                new Models.IngestionManifest(sourceManifestId, runDefinition, sourceRecords, new ArrayList<>());
+                new Models.IngestionManifest(sourceManifestId, runDefinition, sourceRecords, null);
 
         Chunker chunker = new Chunker(dataStore);
         chunker.chunk(ingestionManifest);

@@ -11,41 +11,40 @@ public class SourceTransformerMain {
     public static void main(String[] args) {
         String outputBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
         Datastore outputDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outputBucket);
-        SourceValidator sourceValidator = new SourceValidator();
-        String sourceManifestId = null;
+        String sourceCatalogId = null;
         String inputBucket = null;
         SourceTransformer sourceTransformer = null;
         IDatastore inputDataStore = null;
         Models.IngestionManifest ingestionManifest = null;
         List<String> errors = null;
 
-        sourceManifestId = "portland-city-code";
+        sourceCatalogId = "portland-city-code";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/portland_city_code/downloads-clean";
         inputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, inputBucket);
         sourceTransformer = new SourceTransformer(inputDataStore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForPortland(sourceManifestId);
-        System.out.println(sourceManifestId + " errors: " + errors);
+        errors = sourceTransformer.sourceFolderForPortland(sourceCatalogId);
+        System.out.println(sourceCatalogId + " errors: " + errors);
 
-        sourceManifestId = "oregon-state-code";
+        sourceCatalogId = "oregon-state-code";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/oregon-state-code/downloads-clean";
         inputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, inputBucket);
         sourceTransformer = new SourceTransformer(inputDataStore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForOregon(sourceManifestId);
-        System.out.println(sourceManifestId + " errors: " + errors);
+        errors = sourceTransformer.sourceFolderForOregon(sourceCatalogId);
+        System.out.println(sourceCatalogId + " errors: " + errors);
 
-        sourceManifestId = "web-catholic-bible";
+        sourceCatalogId = "web-catholic-bible";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
         inputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, inputBucket);
         sourceTransformer = new SourceTransformer(inputDataStore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceManifestId);
-        System.out.println(sourceManifestId + " errors: " + errors);
+        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceCatalogId);
+        System.out.println(sourceCatalogId + " errors: " + errors);
 
-        sourceManifestId = "new-american-bible";
+        sourceCatalogId = "new-american-bible";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/new-american-bible/downloads-clean";
         inputDataStore = new Datastore(Datastore.Mode.LOCAL_DISK, inputBucket);
         sourceTransformer = new SourceTransformer(inputDataStore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceManifestId);
-        System.out.println(sourceManifestId + " errors: " + errors);
+        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceCatalogId);
+        System.out.println(sourceCatalogId + " errors: " + errors);
     }
 
 }

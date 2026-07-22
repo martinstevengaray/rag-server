@@ -4,13 +4,24 @@ import java.util.List;
 
 public class Models {
 
-    public record RunDefinition(ChunkingSpec chunkingSpec,
-                                EmbeddingSpec embeddingSpec) {}
+    public record SourceCatalog(String title,
+                                List<Source> sources) {}
+
+    public record Source(String id,
+                         String sourceUrl,
+                         String retrievedAt,
+                         String title,
+                         String location) {}
+
+
 
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
                                     List<SourceRecord> sourceRecords,
-                                    List<VectorStoreExport> vectorStoreExports) {}
+                                    String vectorStoreLocation) {}
+
+    public record RunDefinition(ChunkingSpec chunkingSpec,
+                                EmbeddingSpec embeddingSpec) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
@@ -60,7 +71,7 @@ public class Models {
         return "/" + sourceManifestId + "/sourceManifest.json";
     }
 
-    public static String vectorStore(String sourceManifestId) {
+    public static String vectorStoreLocation(String sourceManifestId) {
         return "/" + sourceManifestId + "/vectorStore.json.gz";
     }
 /*

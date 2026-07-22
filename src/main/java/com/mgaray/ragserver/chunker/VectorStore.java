@@ -24,7 +24,7 @@ public class VectorStore {
 
 
     public static VectorStore load(IDatastore datastore, String sourceManifestId) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(Models.vectorStore(sourceManifestId));
+        byte[] vectorStoreJsonGzBytes = datastore.read(Models.vectorStoreLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         return new VectorStore(datastore, vectorStore);
@@ -49,7 +49,8 @@ public class VectorStore {
                 add(vector, chunk);
             }
         }
-        save(ingestionManifest.id());
+        String vectorStoreLocation = ingestionManifest.vectorStoreLocation();
+        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
     }
 
     public void add(float[] vector, Models.Chunk chunk) {
@@ -71,11 +72,11 @@ public class VectorStore {
         return chunkMatches;
     }
 
-    public void save(String sourceManifestId) {
-        String location = Models.vectorStore(sourceManifestId);
-        String storeJson = store.serializeToJson();
-        datastore.write(location, compress(storeJson));
-    }
+//    public void save(String sourceManifestId) {
+//        String location = Models.vectorStore(sourceManifestId);
+//        String storeJson = store.serializeToJson();
+//        datastore.write(location, compress(storeJson));
+//    }
 
     public static byte[] compress(String value) {
         try {
