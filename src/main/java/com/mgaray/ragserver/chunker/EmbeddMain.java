@@ -2,7 +2,9 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
+
 
 public class EmbeddMain {
 
@@ -15,8 +17,8 @@ public class EmbeddMain {
 
     public static void main(String[] args) {
         Datastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        String sourceManifestLocation = Models.ingestManifestLocation(portlandSourceManifestId);
-        Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
+        String sourceManifestLocation = ingestManifestLocation(portlandSourceManifestId);
+        IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, IngestionManifest.class);
         Embedder embedder = new Embedder(dataStore);
         embedder.embed(ingestionManifest);
         System.out.println(JsonUtils.toJsonPretty(ingestionManifest));

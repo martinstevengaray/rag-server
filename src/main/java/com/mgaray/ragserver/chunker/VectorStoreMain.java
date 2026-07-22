@@ -2,7 +2,9 @@ package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+
+import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class VectorStoreMain {
 
@@ -15,8 +17,8 @@ public class VectorStoreMain {
 
     public static void main(String[] args) {
         IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        String sourceManifestLocation = Models.ingestManifestLocation(portlandSourceManifestId);
-        Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
+        String sourceManifestLocation = ingestManifestLocation(portlandSourceManifestId);
+        IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, IngestionManifest.class);
         VectorStore vectorStore = new VectorStore(dataStore);
         vectorStore.load(ingestionManifest);
     }

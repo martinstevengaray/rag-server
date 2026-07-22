@@ -1,7 +1,12 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.SourceRecord;
+import com.mgaray.ragserver.common.Models.ChunkManifest;
+import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.ModelType;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -22,13 +27,13 @@ public class Embedder {
         this.dataStore = dataStore;
     }
 
-    public void embed(Models.IngestionManifest ingestionManifest) {
-        Models.EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
+    public void embed(IngestionManifest ingestionManifest) {
+        EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
-        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+        for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
-            for (Models.Chunk chunk : chunkManifest.chunks()) {
+            ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+            for (Chunk chunk : chunkManifest.chunks()) {
                 String chunkTextLocation = chunk.textLocation();
                 String embeddingLocation = chunk.embeddingLocation();
                 String chunkText = dataStore.readString(chunkTextLocation);
@@ -40,7 +45,7 @@ public class Embedder {
         }
     }
 
-    public static EmbeddingModel createEmbeddingModel(Models.ModelType modelType) {
+    public static EmbeddingModel createEmbeddingModel(ModelType modelType) {
         return switch (modelType) {
             case DUMMY -> {
                 final float[] embedding;

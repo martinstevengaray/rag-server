@@ -1,7 +1,8 @@
 package com.mgaray.ragserver.datainitializer;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.Source;
+import com.mgaray.ragserver.common.Models.SourceCatalog;
 
 import java.util.*;
 
@@ -18,7 +19,7 @@ public class SourceTransformer {
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt   (recall: 08 does not exit)
     public List<String> sourceFolderForPortland(String sourceCatalogId) {
-        List<Models.Source> sources = new ArrayList<>();
+        List<Source> sources = new ArrayList<>();
         for (int recordNumber = 1; recordNumber <= 35; recordNumber++) {
             String inputSourceRecordId = String.format("%02d", recordNumber);
             String inputRecordLocation =  "/title-" + inputSourceRecordId + ".json";
@@ -29,7 +30,7 @@ public class SourceTransformer {
                 String textLocation = originalSourceTextLocation(sourceCatalogId, inputSourceRecordId);
                 outputDataStore.writeString(textLocation, text);
                 Map<String, Object> record = inputDataStore.readJson(inputRecordLocation);
-                Models.Source source = new Models.Source(
+                Source source = new Source(
                         sourceId,
                         record.get("source_url").toString(),
                         record.get("retrieved_at").toString(),
@@ -38,7 +39,7 @@ public class SourceTransformer {
                 sources.add(source);
             }
         }
-        Models.SourceCatalog sourceCatalog = new Models.SourceCatalog(sourceCatalogId, sources);
+        SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
         return validate(sourceCatalog);
@@ -46,7 +47,7 @@ public class SourceTransformer {
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
     public List<String> sourceFolderForOregon(String sourceCatalogId) {
-        List<Models.Source> sources = new ArrayList<>();
+        List<Source> sources = new ArrayList<>();
         List<Map<String, Object>> manifest = inputDataStore.readJsonl("/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
             String inputSourceRecordId = record.get("chapter").toString();
@@ -57,7 +58,7 @@ public class SourceTransformer {
             String sourceRecordId = "ors" + inputSourceRecordId;
             String textLocation  = originalSourceTextLocation(sourceCatalogId, sourceRecordId);
             outputDataStore.writeString(textLocation, text);
-            Models.Source source = new Models.Source(
+            Source source = new Source(
                     sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
@@ -65,21 +66,21 @@ public class SourceTransformer {
                     textLocation);
             sources.add(source);
         }
-        Models.SourceCatalog sourceCatalog = new Models.SourceCatalog(sourceCatalogId, sources);
+        SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
         return validate(sourceCatalog);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceCatalogId) {
-        List<Models.Source> sources = new ArrayList<>();
+        List<Source> sources = new ArrayList<>();
         List<Map<String, Object>> chapters = inputDataStore.readJsonl("/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
             String textLocation = originalSourceTextLocation(sourceCatalogId, sourceRecordId);
             outputDataStore.writeString(textLocation, text);
-            Models.Source source = new Models.Source(
+            Source source = new Source(
                     sourceRecordId,
                     record.get("source_url").toString(),
                     record.get("retrieved_at").toString(),
@@ -87,7 +88,7 @@ public class SourceTransformer {
                     textLocation);
             sources.add(source);
         }
-        Models.SourceCatalog sourceCatalog = new Models.SourceCatalog(sourceCatalogId, sources);
+        SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
         return validate(sourceCatalog);
@@ -101,11 +102,11 @@ public class SourceTransformer {
         return "/" + sourceManifestId + "/sources/" + sourceId + ".txt";
     }
 
-    private static List<String> validate(Models.SourceCatalog sourceCatalog) {
+    private static List<String> validate(SourceCatalog sourceCatalog) {
         List<String> errors = new ArrayList<>();
         Set<String> ids = new HashSet<>();;
         Set<String> sourceUrls = new HashSet<>();
-        for (Models.Source source : sourceCatalog.sources()) {
+        for (Source source : sourceCatalog.sources()) {
             ids.add(source.id());
             sourceUrls.add(source.sourceUrl());
         }

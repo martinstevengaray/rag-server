@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.datainitializer;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.List;
@@ -15,7 +14,6 @@ public class SourceTransformerMain {
         String inputBucket = null;
         SourceTransformer sourceTransformer = null;
         IDatastore inputDataStore = null;
-        Models.IngestionManifest ingestionManifest = null;
         List<String> errors = null;
 
         sourceCatalogId = "portland-city-code";

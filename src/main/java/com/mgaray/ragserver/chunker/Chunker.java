@@ -1,11 +1,18 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.ChunkingSpec;
+import com.mgaray.ragserver.common.Models.SourceRecord;
+import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.ChunkManifest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static com.mgaray.ragserver.common.Models.chunkTextLocation;
+import static com.mgaray.ragserver.common.Models.embeddingLocation;
 
 public class Chunker {
 
@@ -15,39 +22,39 @@ public class Chunker {
         this.dataStore = dataStore;
     }
 
-    public void chunk(Models.IngestionManifest ingestionManifest) {
-        Models.ChunkingSpec chunkingSpec = ingestionManifest.runDefinition().chunkingSpec();
-        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+    public void chunk(IngestionManifest ingestionManifest) {
+        ChunkingSpec chunkingSpec = ingestionManifest.runDefinition().chunkingSpec();
+        for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             if (!dataStore.exists(chunkManifestLocation)) {
-                List<Models.Chunk> chunks = chunk(ingestionManifest.id(), sourceRecord, chunkingSpec);
-                Models.ChunkManifest chunkManifest = new Models.ChunkManifest(chunks);
+                List<Chunk> chunks = chunk(ingestionManifest.id(), sourceRecord, chunkingSpec);
+                ChunkManifest chunkManifest = new ChunkManifest(chunks);
                 dataStore.writeObject(chunkManifestLocation, chunkManifest);
             }
         }
     }
 
-    private List<Models.Chunk> chunk(String sourceManifestId,
-                                     Models.SourceRecord sourceRecord,
-                                     Models.ChunkingSpec chunkingSpec) {
+    private List<Chunk> chunk(String sourceManifestId,
+                                     SourceRecord sourceRecord,
+                                     ChunkingSpec chunkingSpec) {
         String originalText = dataStore.readString(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
-        List<Models.Chunk> chunks = new ArrayList<>();
+        List<Chunk> chunks = new ArrayList<>();
         int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
         for (int chunkIndex = 0; chunkIndex < chunkedText.size(); chunkIndex++) {
             String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
-            String chuckTextLocation = Models.chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
+            String chuckTextLocation = chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
             if (!dataStore.exists(chuckTextLocation)) {
                 dataStore.writeString(chuckTextLocation, chunkText);
             }
-            String embeddingLocation = Models.embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
-            chunks.add(new Models.Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
+            String embeddingLocation = embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
+            chunks.add(new Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));
         }
         return chunks;
     }
 
-    private List<String> chunk(String original, Models.ChunkingSpec chunkingSpec) {
+    private List<String> chunk(String original, ChunkingSpec chunkingSpec) {
         List<String> chunks = new ArrayList<>();
         if (original == null || original.isBlank()) {
             return chunks;

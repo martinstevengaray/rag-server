@@ -1,7 +1,11 @@
 package com.mgaray.ragserver.chunker;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.SourceRecord;
+import com.mgaray.ragserver.common.Models.ChunkManifest;
+import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -17,6 +21,8 @@ import java.util.zip.GZIPOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
+
 public class VectorStore {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
@@ -24,7 +30,7 @@ public class VectorStore {
 
 
     public static VectorStore load(IDatastore datastore, String sourceManifestId) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(Models.vectorStoreLocation(sourceManifestId));
+        byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         return new VectorStore(datastore, vectorStore);
@@ -39,11 +45,11 @@ public class VectorStore {
         this.store = store;
     }
 
-    public void load(Models.IngestionManifest ingestionManifest) {
-        for (Models.SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+    public void load(IngestionManifest ingestionManifest) {
+        for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
-            for (Models.Chunk chunk : chunkManifest.chunks()) {
+            ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
+            for (Chunk chunk : chunkManifest.chunks()) {
                 String embeddingLocation = chunk.embeddingLocation();
                 float[] vector = datastore.readEmbedding(embeddingLocation);
                 add(vector, chunk);
@@ -53,30 +59,24 @@ public class VectorStore {
         datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
     }
 
-    public void add(float[] vector, Models.Chunk chunk) {
+    public void add(float[] vector, Chunk chunk) {
         store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
     }
 
-    public List<Models.ChunkMatch> get(float[] searchVector, int count) {
-        List<Models.ChunkMatch> chunkMatches = new ArrayList<>();
+    public List<ChunkMatch> get(float[] searchVector, int count) {
+        List<ChunkMatch> chunkMatches = new ArrayList<>();
         EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                 .queryEmbedding(new Embedding(searchVector))
                 .maxResults(count)
                 .build();
         List<EmbeddingMatch<TextSegment>> matches = store.search(request).matches();
         for (EmbeddingMatch<TextSegment> match : matches) {
-            Models.Chunk chunk = JsonUtils.toObject(match.embedded().text(), Models.Chunk.class);
+            Chunk chunk = JsonUtils.toObject(match.embedded().text(), Chunk.class);
             double matchScore = match.score();
-            chunkMatches.add(new Models.ChunkMatch(chunk, matchScore));
+            chunkMatches.add(new ChunkMatch(chunk, matchScore));
         }
         return chunkMatches;
     }
-
-//    public void save(String sourceManifestId) {
-//        String location = Models.vectorStore(sourceManifestId);
-//        String storeJson = store.serializeToJson();
-//        datastore.write(location, compress(storeJson));
-//    }
 
     public static byte[] compress(String value) {
         try {
@@ -98,6 +98,5 @@ public class VectorStore {
             throw new RuntimeException(e);
         }
     }
-
 
 }
