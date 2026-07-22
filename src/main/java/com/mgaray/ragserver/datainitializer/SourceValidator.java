@@ -23,7 +23,7 @@ public class SourceValidator {
         if (sourceUrls.size() != ingestionManifest.sourceRecords().size()) { //verify each source has a unique sourceUrl
             errors.add("sourceUrls.size() != source.sourceRecords().size() : " + sourceUrls.size() +" != " + ingestionManifest.sourceRecords().size());
         }
-        System.out.println(ingestionManifest.id() + ": " + ingestionManifest.sourceRecords().size());
+        //System.out.println(ingestionManifest.id() + ": " + ingestionManifest.sourceRecords().size());
         return errors;
     }
 

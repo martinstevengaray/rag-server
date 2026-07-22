@@ -54,10 +54,10 @@ public class Embedder {
         String chunkManifestLocation = sourceRecord.chunkManifestLocation();
         ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
         for (Chunk chunk : chunkManifest.chunks()) {
-            String chunkTextLocation = chunk.textLocation();
             String embeddingLocation = chunk.embeddingLocation();
-            String chunkText = dataStore.readString(chunkTextLocation);
             if (!dataStore.exists(embeddingLocation)) {
+                String chunkTextLocation = chunk.textLocation();
+                String chunkText = dataStore.readString(chunkTextLocation);
                 float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
                 dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
             }
