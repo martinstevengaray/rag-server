@@ -3,6 +3,7 @@ package com.mgaray.ragserver.rag;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.bootstrap.VectorStore;
+import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
@@ -13,6 +14,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
@@ -34,11 +36,19 @@ public class QueryHandler {
         this.chatModel = createChatModel(openAiApiKey);
     }
 
-    public Response query(Request request) {
+    public static ChatModel createChatModel(String openAiApiKey) {
+        return OpenAiChatModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName("gpt-4o-mini") //gpt-5.6-sol") //todo hardcoded //"gpt-4o-mini") // also consider "gpt-4o"     "gpt-5.6") //"gpt-5.6-sol")  //"
+                //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
+                .build();
+    }
+
+    public Response queryOLD(Request request) {
         String userPrompt = request.userPrompt();
         float[] searchVector = embeddingModel.embed(userPrompt).content().vector();
-        vectorStore.get(searchVector, 5);
-        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 50); //todo count hardcode
+        //vectorStore.get(searchVector, 5);
+        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5); //todo count hardcode
         StringBuilder stringBuilder = new StringBuilder();
         for (ChunkMatch chunkMatch : chunkMatches) {
             Chunk chunk = chunkMatch.chunk();
@@ -56,12 +66,86 @@ public class QueryHandler {
         return new Response(chatResponse, request.sessionState(), prompt);
     }
 
-    public static ChatModel createChatModel(String openAiApiKey) {
-        return OpenAiChatModel.builder()
-                .apiKey(openAiApiKey)
-                .modelName("gpt-5.6-sol") //todo hardcoded //"gpt-4o-mini") // also consider "gpt-4o"     "gpt-5.6") //"gpt-5.6-sol")  //"
-                //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
-                .build();
+    public Response query(Request request) {
+        String userPrompt = request.userPrompt();
+        SessionState sessionState = JsonUtils.toObject(request.sessionState(), SessionState.class);
+        String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
+        float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
+        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 5);  //todo hardcoded count
+        List<DataSource> dataSources = lossyTransform(chunkMatches);
+        String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
+        String chatResponse = chatModel.chat(prompt);
+        return new Response(chatResponse, request.sessionState(), prompt);
     }
+
+    private String createVectorStoreQuery(SessionState sessionState, String userPrompt) {
+        StringBuilder stringBuilder = new StringBuilder();
+        if (sessionState.promptExchanges() != null) {
+            for (PromptExchange promptExchange : sessionState.promptExchanges()) {
+                stringBuilder.append(promptExchange.prompt() + "\n");
+                stringBuilder.append(promptExchange.response() + "\n");
+            }
+        }
+        stringBuilder.append(userPrompt);
+        return stringBuilder.toString();
+    }
+
+    private List<DataSource> lossyTransform(List<ChunkMatch> chunkMatches) {
+        List<DataSource> dataSources = new ArrayList<>();
+        for (ChunkMatch chunkMatch : chunkMatches) {
+            Chunk chunk = chunkMatch.chunk();
+            String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
+            String dataText = datastore.readString(chunk.textLocation());
+            dataSources.add(new DataSource(dataId, dataText));
+        }
+        return dataSources;
+    }
+
+    private String createPrompt(List<DataSource> dataSources, List<PromptExchange> promptExchanges, String userPrompt) {
+        StringBuilder prompt = new StringBuilder();
+        prompt.append(promptPrefix);
+        prompt.append("DATA SOURCES:\n");
+        for (DataSource dataSource : dataSources) {
+            prompt.append(JsonUtils.toJson(dataSource) + "\n");
+        }
+        if (promptExchanges != null) {
+            for (PromptExchange promptExchange : promptExchanges) {
+                prompt.append("\nPROMPT:\n");
+                prompt.append("     " + promptExchange.prompt);
+                prompt.append("\nRESPONSE:\n");
+                prompt.append("     " + promptExchange.response);
+            }
+        }
+        prompt.append("\nPROMPT:\n");
+        prompt.append("     " + userPrompt);
+
+        return prompt.toString();
+    }
+
+    private final String promptPrefix = """
+Use the following data sources only to continue the conversation.
+Include the ids of the data sources you used to form your response.
+Please respond in the following json format:
+{ "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
+
+""";
+
+//    private final String promptContinued = """
+//
+//DATA SOURCES:
+//{"id" : "32123", "text : "data chunk of text" }
+//{"id" : "32123", "text" : "data chunk of text" }
+//{"id" : "32123", "text" : "data chunk of text" }
+//
+//PROMPT:
+//RESPONSE:
+//PROMPT:
+//            """;
+
+    private record SessionState(List<PromptExchange> promptExchanges) {}
+
+    private record PromptExchange(String prompt, String response, List<String> dataSourceIds) {}
+
+    private record DataSource(String id, String text) {}
 
 }
