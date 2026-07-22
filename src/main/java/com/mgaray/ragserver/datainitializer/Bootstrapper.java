@@ -10,41 +10,23 @@ import com.mgaray.ragserver.common.Models.ModelType;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.List;
 
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
-public class BootstrapMain {
-
-    private static final String sourceBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
-    private static final String outBucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
-
-    private static final String portlandIngestManifestId = "portland-city-code";
-    private static final String portlandSourceCatalogLocation = "/portland-city-code/sourceCatalog.json";
-    private static final String oregonIngestManifestId = "oregon-state-code";
-    private static final String websourceIngestManifestId = "web-catholic-bible";
-    private static final String nabIngestManifestId = "new-american-bible";
-
-    public static void main(String[] args) {
-        BootstrapMain bootstrapMain = new BootstrapMain(new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket),
-                                                        new Datastore(Datastore.Mode.LOCAL_DISK, outBucket));
-        bootstrapMain.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId);
-    }
-
-
+public class Bootstrapper {
 
     private final IDatastore sourceDatastore;
     private final IDatastore outDatastore;
 
-    public BootstrapMain(IDatastore sourceDatastore,
-                         IDatastore outDatastore) {
+    public Bootstrapper(IDatastore sourceDatastore,
+                        IDatastore outDatastore) {
         this.sourceDatastore = sourceDatastore;
         this.outDatastore = outDatastore;
     }
 
-    private void bootstrap(String sourceCatalogLocation, String ingestManifestId) {
+    public void bootstrap(String sourceCatalogLocation, String ingestManifestId) {
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(ModelType.BGE_SMALL_EN_V15_QUANTIZED));

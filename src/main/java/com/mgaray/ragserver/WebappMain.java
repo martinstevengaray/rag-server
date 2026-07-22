@@ -1,14 +1,16 @@
-package com.mgaray.ragserver.server;
+package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.rag.QueryHandler;
+import com.mgaray.ragserver.server.JavaCoreServer;
+import com.mgaray.ragserver.server.WebappHandler;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class Main {
+public class WebappMain {
 
     private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
     private static final String sourceManifestId = "portland-city-code";
@@ -18,9 +20,6 @@ public class Main {
         openAiApiKey = readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
     }
-
-    // curl "http://localhost/mypath"
-    // curl -X POST -H "Content-Type: application/json" -d '{"username": "Bob", "password": "bob-secret"}' http://localhost/somepath
 
     public static void main(String[] args) throws Exception {
         IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
