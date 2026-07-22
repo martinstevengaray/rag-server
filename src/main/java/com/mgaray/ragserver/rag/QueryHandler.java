@@ -56,25 +56,6 @@ public class QueryHandler {
         return new Response(chatResponse, request.sessionState(), prompt);
     }
 
-//    public String query(String queryString) {
-//        float[] searchVector = embeddingModel.embed(queryString).content().vector();
-//        vectorStore.get(searchVector, 5);
-//        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 50); //todo count hardcode
-//        StringBuilder stringBuilder = new StringBuilder();
-//        for (ChunkMatch chunkMatch : chunkMatches) {
-//            Chunk chunk = chunkMatch.chunk();
-//            String chunkText = datastore.readString(chunk.textLocation());
-//            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-//            stringBuilder.append(chunkText);
-//        }
-//        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-//        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
-//                "If unable to answer the question based on the chunk sources say so.\n\n" +
-//                "chunks: " + stringBuilder.toString() + "\n\n" +
-//                "question to answer: " + queryString;
-//        return chatModel.chat(prompt) + "\n\n\n\n" + prompt;
-//    }
-
     public static ChatModel createChatModel(String openAiApiKey) {
         return OpenAiChatModel.builder()
                 .apiKey(openAiApiKey)

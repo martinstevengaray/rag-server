@@ -11,8 +11,6 @@ import java.nio.charset.StandardCharsets;
 
 public class WebappHandler implements JavaCoreServer.IListener {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private final QueryHandler queryHandler;
 
     public WebappHandler(QueryHandler queryHandler) {
@@ -23,12 +21,8 @@ public class WebappHandler implements JavaCoreServer.IListener {
     public String handlePost(String path, String body) {
         System.out.println("Post: " + path + ", " + body);
         Request request = JsonUtils.toObject(body, Request.class);
-//        String answer = queryHandler.query(request.userPrompt());
-//        Response response = new Response(answer, request.sessionState(), "debug-content-goes-here");
-
         Response response = queryHandler.query(request);
         String responseJson = JsonUtils.toJson(response);
-
         System.out.println("Response: " + responseJson);
         return responseJson;
     }
