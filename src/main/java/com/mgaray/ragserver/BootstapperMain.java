@@ -1,7 +1,7 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.datainitializer.Bootstrapper;
+import com.mgaray.ragserver.bootstrap.Bootstrapper;
 
 public class BootstapperMain {
 

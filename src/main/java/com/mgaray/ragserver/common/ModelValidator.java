@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.datainitializer;
+package com.mgaray.ragserver.common;
 
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.SourceRecord;
@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class IngestManifestValidator {
+public class ModelValidator {
 
     public List<String> validate(IngestionManifest ingestionManifest) {
         List<String> errors = new ArrayList<>();

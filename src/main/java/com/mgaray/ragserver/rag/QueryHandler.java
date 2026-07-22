@@ -1,8 +1,8 @@
 package com.mgaray.ragserver.rag;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.chunker.Embedder;
-import com.mgaray.ragserver.chunker.VectorStore;
+import com.mgaray.ragserver.bootstrap.Embedder;
+import com.mgaray.ragserver.bootstrap.VectorStore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;

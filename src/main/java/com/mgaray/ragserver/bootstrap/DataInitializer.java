@@ -1,6 +1,7 @@
-package com.mgaray.ragserver.datainitializer;
+package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.common.ModelValidator;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.Source;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
@@ -17,7 +18,7 @@ import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 
 public class DataInitializer {
 
-    private final IngestManifestValidator ingestManifestValidator = new IngestManifestValidator();
+    private final ModelValidator modelValidator = new ModelValidator();
     private final IDatastore sourceDatastore;
     private final IDatastore outDatastore;
 
@@ -50,7 +51,7 @@ public class DataInitializer {
                 new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreLocation);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
-        return ingestManifestValidator.validate(ingestionManifest);
+        return modelValidator.validate(ingestionManifest);
     }
 
 }

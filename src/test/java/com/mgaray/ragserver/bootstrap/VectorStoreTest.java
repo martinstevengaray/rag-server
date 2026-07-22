@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.chunker;
+package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
