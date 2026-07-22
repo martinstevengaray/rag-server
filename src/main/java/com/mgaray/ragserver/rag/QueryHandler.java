@@ -20,7 +20,7 @@ public class QueryHandler {
     public QueryHandler(IDatastore datastore, String openAiApiKey, String sourceManifestId) {
         this.datastore = datastore;
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
-        String sourceManifestLocation = Models.sourceManifestLocation(sourceManifestId);
+        String sourceManifestLocation = Models.ingestManifestLocation(sourceManifestId);
         Models.IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
         Models.ModelType modelType = ingestionManifest.runDefinition().embeddingSpec().modelType();
         this.embeddingModel = Embedder.createEmbeddingModel(modelType);

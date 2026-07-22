@@ -44,7 +44,7 @@ public class DataInitializer {
         String vectorStoreLocation = Models.vectorStoreLocation(ingestManifestId);
         IngestionManifest outputIngestionManifest =
                 new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreLocation);
-        String sourceManifestLocation = Models.sourceManifestLocation(ingestManifestId);
+        String sourceManifestLocation = Models.ingestManifestLocation(ingestManifestId);
         outputDataStore.writeObject(sourceManifestLocation, outputIngestionManifest);
         return sourceValidator.validate(outputIngestionManifest);
     }

@@ -67,7 +67,7 @@ public class Models {
         return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
-    public static String sourceManifestLocation(String sourceManifestId) {
+    public static String ingestManifestLocation(String sourceManifestId) {
         return "/" + sourceManifestId + "/sourceManifest.json";
     }
 

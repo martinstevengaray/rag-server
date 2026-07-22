@@ -11,7 +11,7 @@ import java.util.List;
 public class Main {
 
     private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
-    private static final String sourceManifestId = "local-embedding-portland-city-code";
+    private static final String sourceManifestId = "portland-city-code";
     private static final String openAiApiKey;// = System.getenv("OPEN_AI_API_KEY");
 
     static {

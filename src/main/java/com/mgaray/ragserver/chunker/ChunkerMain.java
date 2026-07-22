@@ -16,7 +16,7 @@ public class ChunkerMain {
 
     public static void main(String[] args) {
         IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        String sourceManifestLocation = Models.sourceManifestLocation(portlandSourceManifestId);
+        String sourceManifestLocation = Models.ingestManifestLocation(portlandSourceManifestId);
         Models.IngestionManifest ingestionManifest = dataStore.readObject(sourceManifestLocation, Models.IngestionManifest.class);
         Chunker chunker = new Chunker(dataStore);
         chunker.chunk(ingestionManifest);
