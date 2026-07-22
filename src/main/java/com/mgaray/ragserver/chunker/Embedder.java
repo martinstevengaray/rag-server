@@ -17,10 +17,15 @@ import dev.langchain4j.model.output.Response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 public class Embedder {
 
+    private final ExecutorService executor = Executors.newFixedThreadPool(10); //todo harcoded
     private final IDatastore dataStore;
 
     public Embedder(IDatastore dataStore) {
@@ -28,19 +33,33 @@ public class Embedder {
     }
 
     public void embed(IngestionManifest ingestionManifest) {
-        EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
-        for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
-            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
-            for (Chunk chunk : chunkManifest.chunks()) {
-                String chunkTextLocation = chunk.textLocation();
-                String embeddingLocation = chunk.embeddingLocation();
-                String chunkText = dataStore.readString(chunkTextLocation);
-                if (!dataStore.exists(embeddingLocation)) {
-                    float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                    dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
-                }
+        final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+            for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+                futures.add(executor.submit(() -> embed(sourceRecord, embeddingModel)));
+            }
+            for (Future<?> future : futures) {
+                future.get(); //blocks until done
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    private void embed(SourceRecord sourceRecord, EmbeddingModel embeddingModel) {
+        String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+        ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+        for (Chunk chunk : chunkManifest.chunks()) {
+            String chunkTextLocation = chunk.textLocation();
+            String embeddingLocation = chunk.embeddingLocation();
+            String chunkText = dataStore.readString(chunkTextLocation);
+            if (!dataStore.exists(embeddingLocation)) {
+                float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
+                dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
             }
         }
     }
