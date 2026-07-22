@@ -7,16 +7,23 @@
     <style>
         body {
             font-family: system-ui, sans-serif;
-            max-width: 640px;
-            margin: 40px auto;
+            margin: 40px 0;
             padding: 0 16px;
+        }
+        /* The chat interaction stays in a comfortable centered column. */
+        #chat {
+            max-width: 640px;
+            margin: 0 auto;
         }
         h1 {
             margin: 0 0 12px;
         }
         #conversation {
-            /* Sized to the browser window, independent of the content below it. */
-            height: 60vh;
+            /* Sized to the browser window, independent of the content below it.
+               Reserves ~260px for the heading and composer so both always fit;
+               falls back to min-height (page scrolls) on very short windows. */
+            height: calc(100vh - 260px);
+            min-height: 160px;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -81,21 +88,27 @@
             white-space: pre-wrap;
             word-wrap: break-word;
         }
+        .label {
+            color: #cc0000;
+        }
     </style>
 </head>
 <body>
-    <h1>RAG Server</h1>
+    <div id="chat">
+        <h1>RAG Server</h1>
 
-    <div id="conversation"></div>
+        <div id="conversation"></div>
 
-    <div id="composer">
-        <textarea id="input" placeholder="Enter text here..."></textarea>
-        <button id="send">Send</button>
+        <div id="composer">
+            <textarea id="input" placeholder="Enter text here..."></textarea>
+            <button id="send">Send</button>
+        </div>
+
+        <div id="status"></div>
     </div>
 
-    <div id="status"></div>
-    <div id="session">Session state: <code id="sessionValue">(none)</code></div>
-    <div id="debug">Details: <code id="debugValue">(none)</code></div>
+    <div id="session"><span class="label">Session state:</span> <code id="sessionValue">(none)</code></div>
+    <div id="debug"><span class="label">Details:</span> <code id="debugValue">(none)</code></div>
 
     <script>
         const button = document.getElementById("send");
@@ -107,6 +120,21 @@
 
         let inFlight = false;      // guard against overlapping requests
         let sessionState = null;   // null on first request, then echoed back from the server
+
+        // Pretty-print sessionState as JSON. It may arrive as an object or as a
+        // JSON string; fall back to the raw value if it isn't valid JSON.
+        function formatJson(value) {
+            if (value == null) return "(none)";
+            let obj = value;
+            if (typeof value === "string") {
+                try {
+                    obj = JSON.parse(value);
+                } catch {
+                    return value;
+                }
+            }
+            return JSON.stringify(obj, null, 2);
+        }
 
         // Append a chat bubble and keep the newest message in view.
         function addMessage(role, text) {
@@ -143,7 +171,7 @@
                 const data = await response.json();   // { length, content, sessionState, debug }
                 addMessage("assistant", data.chatResponse);
                 sessionState = data.sessionState;     // echo this back on the next request
-                sessionValueEl.textContent = sessionState ?? "(none)";
+                sessionValueEl.textContent = formatJson(sessionState);
                 // debug is an arbitrary diagnostic string and may be null/absent.
                 debugValueEl.textContent = data.details ?? "(none)";
             } catch (err) {
