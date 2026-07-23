@@ -73,6 +73,7 @@ public class QueryHandler {
 
     public Response query(Request request) {
         String userPrompt = request.userPrompt();
+        //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
