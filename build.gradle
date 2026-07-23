@@ -17,6 +17,8 @@ repositories {
 
 dependencies {
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
+    implementation platform('software.amazon.awssdk:bom:2.30.16')
+    implementation 'software.amazon.awssdk:s3'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.0'
     implementation 'dev.langchain4j:langchain4j:1.17.2'
     implementation 'dev.langchain4j:langchain4j-open-ai:1.17.2'
