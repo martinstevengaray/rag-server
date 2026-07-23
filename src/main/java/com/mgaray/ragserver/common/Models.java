@@ -4,6 +4,7 @@ import java.util.List;
 
 public class Models {
 
+    //-----source dataset-----------------------------------------------------------------------------------------------
     public record SourceCatalog(String title,
                                 List<Source> sources) {}
 
@@ -14,6 +15,7 @@ public class Models {
                          String location) {}
 
 
+    //-----ingestion, chunking, embedding, vectorstore------------------------------------------------------------------
 
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
@@ -37,9 +39,6 @@ public class Models {
                         String textLocation,
                         String embeddingLocation) {}
 
-    public record VectorStoreExport(String modelName,
-                                    String location) {}
-
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
 
@@ -48,7 +47,26 @@ public class Models {
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}
 
-    public enum ModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
+    public enum ModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL } //todo rename to EmbeddingModelType
+
+
+    //-----Execution Parameters-----------------------------------------------------------------------------------------
+
+    public record BootstrapperConfig(int numberOfEmbeddingThreads) {}
+
+    public record WebappConfig(ChatModelType chatModelType,
+                               String apiKey,
+                               int chunksToProvide) {}
+
+    public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
+
+
+
+
+
+
+
+
 
 
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {

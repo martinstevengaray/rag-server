@@ -8,9 +8,9 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
-import dev.langchain4j.internal.Json;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
@@ -26,50 +26,35 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class QueryHandler {
 
-    public final IDatastore datastore;
-    public final VectorStore vectorStore;
-    public final EmbeddingModel embeddingModel;
-    public final ChatModel chatModel;
+    private final WebappConfig config;
+    private final IDatastore datastore;
+    private final VectorStore vectorStore;
+    private final EmbeddingModel embeddingModel;
+    private final ChatModel chatModel;
 
-    public QueryHandler(IDatastore datastore, String openAiApiKey, String sourceManifestId) {
+    public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
+        this.config = config;
         this.datastore = datastore;
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         ModelType modelType = ingestionManifest.runDefinition().embeddingSpec().modelType();
         this.embeddingModel = Embedder.createEmbeddingModel(modelType);
-        this.chatModel = createChatModel(openAiApiKey);
+        this.chatModel = createChatModel(config);
     }
 
-    public static ChatModel createChatModel(String openAiApiKey) {
+    public static ChatModel createChatModel(WebappConfig config) {
+        String chatModelName = switch(config.chatModelType()) {
+            case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";
+            case OPEN_AI_GPT_4O -> "gpt-4o";
+            case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
+        };
         return OpenAiChatModel.builder()
-                .apiKey(openAiApiKey)
-                .modelName("gpt-4o-mini") //gpt-5.6-sol") //todo hardcoded //"gpt-4o-mini") // also consider "gpt-4o"     "gpt-5.6") //"gpt-5.6-sol")  //"
+                .apiKey(config.apiKey())
+                .modelName(chatModelName)
                 //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
                 .build();
     }
-
-//    public Response queryOLD(Request request) {
-//        String userPrompt = request.userPrompt();
-//        float[] searchVector = embeddingModel.embed(userPrompt).content().vector();
-//        //vectorStore.get(searchVector, 5);
-//        List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5); //todo count hardcode
-//        StringBuilder stringBuilder = new StringBuilder();
-//        for (ChunkMatch chunkMatch : chunkMatches) {
-//            Chunk chunk = chunkMatch.chunk();
-//            String chunkText = datastore.readString(chunk.textLocation());
-//            stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-//            stringBuilder.append(chunkText);
-//        }
-//        stringBuilder.append("\n\n--------------------------------------------------------------\n\n");
-//        String prompt = "only use the the following chunks of data to answer the question presented at the end." +
-//                "If unable to answer the question based on the chunk sources say so.\n\n" +
-//                "chunks: " + stringBuilder.toString() + "\n\n" +
-//                "question to answer: " + userPrompt;
-//        String chatResponse = chatModel.chat(prompt);
-//
-//        return new Response(chatResponse, request.sessionState(), prompt);
-//    }
 
     public Response query(Request request) {
         String userPrompt = request.userPrompt();
@@ -77,7 +62,7 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 10);  //todo hardcoded count
+        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, config.chunksToProvide());
         Map<String, ChunkMatch> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(chunkMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);

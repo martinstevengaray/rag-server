@@ -3,10 +3,8 @@ package com.mgaray.ragserver.bootstrap;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
-import com.mgaray.ragserver.common.Models.ModelType;
+import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
-import com.mgaray.ragserver.common.Models.ChunkingSpec;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 
 import java.util.List;
 
@@ -14,19 +12,21 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class Bootstrapper {
 
+    private final BootstrapperConfig config;
     private final IDatastore sourceDatastore;
     private final IDatastore outDatastore;
 
-    public Bootstrapper(IDatastore sourceDatastore,
+    public Bootstrapper(BootstrapperConfig config,
+                        IDatastore sourceDatastore,
                         IDatastore outDatastore) {
+        this.config = config;
         this.sourceDatastore = sourceDatastore;
         this.outDatastore = outDatastore;
     }
 
-    public void bootstrap(String sourceCatalogLocation, String ingestManifestId) {
-        RunDefinition runDefinition = new RunDefinition(
-                new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(ModelType.BGE_SMALL_EN_V15_QUANTIZED));
+    public void bootstrap(String sourceCatalogLocation,
+                          String ingestManifestId,
+                          RunDefinition runDefinition) {
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
 
         // DataInitializer
@@ -40,7 +40,7 @@ public class Bootstrapper {
         chunker.chunk(ingestionManifest);
 
         // Embedder
-        Embedder embedder = new Embedder(outDatastore);
+        Embedder embedder = new Embedder(outDatastore, config.numberOfEmbeddingThreads());
         embedder.embed(ingestionManifest);
 
         // VectorStore

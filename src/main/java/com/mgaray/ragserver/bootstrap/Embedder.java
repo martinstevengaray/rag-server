@@ -24,11 +24,12 @@ import java.util.concurrent.Future;
 
 public class Embedder {
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(10); //todo harcoded
     private final IDatastore dataStore;
+    private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore) {
+    public Embedder(IDatastore dataStore, int numberOfEmbeddingThread) {
         this.dataStore = dataStore;
+        this.executor = Executors.newFixedThreadPool(numberOfEmbeddingThread);
     }
 
     public void embed(IngestionManifest ingestionManifest) {
