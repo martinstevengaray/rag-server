@@ -30,7 +30,7 @@ public class BootstapperMain {
         IDatastore outDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
 
         //IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
-        //IDatastore outDataStore = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
+        //IDatastore outDatastore = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
 
         outDatastore = new DatastoreCache(outDatastoreMemory, outDatastore);
 
