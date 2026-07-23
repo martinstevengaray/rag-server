@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -7,15 +8,26 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 
 public class InMemoryVectorStore<T> implements IVectorStore<T> {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
 
     public InMemoryVectorStore() {
-        this.store = new InMemoryEmbeddingStore<>();
+        this(new InMemoryEmbeddingStore<>());
+    }
+
+    public InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store) {
+        this.store = store;
     }
 
     @Override
@@ -37,6 +49,38 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
             vectorRecords.add(new VectorRecord<T>(chunk, matchScore));
         }
         return vectorRecords;
+    }
+
+    public static<T> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId) {
+        byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
+        String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
+        InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
+        return new InMemoryVectorStore<T>(store);
+    }
+
+    public void write(IDatastore datastore, String vectorStoreLocation) {
+        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
+    }
+
+    public static byte[] compress(String value) {
+        try {
+            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
+                gzip.write(value.getBytes(StandardCharsets.UTF_8));
+                gzip.finish();
+                return output.toByteArray();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String decompress(byte[] compressed) {
+        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
+            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

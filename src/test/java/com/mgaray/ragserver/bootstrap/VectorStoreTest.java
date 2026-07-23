@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
+import com.mgaray.ragserver.WebappMain;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
@@ -18,9 +19,12 @@ public class VectorStoreTest {
 
     public static void main(String[] args) {
         IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        VectorStore vectorStore = VectorStore.load(datastore, portlandSourceManifestId);
+        IVectorStore<Chunk> vectorStore_ = InMemoryVectorStore.load(datastore, portlandSourceManifestId);  //todo name_
+        VectorStore vectorStore = new VectorStore(datastore, vectorStore_);
+        String openAiApiKey = WebappMain.readKeyFromConfig(
+                "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
         EmbeddingModel embeddingModel =
-                Embedder.createEmbeddingModel(new EmbeddingSpec(EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED), null);
+                Embedder.createEmbeddingModel(new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);
         String searchQuery = "street parking";
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
         List<ChunkMatch> chunkMatches = vectorStore.get(searchVector, 5);

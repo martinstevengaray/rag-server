@@ -25,24 +25,25 @@ import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 
 public class VectorStore {
 
-    private final InMemoryEmbeddingStore<TextSegment> store;
+//    private final InMemoryEmbeddingStore<TextSegment> store;
     private final IDatastore datastore;
+    private final IVectorStore<Chunk> vectorStore;
 
 
-    public static VectorStore load(IDatastore datastore, String sourceManifestId) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
-        String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
-        InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
-        return new VectorStore(datastore, vectorStore);
-    }
+//    public static VectorStore load(IDatastore datastore, String sourceManifestId) {
+//        byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
+//        String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
+//        InMemoryEmbeddingStore<TextSegment> vectorStore = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
+//        return new VectorStore(datastore, vectorStore);
+//    }
 
     public VectorStore(IDatastore datastore) {
-        this(datastore, new InMemoryEmbeddingStore<>());
+        this(datastore, new InMemoryVectorStore<>());
     }
 
-    private VectorStore(IDatastore datastore, InMemoryEmbeddingStore<TextSegment> store) {
+    public VectorStore(IDatastore datastore, IVectorStore<Chunk> vectorStore) {
         this.datastore = datastore;
-        this.store = store;
+        this.vectorStore = vectorStore;
     }
 
     public void load(IngestionManifest ingestionManifest) {
@@ -52,51 +53,56 @@ public class VectorStore {
             for (Chunk chunk : chunkManifest.chunks()) {
                 String embeddingLocation = chunk.embeddingLocation();
                 float[] vector = datastore.readEmbedding(embeddingLocation);
-                add(vector, chunk);
+                vectorStore.add(vector, chunk);
             }
         }
-        String vectorStoreLocation = ingestionManifest.vectorStoreLocation();
-        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
+        if (vectorStore instanceof InMemoryVectorStore) { //todo
+            String vectorStoreLocation = ingestionManifest.vectorStoreLocation();
+            ((InMemoryVectorStore<Chunk>)vectorStore).write(datastore, vectorStoreLocation);
+        }
     }
 
-    public void add(float[] vector, Chunk chunk) {
-        store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
-    }
+//    public void add(float[] vector, Chunk chunk) {
+//        store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(chunk)));
+//    }
 
-    public List<ChunkMatch> get(float[] searchVector, int count) {
+    public List<ChunkMatch> get(float[] searchVector, int topK) {
+
+        List<IVectorStore.VectorRecord<Chunk>> results =  vectorStore.get(searchVector, topK, Chunk.class); //todo Chunk.class remove
+
         List<ChunkMatch> chunkMatches = new ArrayList<>();
-        EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
-                .queryEmbedding(new Embedding(searchVector))
-                .maxResults(count)
-                .build();
-        List<EmbeddingMatch<TextSegment>> matches = store.search(request).matches();
-        for (EmbeddingMatch<TextSegment> match : matches) {
-            Chunk chunk = JsonUtils.toObject(match.embedded().text(), Chunk.class);
-            double matchScore = match.score();
-            chunkMatches.add(new ChunkMatch(chunk, matchScore));
+//        EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
+//                .queryEmbedding(new Embedding(searchVector))
+//                .maxResults(count)
+//                .build();
+//        List<EmbeddingMatch<TextSegment>> matches = store.search(request).matches();
+        for (IVectorStore.VectorRecord<Chunk> match : results) {
+//            Chunk chunk = JsonUtils.toObject(match.embedded().text(), Chunk.class);
+            double matchScore = match.matchScore();
+            chunkMatches.add(new ChunkMatch(match.t(), matchScore));
         }
         return chunkMatches;
     }
 
-    public static byte[] compress(String value) {
-        try {
-            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
-                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
-                gzip.write(value.getBytes(StandardCharsets.UTF_8));
-                gzip.finish();
-                return output.toByteArray();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String decompress(byte[] compressed) {
-        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
-            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    public static byte[] compress(String value) {
+//        try {
+//            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
+//                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
+//                gzip.write(value.getBytes(StandardCharsets.UTF_8));
+//                gzip.finish();
+//                return output.toByteArray();
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+//
+//    public static String decompress(byte[] compressed) {
+//        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
+//            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
 }

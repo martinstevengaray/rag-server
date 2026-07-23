@@ -2,6 +2,8 @@ package com.mgaray.ragserver.rag;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
+import com.mgaray.ragserver.bootstrap.IVectorStore;
+import com.mgaray.ragserver.bootstrap.InMemoryVectorStore;
 import com.mgaray.ragserver.bootstrap.VectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
@@ -34,7 +36,8 @@ public class QueryHandler {
     public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
         this.config = config;
         this.datastore = datastore;
-        this.vectorStore = VectorStore.load(datastore, sourceManifestId);
+        IVectorStore<Chunk> vectorStore_ = InMemoryVectorStore.load(datastore, sourceManifestId);  //todo name_
+        this.vectorStore = new VectorStore(datastore, vectorStore_);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), config.openApiKey());
