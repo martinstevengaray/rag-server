@@ -1,6 +1,7 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
+import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
@@ -23,10 +24,16 @@ public class BootstapperMain {
     public static void main(String[] args) {
         int numberOfEmbeddingThreads = 10;
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads);
+        IDatastore outDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
+
         IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket);
         IDatastore outDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
+
         //IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
-        //IDatastore outDatastore =new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
+        //IDatastore outDataStore = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
+
+        outDatastore = new DatastoreCache(outDatastoreMemory, outDatastore);
+
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED));
