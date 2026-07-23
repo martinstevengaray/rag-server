@@ -10,7 +10,7 @@ public class SourceTransformerMain {
     public static void main(String[] args) {
         String outputBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
         Datastore outputDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outputBucket);
-//        Datastore outputDatastore = new Datastore(Datastore.Mode.S3, "mgaray-developer-temp-source");
+        //Datastore outputDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
         String sourceCatalogId = null;
         String inputBucket = null;
         SourceTransformer sourceTransformer = null;

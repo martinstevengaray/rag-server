@@ -25,8 +25,8 @@ public class BootstapperMain {
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads);
         IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket);
         IDatastore outDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
-        //IDatastore sourceDatastoreS3 = new Datastore(Datastore.Mode.S3, "mgaray-developer-temp-source");
-        //IDatastore outDatastoreS3 =new Datastore(Datastore.Mode.S3, "mgaray-developer-temp")
+        //IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
+        //IDatastore outDatastore =new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED));

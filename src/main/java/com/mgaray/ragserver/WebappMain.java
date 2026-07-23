@@ -28,7 +28,7 @@ public class WebappMain {
     public static void main(String[] args) throws Exception {
         //IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        //IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "mgaray-developer-temp");
+        //IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
         //IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
 
 
