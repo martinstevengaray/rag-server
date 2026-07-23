@@ -4,11 +4,14 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
+import com.mgaray.ragserver.bootstrap.IVectorStore;
+import com.mgaray.ragserver.bootstrap.InMemoryVectorStore;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
+import com.mgaray.ragserver.common.Models.Chunk;
 
 public class BootstapperMain {
 
@@ -36,12 +39,13 @@ public class BootstapperMain {
 
         //IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk);
         IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk, outDatastoreS3);
+        IVectorStore<Chunk> outVectorStore = new InMemoryVectorStore<>();
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL));
 
-        Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore);
+        Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore, outVectorStore);
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
     }
 

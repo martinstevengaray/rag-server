@@ -4,7 +4,7 @@ import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.bootstrap.IVectorStore;
 import com.mgaray.ragserver.bootstrap.InMemoryVectorStore;
-import com.mgaray.ragserver.bootstrap.VectorStore;
+import com.mgaray.ragserver.bootstrap.VectorStoreDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
@@ -29,15 +29,15 @@ public class QueryHandler {
 
     private final WebappConfig config;
     private final IDatastore datastore;
-    private final VectorStore vectorStore;
+    private final VectorStoreDelegate vectorStoreDelegate;
     private final EmbeddingModel embeddingModel;
     private final ChatModel chatModel;
 
     public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
         this.config = config;
         this.datastore = datastore;
-        IVectorStore<Chunk> vectorStore_ = InMemoryVectorStore.load(datastore, sourceManifestId);  //todo name_
-        this.vectorStore = new VectorStore(datastore, vectorStore_);
+        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, sourceManifestId);
+        this.vectorStoreDelegate = new VectorStoreDelegate(datastore, vectorStore);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), config.openApiKey());
@@ -63,7 +63,7 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, config.chunksToProvide());
+        List<ChunkMatch> chunkMatches = vectorStoreDelegate.get(queryVector, config.chunksToProvide());
         Map<String, ChunkMatch> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(chunkMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);

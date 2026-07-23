@@ -1,10 +1,12 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
+import com.mgaray.ragserver.common.Models.Chunk;
 
 import java.util.List;
 
@@ -15,13 +17,16 @@ public class Bootstrapper {
     private final BootstrapperConfig config;
     private final IDatastore sourceDatastore;
     private final IDatastore outDatastore;
+    private final IVectorStore<Chunk> outVectorStore;
 
     public Bootstrapper(BootstrapperConfig config,
                         IDatastore sourceDatastore,
-                        IDatastore outDatastore) {
+                        IDatastore outDatastore,
+                        IVectorStore<Chunk> outVectorStore) {
         this.config = config;
         this.sourceDatastore = sourceDatastore;
         this.outDatastore = outDatastore;
+        this.outVectorStore = outVectorStore;
     }
 
     public void bootstrap(String sourceCatalogLocation,
@@ -44,8 +49,8 @@ public class Bootstrapper {
         embedder.embed(ingestionManifest);
 
         // VectorStore
-        VectorStore vectorStore = new VectorStore(outDatastore);
-        vectorStore.load(ingestionManifest);
+        VectorStoreDelegate vectorStoreDelegate = new VectorStoreDelegate(outDatastore, outVectorStore);
+        vectorStoreDelegate.load(ingestionManifest);
 
         // Results
         System.out.println(ingestManifestId + " sourceRecords: " + ingestionManifest.sourceRecords().size() +

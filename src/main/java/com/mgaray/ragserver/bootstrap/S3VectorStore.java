@@ -68,7 +68,7 @@ public class S3VectorStore<T> implements IVectorStore<T> {
         return vectorRecords;
     }
 
-    private static List<Float> toFloatList(float[] vector) { //todo duplicate
+    private static List<Float> toFloatList(float[] vector) {
         List<Float> floats = new ArrayList<>(vector.length);
         for (float value : vector) {
             floats.add(value);

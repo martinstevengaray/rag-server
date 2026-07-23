@@ -10,18 +10,12 @@ import com.mgaray.ragserver.common.Models.ChunkMatch;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
-
-public class VectorStore {
+public class VectorStoreDelegate {
 
     private final IDatastore datastore;
     private final IVectorStore<Chunk> vectorStore;
 
-    public VectorStore(IDatastore datastore) {
-        this(datastore, new InMemoryVectorStore<>());
-    }
-
-    public VectorStore(IDatastore datastore, IVectorStore<Chunk> vectorStore) {
+    public VectorStoreDelegate(IDatastore datastore, IVectorStore<Chunk> vectorStore) {
         this.datastore = datastore;
         this.vectorStore = vectorStore;
     }
