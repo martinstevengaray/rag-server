@@ -42,12 +42,12 @@ public class Models {
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
 
-    public record EmbeddingSpec(ModelType modelType) {}
+    public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
     public record ChunkMatch(Chunk chunk,
                              double matchScore) {}
 
-    public enum ModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL } //todo rename to EmbeddingModelType
+    public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
 
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------

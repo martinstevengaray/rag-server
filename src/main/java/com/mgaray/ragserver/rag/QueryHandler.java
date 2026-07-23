@@ -5,7 +5,7 @@ import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.bootstrap.VectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.ModelType;
+import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
@@ -38,8 +38,7 @@ public class QueryHandler {
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        ModelType modelType = ingestionManifest.runDefinition().embeddingSpec().modelType();
-        this.embeddingModel = Embedder.createEmbeddingModel(modelType);
+        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec());
         this.chatModel = createChatModel(config);
     }
 

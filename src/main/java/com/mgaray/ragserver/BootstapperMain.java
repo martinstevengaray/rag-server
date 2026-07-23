@@ -7,7 +7,7 @@ import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.ModelType;
+import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 
 public class BootstapperMain {
 
@@ -29,7 +29,7 @@ public class BootstapperMain {
         //IDatastore outDatastoreS3 =new Datastore(Datastore.Mode.S3, "mgaray-developer-temp")
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(ModelType.BGE_SMALL_EN_V15_QUANTIZED));
+                new EmbeddingSpec(EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED));
 
         Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore);
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);

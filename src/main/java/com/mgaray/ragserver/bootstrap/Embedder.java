@@ -6,7 +6,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.ModelType;
+import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -34,7 +34,7 @@ public class Embedder {
 
     public void embed(IngestionManifest ingestionManifest) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec.modelType());
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec);
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
@@ -64,8 +64,8 @@ public class Embedder {
         }
     }
 
-    public static EmbeddingModel createEmbeddingModel(ModelType modelType) {
-        return switch (modelType) {
+    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec) {
+        return switch (embeddingSpec.embeddingModelType()) {
             case DUMMY -> {
                 final float[] embedding;
                 yield new EmbeddingModel() {
@@ -83,9 +83,8 @@ public class Embedder {
             case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
             case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
                     .apiKey(System.getenv("OPENAI_API_KEY"))
-                    .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
+                    .modelName("text-embedding-3-small") //consider: text-embedding-3-large
                     .build();
-            default -> throw new IllegalArgumentException("Unsupported embedding ModelType: " + modelType);
         };
     }
 }
