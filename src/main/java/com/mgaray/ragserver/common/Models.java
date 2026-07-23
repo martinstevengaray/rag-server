@@ -44,11 +44,13 @@ public class Models {
 
     public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
-    public record ChunkMatch(Chunk chunk,
-                             double matchScore) {}
 
     public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
 
+    //-----Webapp usage-------------------------------------------------------------------------------------------------
+
+    public record ChunkMatch(Chunk chunk, //todo delete replace with IVectorStore.VectorRecord
+                             double matchScore) {}
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
