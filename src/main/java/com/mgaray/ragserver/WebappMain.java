@@ -39,7 +39,7 @@ public class WebappMain {
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
     }
 
-    private static String readKeyFromConfig(String configFilename, String key) {
+    public static String readKeyFromConfig(String configFilename, String key) {
         try {
             List<String> lines = Files.readAllLines(Path.of(configFilename));
             for (String line : lines) {

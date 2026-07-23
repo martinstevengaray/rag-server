@@ -40,7 +40,7 @@ public class Bootstrapper {
         chunker.chunk(ingestionManifest);
 
         // Embedder
-        Embedder embedder = new Embedder(outDatastore, config.numberOfEmbeddingThreads());
+        Embedder embedder = new Embedder(outDatastore, config);
         embedder.embed(ingestionManifest);
 
         // VectorStore

@@ -23,16 +23,19 @@ public class BootstapperMain {
 
     public static void main(String[] args) {
         int numberOfEmbeddingThreads = 10;
-        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads);
+        String openAiApiKey = WebappMain.readKeyFromConfig(
+                "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
+        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+
+        //IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket);
+        IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
+
         IDatastore outDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
+        IDatastore outDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
+        IDatastore outDatastoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
 
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket);
-        IDatastore outDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
-
-        //IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
-        //IDatastore outDatastore = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
-
-        outDatastore = new DatastoreCache(outDatastoreMemory, outDatastore);
+        //IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk);
+        IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk, outDatastoreS3);
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),

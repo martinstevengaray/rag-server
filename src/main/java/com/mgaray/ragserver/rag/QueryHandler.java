@@ -5,7 +5,6 @@ import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.bootstrap.VectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
@@ -38,7 +37,7 @@ public class QueryHandler {
         this.vectorStore = VectorStore.load(datastore, sourceManifestId);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec());
+        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), config.openApiKey());
         this.chatModel = createChatModel(config);
     }
 
@@ -49,7 +48,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
         };
         return OpenAiChatModel.builder()
-                .apiKey(config.apiKey())
+                .apiKey(config.openApiKey())
                 .modelName(chatModelName)
                 //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
                 .build();

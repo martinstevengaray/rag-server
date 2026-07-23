@@ -52,10 +52,10 @@ public class Models {
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
-    public record BootstrapperConfig(int numberOfEmbeddingThreads) {}
+    public record BootstrapperConfig(int numberOfEmbeddingThreads, String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
-                               String apiKey,
+                               String openApiKey,
                                int chunksToProvide) {}
 
     public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }

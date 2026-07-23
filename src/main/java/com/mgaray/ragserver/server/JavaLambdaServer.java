@@ -52,7 +52,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
         IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);
         System.out.println(JsonUtils.toJson(ingestionManifest));
-        EmbeddingModel embeddingModel = createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec());
+        EmbeddingModel embeddingModel = createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), openAiKey);
 
         float[] chunkEmbedding = embeddingModel.embed("embed this piece of text").content().vector();
         System.out.println("chunkEmbedding: " + chunkEmbedding);
