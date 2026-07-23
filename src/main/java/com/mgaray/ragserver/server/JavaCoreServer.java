@@ -7,6 +7,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 
 public class JavaCoreServer {
 
@@ -30,32 +31,36 @@ public class JavaCoreServer {
         }
 
         @Override
-        public void handle(HttpExchange httpExchange) throws IOException {
-            String method = httpExchange.getRequestMethod();
-            String path = httpExchange.getRequestURI().getPath();
-            String body = new String(httpExchange.getRequestBody().readAllBytes());
-            httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            String response = "";
-            switch (method) {
-                case "OPTIONS": //cors
-                    httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
-                    httpExchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-ijt"); //the "x-ijt" header is used by intelliJ
-                    httpExchange.sendResponseHeaders(204, -1);
-                    break;
-                case "POST":
-                    httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-                    response = iListener.handlePost(path, body);
-                    httpExchange.sendResponseHeaders(200, response.length());
-                    break;
-                case "GET":
-                    httpExchange.getResponseHeaders().add("Content-Type", "application/json");
-                    response = iListener.handleGet(path);
-                    httpExchange.sendResponseHeaders(200, response.length());
-                    break;
+        public void handle(HttpExchange httpExchange)  {
+            try {
+                String method = httpExchange.getRequestMethod();
+                String path = httpExchange.getRequestURI().getPath();
+                String body = new String(httpExchange.getRequestBody().readAllBytes());
+                httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+                byte[] response = new byte[0];
+                switch (method) {
+                    case "OPTIONS": //cors
+                        httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+                        httpExchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization, x-ijt"); //the "x-ijt" header is used by intelliJ
+                        httpExchange.sendResponseHeaders(204, -1);
+                        break;
+                    case "POST":
+                        httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
+                        response = iListener.handlePost(path, body).getBytes(StandardCharsets.UTF_8);
+                        httpExchange.sendResponseHeaders(200, response.length);
+                        break;
+                    case "GET":
+                        httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+                        response = iListener.handleGet(path).getBytes(StandardCharsets.UTF_8);
+                        httpExchange.sendResponseHeaders(200, response.length);
+                        break;
+                }
+                OutputStream os = httpExchange.getResponseBody();
+                os.write(response);
+                os.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            OutputStream os = httpExchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
         }
 
     }

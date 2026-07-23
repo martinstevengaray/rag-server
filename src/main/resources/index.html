@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Portland City Code</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 40px 0;
+            padding: 0 16px;
+        }
+        /* The chat interaction stays in a comfortable centered column. */
+        #chat {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin: 0 0 12px;
+        }
+        #conversation {
+            /* Sized to the browser window, independent of the content below it.
+               Reserves ~260px for the heading and composer so both always fit;
+               falls back to min-height (page scrolls) on very short windows. */
+            height: calc(100vh - 260px);
+            min-height: 160px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #fafafa;
+        }
+        .msg {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .msg.user {
+            align-self: flex-end;
+            background: #d6eaff;
+            border-bottom-right-radius: 2px;
+        }
+        .msg.assistant {
+            align-self: flex-start;
+            background: #eee;
+            border-bottom-left-radius: 2px;
+        }
+        .sources {
+            max-width: 80%;
+            font-size: 12px;
+            color: #555;
+        }
+        .sources.assistant {
+            align-self: flex-start;
+        }
+        .sources.user {
+            align-self: flex-end;
+        }
+        .sources-title {
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .sources ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .sources a {
+            color: #0b5cad;
+            word-break: break-all;
+        }
+        #composer {
+            display: flex;
+            flex-direction: column;
+            margin-top: 12px;
+        }
+        textarea {
+            width: 100%;
+            min-height: 72px;
+            box-sizing: border-box;
+            font-size: 14px;
+            padding: 8px;
+        }
+        button {
+            align-self: flex-end;
+            margin-top: 8px;
+            padding: 8px 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        #status {
+            margin-top: 8px;
+            white-space: pre-wrap;
+            color: #444;
+        }
+        #session,
+        #debug {
+            margin-top: 4px;
+            color: #444;
+            font-size: 13px;
+        }
+        #session code,
+        #debug code {
+            display: block;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .label {
+            color: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat">
+        <h1>RAG Server</h1>
+
+        <div id="conversation"></div>
+
+        <div id="composer">
+            <textarea id="input" placeholder="Enter text here..."></textarea>
+            <button id="send">Send</button>
+        </div>
+
+        <div id="status"></div>
+    </div>
+
+    <div id="session"><span class="label">Session state:</span> <code id="sessionValue">(none)</code></div>
+    <div id="debug"><span class="label">Details:</span> <code id="debugValue">(none)</code></div>
+
+    <script>
+        const button = document.getElementById("send");
+        const input = document.getElementById("input");
+        const status = document.getElementById("status");
+        const conversation = document.getElementById("conversation");
+        const sessionValueEl = document.getElementById("sessionValue");
+        const debugValueEl = document.getElementById("debugValue");
+
+        let inFlight = false;      // guard against overlapping requests
+        let sessionState = null;   // null on first request, then echoed back from the server
+
+        // Pretty-print sessionState as JSON. It may arrive as an object or as a
+        // JSON string; fall back to the raw value if it isn't valid JSON.
+        function formatJson(value) {
+            if (value == null) return "(none)";
+            let obj = value;
+            if (typeof value === "string") {
+                try {
+                    obj = JSON.parse(value);
+                } catch {
+                    return value;
+                }
+            }
+            return JSON.stringify(obj, null, 2);
+        }
+
+        // Append a chat bubble and keep the newest message in view.
+        // `sources` is an optional array of strings shown beneath the bubble.
+        function addMessage(role, text, sources) {
+            const msg = document.createElement("div");
+            msg.className = "msg " + role;   // role is "user" or "assistant"
+            msg.textContent = text;
+            conversation.appendChild(msg);
+
+            if (Array.isArray(sources) && sources.length > 0) {
+                const box = document.createElement("div");
+                box.className = "sources " + role;
+                const title = document.createElement("div");
+                title.className = "sources-title";
+                title.textContent = "Sources";
+                box.appendChild(title);
+
+                const list = document.createElement("ul");
+                for (const src of sources) {
+                    const li = document.createElement("li");
+                    if (/^https?:\/\//i.test(src)) {
+                        const a = document.createElement("a");
+                        a.href = src;
+                        a.textContent = src;
+                        a.target = "_blank";
+                        a.rel = "noopener noreferrer";
+                        li.appendChild(a);
+                    } else {
+                        li.textContent = src;
+                    }
+                    list.appendChild(li);
+                }
+                box.appendChild(list);
+                conversation.appendChild(box);
+            }
+
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+
+        async function send() {
+            if (inFlight) return;
+            const userPrompt = input.value.trim();
+            if (userPrompt === "") return;
+
+            inFlight = true;
+            button.disabled = true;
+            button.textContent = "Sending…";
+            status.textContent = "";
+
+            // Show the user's message immediately and clear the input.
+            addMessage("user", userPrompt);
+            input.value = "";
+
+            try {
+                const response = await fetch("/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userPrompt, sessionState })
+                });
+                if (!response.ok) {
+                    throw new Error("HTTP " + response.status);
+                }
+                const data = await response.json();   // { chatResponse, sources, sessionState, details }
+                addMessage("assistant", data.chatResponse, data.sources);
+                sessionState = data.sessionState;     // echo this back on the next request
+                sessionValueEl.textContent = formatJson(sessionState);
+                // debug is an arbitrary diagnostic string and may be null/absent.
+                debugValueEl.textContent = data.details ?? "(none)";
+            } catch (err) {
+                status.textContent = "Error: " + err;
+            } finally {
+                inFlight = false;
+                button.disabled = false;
+                button.textContent = "Send";
+                input.focus();
+            }
+        }
+
+        button.addEventListener("click", send);
+
+        // Enter sends; Shift+Enter inserts a newline.
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+    </script>
+</body>
+</html>

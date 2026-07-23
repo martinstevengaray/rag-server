@@ -1,7 +1,12 @@
-package com.mgaray.ragserver.chunker;
+package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.SourceRecord;
+import com.mgaray.ragserver.common.Models.ChunkManifest;
+import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -12,36 +17,55 @@ import dev.langchain4j.model.output.Response;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 
 public class Embedder {
 
     private final IDatastore dataStore;
+    private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore) {
+    public Embedder(IDatastore dataStore, int numberOfEmbeddingThread) {
         this.dataStore = dataStore;
+        this.executor = Executors.newFixedThreadPool(numberOfEmbeddingThread);
     }
 
-    public void embed(Models.SourceManifest sourceManifest) {
-        Models.EmbeddingSpec embeddingSpec = sourceManifest.runDefinition().embeddingSpec();
-        EmbeddingModel embeddingModel = createModel(embeddingSpec.modelType());
-        for (Models.SourceRecord sourceRecord : sourceManifest.sourceRecords()) {
-            String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            Models.ChunkManifest chunkManifest = dataStore.fetch(chunkManifestLocation, Models.ChunkManifest.class);
-            for (Models.Chunk chunk : chunkManifest.chunks()) {
+    public void embed(IngestionManifest ingestionManifest) {
+        final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec);
+        try {
+            List<Future<?>> futures = new ArrayList<>();
+            for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+                futures.add(executor.submit(() -> embed(sourceRecord, embeddingModel)));
+            }
+            for (Future<?> future : futures) {
+                future.get(); //blocks until done
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    private void embed(SourceRecord sourceRecord, EmbeddingModel embeddingModel) {
+        String chunkManifestLocation = sourceRecord.chunkManifestLocation();
+        ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+        for (Chunk chunk : chunkManifest.chunks()) {
+            String embeddingLocation = chunk.embeddingLocation();
+            if (!dataStore.exists(embeddingLocation)) {
                 String chunkTextLocation = chunk.textLocation();
-                String embeddingLocation = chunk.embeddingLocation();
-                String chunkText = dataStore.fetch(chunkTextLocation);
-                if (!dataStore.exists(embeddingLocation)) {
-                    float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                    dataStore.saveEmbedding(embeddingLocation, chunkEmbedding);
-                }
+                String chunkText = dataStore.readString(chunkTextLocation);
+                float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
+                dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
             }
         }
     }
 
-    public static EmbeddingModel createModel(Models.ModelType modelType) {
-        return switch (modelType) {
+    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec) {
+        return switch (embeddingSpec.embeddingModelType()) {
             case DUMMY -> {
                 final float[] embedding;
                 yield new EmbeddingModel() {
@@ -59,9 +83,8 @@ public class Embedder {
             case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
             case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
                     .apiKey(System.getenv("OPENAI_API_KEY"))
-                    .modelName("text-embedding-3-small") // Standard, high-performance model //consider: text-embedding-3-large
+                    .modelName("text-embedding-3-small") //consider: text-embedding-3-large
                     .build();
-            default -> throw new IllegalArgumentException("Unsupported embedding ModelType: " + modelType);
         };
     }
 }

@@ -6,7 +6,6 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -76,11 +75,12 @@ public class FileUtils {
             Path path = Path.of(filename);
             return Files.readAllBytes(path);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return null;
+            //throw new RuntimeException(e);
         }
     }
 
-    private static byte[] toBytes(float[] values) {
+    public static byte[] toBytes(float[] values) {
         ByteBuffer buffer = ByteBuffer.allocate(values.length * Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
         for (float value : values) {
             buffer.putFloat(value);

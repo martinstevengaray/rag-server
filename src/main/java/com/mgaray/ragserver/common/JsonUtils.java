@@ -2,6 +2,7 @@ package com.mgaray.ragserver.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -43,6 +44,14 @@ public class JsonUtils {
             throw new RuntimeException(e);
         }
     }
+
+//    public static JsonNode toJsonNode(String jsonString) {
+//        try {
+//            return objectMapper.readTree(jsonString);
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public static Map<String, Object> getNestedMap(Map<String, Object> objectMap, String... path) {
         Map<String, Object> nestedMap = getNestedField(objectMap, path);
