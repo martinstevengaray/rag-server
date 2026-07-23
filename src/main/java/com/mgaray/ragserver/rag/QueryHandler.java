@@ -2,8 +2,8 @@ package com.mgaray.ragserver.rag;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
-import com.mgaray.ragserver.bootstrap.IVectorStore;
-import com.mgaray.ragserver.bootstrap.InMemoryVectorStore;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;

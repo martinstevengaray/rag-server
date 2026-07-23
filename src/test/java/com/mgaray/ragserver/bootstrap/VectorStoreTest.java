@@ -6,6 +6,8 @@ import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;

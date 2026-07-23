@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.bootstrap;
+package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.common.JsonUtils;
 import software.amazon.awssdk.core.document.Document;

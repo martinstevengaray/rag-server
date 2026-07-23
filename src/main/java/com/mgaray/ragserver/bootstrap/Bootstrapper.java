@@ -6,6 +6,7 @@ import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.bootstrap;
+package com.mgaray.ragserver.vectorstore;
 
 import java.util.List;
 
