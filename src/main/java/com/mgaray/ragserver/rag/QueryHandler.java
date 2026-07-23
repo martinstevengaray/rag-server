@@ -77,7 +77,7 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 5);  //todo hardcoded count
+        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, 10);  //todo hardcoded count
         Map<String, ChunkMatch> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(chunkMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);

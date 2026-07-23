@@ -1,6 +1,7 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
+import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.JavaCoreServer;
@@ -22,8 +23,12 @@ public class WebappMain {
     }
 
     public static void main(String[] args) throws Exception {
-        IDatastore dataStore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        QueryHandler queryHandler = new QueryHandler(dataStore, openAiApiKey, sourceManifestId);
+        IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
+        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
+        IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "mgaray-developer-temp");
+        IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
+
+        QueryHandler queryHandler = new QueryHandler(dataStoreDisk, openAiApiKey, sourceManifestId);
         JavaCoreServer javaCoreServer = new JavaCoreServer();
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
     }
