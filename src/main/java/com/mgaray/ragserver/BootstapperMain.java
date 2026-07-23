@@ -9,7 +9,7 @@ public class BootstapperMain {
     private static final String outBucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
 
     private static final String portlandIngestManifestId = "portland-city-code";
-    private static final String portlandSourceCatalogLocation = "/portland-city-code/sourceCatalog.json";
+    private static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
     private static final String oregonIngestManifestId = "oregon-state-code";
     private static final String websourceIngestManifestId = "web-catholic-bible";
     private static final String nabIngestManifestId = "new-american-bible";
@@ -17,6 +17,10 @@ public class BootstapperMain {
     public static void main(String[] args) {
         Bootstrapper bootstrapper = new Bootstrapper(new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket),
                 new Datastore(Datastore.Mode.LOCAL_DISK, outBucket));
+
+//        Bootstrapper bootstrapper = new Bootstrapper(new Datastore(Datastore.Mode.S3, "mgaray-developer-temp-source"),
+//                new Datastore(Datastore.Mode.S3, "mgaray-developer-temp"));
+
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId);
     }
 

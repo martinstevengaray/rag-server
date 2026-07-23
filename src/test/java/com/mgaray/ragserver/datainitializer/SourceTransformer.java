@@ -94,11 +94,11 @@ public class SourceTransformer {
     }
 
     private static String sourceCatalogLocation(String sourceCatalogId) {
-        return "/" + sourceCatalogId + "/sourceCatalog.json";
+        return sourceCatalogId + "/sourceCatalog.json";
     }
 
     private static String originalSourceTextLocation(String sourceManifestId, String sourceId) {
-        return "/" + sourceManifestId + "/sources/" + sourceId + ".txt";
+        return sourceManifestId + "/sources/" + sourceId + ".txt";
     }
 
     private static List<String> validateSourceCatalog(SourceCatalog sourceCatalog) {

@@ -10,6 +10,7 @@ public class SourceTransformerMain {
     public static void main(String[] args) {
         String outputBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
         Datastore outputDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, outputBucket);
+//        Datastore outputDatastore = new Datastore(Datastore.Mode.S3, "mgaray-developer-temp-source");
         String sourceCatalogId = null;
         String inputBucket = null;
         SourceTransformer sourceTransformer = null;
@@ -29,6 +30,8 @@ public class SourceTransformerMain {
         sourceTransformer = new SourceTransformer(inputDataStore, outputDatastore);
         errors = sourceTransformer.sourceFolderForOregon(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
+
+        if (true) return;
 
         sourceCatalogId = "web-catholic-bible";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/web-catholic-bible/downloads-clean";

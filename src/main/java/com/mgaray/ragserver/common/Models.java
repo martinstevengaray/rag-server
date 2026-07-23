@@ -52,28 +52,29 @@ public class Models {
 
 
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
-        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
     }
 
     public static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
-        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
     }
 
     public static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
-        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
     }
 
     public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
-        return "/" + sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
     public static String ingestManifestLocation(String sourceManifestId) {
-        return "/" + sourceManifestId + "/sourceManifest.json";
+        return sourceManifestId + "/sourceManifest.json";
     }
 
     public static String vectorStoreLocation(String sourceManifestId) {
-        return "/" + sourceManifestId + "/vectorStore.json.gz";
+        return sourceManifestId + "/vectorStore.json.gz";
     }
+
 /*
 
     Although sourceManifest can support any storage pattern, this is the convention we use

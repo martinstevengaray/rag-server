@@ -1,6 +1,8 @@
 package com.mgaray.ragserver.awsresources;
 
 import com.mgaray.ragserver.common.FileUtils;
+import com.mgaray.ragserver.common.S3Utils;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +25,7 @@ public class Datastore implements IDatastore {
         return switch(mode) {
             case IN_MEMORY -> inMemoryDatastore.containsKey(storageLocation);
             case LOCAL_DISK -> FileUtils.exists(bucket + "/" + storageLocation);
-            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            case S3 -> S3Utils.exists(bucket, storageLocation);
         };
     }
 
@@ -32,8 +34,7 @@ public class Datastore implements IDatastore {
         switch(mode) {
             case IN_MEMORY -> inMemoryDatastore.put(storageLocation, bytes);
             case LOCAL_DISK -> FileUtils.writeBytes(bucket + "/" + storageLocation, bytes);
-            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
-            default -> throw new IllegalArgumentException("Unexpected mode: " + mode);
+            case S3 -> S3Utils.writeBytes(bucket, storageLocation, bytes);
         }
     }
 
@@ -42,7 +43,7 @@ public class Datastore implements IDatastore {
         return switch(mode) {
             case IN_MEMORY -> inMemoryDatastore.get(storageLocation);
             case LOCAL_DISK -> FileUtils.readBytes(bucket + "/" + storageLocation);
-            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            case S3 -> S3Utils.readBytes(bucket, storageLocation);
         };
     }
 
