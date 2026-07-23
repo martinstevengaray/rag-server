@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
@@ -49,8 +48,8 @@ public class Bootstrapper {
         embedder.embed(ingestionManifest);
 
         // VectorStore
-        VectorStoreDelegate vectorStoreDelegate = new VectorStoreDelegate(outDatastore, outVectorStore);
-        vectorStoreDelegate.load(ingestionManifest);
+        VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(outDatastore, outVectorStore);
+        vectorStoreLoader.load(ingestionManifest);
 
         // Results
         System.out.println(ingestManifestId + " sourceRecords: " + ingestionManifest.sourceRecords().size() +

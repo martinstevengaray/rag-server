@@ -6,12 +6,12 @@ import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 
-public class VectorStoreDelegate { //todo rename to loader
+public class VectorStoreLoader {
 
     private final IDatastore datastore;
     private final IVectorStore<Chunk> vectorStore;
 
-    public VectorStoreDelegate(IDatastore datastore, IVectorStore<Chunk> vectorStore) {
+    public VectorStoreLoader(IDatastore datastore, IVectorStore<Chunk> vectorStore) {
         this.datastore = datastore;
         this.vectorStore = vectorStore;
     }
