@@ -32,6 +32,18 @@ dependencies {
 //    implementation 'com.openai:openai-java:4.43.0'
 }
 
+// Local ONNX embeddings (the BGE model jar + onnxruntime + DJL tokenizers, ~135MB
+// of native binaries) stay on the normal classpath so the offline Bootstrapper and
+// local runs keep working — but they're excluded from the Lambda zip, which would
+// otherwise blow past Lambda's size limits. The deployed function is expected to
+// use OpenAI embeddings; if a manifest ever drives it down the local-embedding
+// path, it fails fast with NoClassDefFoundError.
+def lambdaExcludedLibs = [
+    'onnxruntime-',
+    'tokenizers-',
+    'langchain4j-embeddings-bge-small-en-v15-q-',
+]
+
 // Lambda deployment package: compiled classes at the root, dependencies under lib/
 tasks.register('buildZip', Zip) {
     archiveFileName = "rag-server-lambda-${version}.zip"
@@ -40,7 +52,9 @@ tasks.register('buildZip', Zip) {
     from processResources
     exclude 'previous-compilation-data.bin'
     into('lib') {
-        from configurations.runtimeClasspath
+        from configurations.runtimeClasspath.filter { f ->
+            !lambdaExcludedLibs.any { f.name.startsWith(it) }
+        }
     }
 }
 
