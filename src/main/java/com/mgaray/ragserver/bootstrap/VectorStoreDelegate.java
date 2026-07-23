@@ -37,7 +37,7 @@ public class VectorStoreDelegate {
     }
 
     public List<ChunkMatch> get(float[] searchVector, int topK) {
-        List<IVectorStore.VectorRecord<Chunk>> results =  vectorStore.get(searchVector, topK, Chunk.class); //todo Chunk.class remove
+        List<IVectorStore.VectorRecord<Chunk>> results =  vectorStore.get(searchVector, topK);
         List<ChunkMatch> chunkMatches = new ArrayList<>();
         for (IVectorStore.VectorRecord<Chunk> match : results) {
             double matchScore = match.matchScore();

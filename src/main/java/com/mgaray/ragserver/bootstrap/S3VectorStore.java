@@ -20,11 +20,13 @@ public class S3VectorStore<T> implements IVectorStore<T> {
 
     private final String bucket;
     private final String ingestionManifestId;
+    private final Class<T> clazz;
     private final S3VectorsClient s3VectorsClient;
 
-    public S3VectorStore(String bucket, String ingestionManifestId) {
+    public S3VectorStore(String bucket, String ingestionManifestId, Class<T> clazz) {
         this.bucket = bucket;
         this.ingestionManifestId = ingestionManifestId;
+        this.clazz = clazz;
         this.s3VectorsClient = S3VectorsClient.create();
     }
 
@@ -45,7 +47,7 @@ public class S3VectorStore<T> implements IVectorStore<T> {
     }
 
     @Override
-    public List<VectorRecord<T>> get(float[] searchVector, int topK, Class<T> clazz) {
+    public List<VectorRecord<T>> get(float[] searchVector, int topK) {
 
         List<VectorRecord<T>> vectorRecords = new ArrayList<>();
         QueryVectorsRequest request = QueryVectorsRequest.builder()

@@ -21,13 +21,11 @@ import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 public class InMemoryVectorStore<T> implements IVectorStore<T> {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
+    private final Class<T> clazz;
 
-    public InMemoryVectorStore() {
-        this(new InMemoryEmbeddingStore<>());
-    }
-
-    public InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store) {
+    public InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store, Class<T> clazz) {
         this.store = store;
+        this.clazz = clazz;
     }
 
     @Override
@@ -36,7 +34,7 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
     }
 
     @Override
-    public List<VectorRecord<T>> get(float[] searchVector, int topK, Class<T> clazz) {
+    public List<VectorRecord<T>> get(float[] searchVector, int topK) {
         List<VectorRecord<T>> vectorRecords = new ArrayList<>();
         EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                 .queryEmbedding(new Embedding(searchVector))
@@ -51,11 +49,11 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         return vectorRecords;
     }
 
-    public static<T> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId) {
+    public static<T> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
         byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
-        return new InMemoryVectorStore<T>(store);
+        return new InMemoryVectorStore<T>(store, clazz);
     }
 
     public void write(IDatastore datastore, String vectorStoreLocation) {

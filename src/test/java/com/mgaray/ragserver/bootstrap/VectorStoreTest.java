@@ -19,7 +19,7 @@ public class VectorStoreTest {
 
     public static void main(String[] args) {
         IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
-        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId);
+        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId, Chunk.class);
         VectorStoreDelegate vectorStoreDelegate = new VectorStoreDelegate(datastore, vectorStore);
         String openAiApiKey = WebappMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");

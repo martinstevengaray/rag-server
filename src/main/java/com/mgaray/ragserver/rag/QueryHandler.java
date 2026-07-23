@@ -36,7 +36,7 @@ public class QueryHandler {
     public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
         this.config = config;
         this.datastore = datastore;
-        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, sourceManifestId);
+        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, sourceManifestId, Chunk.class);
         this.vectorStoreDelegate = new VectorStoreDelegate(datastore, vectorStore);
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
