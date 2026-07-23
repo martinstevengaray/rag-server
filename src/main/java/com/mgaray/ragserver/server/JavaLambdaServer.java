@@ -36,8 +36,8 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String vectorStoreBucket = System.getenv("VECTOR_STORE_BUCKET");
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
-        System.out.println("openAiKey: " + openAiKey + "," +
-                            "symmetricSigningKey: " + symmetricSigningKey + ", " +
+        System.out.println( //"openAiKey: " + openAiKey + "," +
+                            //"symmetricSigningKey: " + symmetricSigningKey + ", " +
                             "chatModelTypeString: " + chatModelTypeString + ", " +
                             "chunksToProvideString: " + chunksToProvideString + ", " +
                             "ingestionManifestBucket: " + ingestionManifestBucket + ", " +
@@ -57,15 +57,15 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
-        System.out.println(JsonUtils.toJsonPretty(input));
+        System.out.println(JsonUtils.toJson(input));
 
         String method = extractMethod(input);        //POST OR GET
         System.out.println("method=" + method);
         Request request = extractRequest(input);
-        System.out.println(JsonUtils.toJsonPretty(request));
+        System.out.println(JsonUtils.toJson(request));
 
         Response response = new Response("chatResponse", List.of("source1", "source2"), "sessionState", "details");
-        System.out.println(JsonUtils.toJsonPretty(response));
+        System.out.println(JsonUtils.toJson(response));
 
         return proxyResponse(200, JsonUtils.toJson(response));
     }
