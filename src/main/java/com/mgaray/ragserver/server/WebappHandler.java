@@ -27,7 +27,7 @@ public class WebappHandler implements JavaCoreServer.IListener {
     }
 
     @Override
-    public String handleGet(String resource) {
+    public String handleGet(String path) {
         try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
