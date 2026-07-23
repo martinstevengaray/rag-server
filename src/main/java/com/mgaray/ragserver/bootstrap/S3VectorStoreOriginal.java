@@ -22,7 +22,7 @@ import java.util.UUID;
  * expected to be small reference objects (e.g. a {@code Chunk}); a large payload should be configured as a
  * non-filterable metadata key when the index is created, since filterable metadata is size-limited.
  */
-public class S3VectorStore {
+public class S3VectorStoreOriginal {
 
     private static final String METADATA_PAYLOAD_KEY = "payload";
 
@@ -33,7 +33,7 @@ public class S3VectorStore {
     private final String vectorBucketName;
     private final String indexName;
 
-    public S3VectorStore(String vectorBucketName, String indexName) {
+    public S3VectorStoreOriginal(String vectorBucketName, String indexName) {
         this.vectorBucketName = vectorBucketName;
         this.indexName = indexName;
     }
@@ -81,7 +81,7 @@ public class S3VectorStore {
     private static S3VectorsClient client() {
         S3VectorsClient result = s3VectorsClient;
         if (result == null) {
-            synchronized (S3VectorStore.class) {
+            synchronized (S3VectorStoreOriginal.class) {
                 result = s3VectorsClient;
                 if (result == null) {
                     result = S3VectorsClient.create();
