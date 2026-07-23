@@ -17,8 +17,9 @@ repositories {
 
 dependencies {
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
-    implementation platform('software.amazon.awssdk:bom:2.30.16')
+    implementation platform('software.amazon.awssdk:bom:2.33.13')
     implementation 'software.amazon.awssdk:s3'
+    implementation 'software.amazon.awssdk:s3vectors'
     implementation('software.amazon.awssdk:ssm') {
         exclude group: 'software.amazon.awssdk', module: 'netty-nio-client'
         exclude group: 'software.amazon.awssdk', module: 'apache-client'
