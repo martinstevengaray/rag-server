@@ -36,7 +36,7 @@ public class BootstapperMain {
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED));
+                new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL));
 
         Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore);
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
