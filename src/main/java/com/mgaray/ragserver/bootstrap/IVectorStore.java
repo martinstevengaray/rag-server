@@ -8,6 +8,6 @@ public interface IVectorStore<T>  {
 
     List<VectorRecord<T>> get(float[] searchVector, int topK);
 
-    record VectorRecord<T> (T t, double matchScore) {}
+    record VectorRecord<T> (T t, double matchScore) {} //todo rename method
 
 }

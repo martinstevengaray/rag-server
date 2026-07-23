@@ -5,12 +5,8 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.ChunkMatch;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class VectorStoreDelegate {
+public class VectorStoreDelegate { //todo rename to loader
 
     private final IDatastore datastore;
     private final IVectorStore<Chunk> vectorStore;
@@ -34,16 +30,6 @@ public class VectorStoreDelegate {
             String vectorStoreLocation = ingestionManifest.vectorStoreLocation();
             ((InMemoryVectorStore<Chunk>)vectorStore).write(datastore, vectorStoreLocation);
         }
-    }
-
-    public List<ChunkMatch> get(float[] searchVector, int topK) {
-        List<IVectorStore.VectorRecord<Chunk>> results =  vectorStore.get(searchVector, topK);
-        List<ChunkMatch> chunkMatches = new ArrayList<>();
-        for (IVectorStore.VectorRecord<Chunk> match : results) {
-            double matchScore = match.matchScore();
-            chunkMatches.add(new ChunkMatch(match.t(), matchScore));
-        }
-        return chunkMatches;
     }
 
 }
