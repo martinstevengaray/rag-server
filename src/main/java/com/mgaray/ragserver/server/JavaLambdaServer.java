@@ -3,7 +3,9 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
+import com.mgaray.ragserver.common.AwsServicesDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 
@@ -15,6 +17,20 @@ import java.util.Map;
 
 
 public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+
+    public JavaLambdaServer() {
+        String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
+                System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
+        String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(
+                System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
+        String chatModelTypeString = System.getenv("CHAT_MODEL_TYPE");
+        String chunksToProvideString = System.getenv("CHUNKS_TO_PROVIDE");
+        System.out.println("openAiKey: " + openAiKey + "," +
+                            "symmetricSigningKey: " + symmetricSigningKey + "," +
+                            "chatModelTypeString: " + chatModelTypeString + "," +
+                            "chunksToProvideString: " + chunksToProvideString);
+
+    }
 
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
