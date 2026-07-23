@@ -1,5 +1,7 @@
 package com.mgaray.ragserver.vectorstore;
 
+import com.mgaray.ragserver.common.Models.VectorRecord;
+
 import java.util.List;
 
 public interface IVectorStore<T>  {
@@ -8,6 +10,5 @@ public interface IVectorStore<T>  {
 
     List<VectorRecord<T>> get(float[] searchVector, int topK);
 
-    record VectorRecord<T> (T t, double matchScore) {} //todo rename method
 
 }

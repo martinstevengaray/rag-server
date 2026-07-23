@@ -8,6 +8,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
+import com.mgaray.ragserver.common.Models.VectorRecord;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -60,8 +61,8 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<IVectorStore.VectorRecord<Chunk>> vectorRecords = vectorStore.get(queryVector, config.chunksToProvide());
-        Map<String, IVectorStore.VectorRecord<Chunk>> lookup = new HashMap<>();
+        List<VectorRecord<Chunk>> vectorRecords = vectorStore.get(queryVector, config.chunksToProvide());
+        Map<String, VectorRecord<Chunk>> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(vectorRecords, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
@@ -95,9 +96,9 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<IVectorStore.VectorRecord<Chunk>> vectorRecords, Map<String, IVectorStore.VectorRecord<Chunk>> lookup) {
+    private List<DataSource> lossyTransform(List<VectorRecord<Chunk>> vectorRecords, Map<String, VectorRecord<Chunk>> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
-        for (IVectorStore.VectorRecord<Chunk> vectorRecord : vectorRecords) {
+        for (VectorRecord<Chunk> vectorRecord : vectorRecords) {
             Chunk chunk = vectorRecord.t();
             String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
             String dataText = datastore.readString(chunk.textLocation());
@@ -107,10 +108,10 @@ public class QueryHandler {
         return dataSources;
     }
 
-    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, IVectorStore.VectorRecord<Chunk>> lookup) {
+    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorRecord<Chunk>> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            IVectorStore.VectorRecord<Chunk> vectorRecord = lookup.get(dataSourceKey);
+            VectorRecord<Chunk> vectorRecord = lookup.get(dataSourceKey);
             sources.add(vectorRecord.t().sourceRecord().sourceUrl());
         }
         return new ArrayList<>(sources);

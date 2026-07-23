@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.common.Models.VectorRecord;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import software.amazon.awssdk.services.s3vectors.model.PutInputVector;

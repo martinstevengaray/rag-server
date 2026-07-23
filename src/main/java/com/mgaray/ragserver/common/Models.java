@@ -47,6 +47,9 @@ public class Models {
 
     public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
 
+    //-----Webapp-------------------------------------------------------------------------------------------------------
+
+    public record VectorRecord<T> (T t, double matchScore) {} //todo rename method
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
