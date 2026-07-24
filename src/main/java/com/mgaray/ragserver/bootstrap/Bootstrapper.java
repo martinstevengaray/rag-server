@@ -35,20 +35,24 @@ public class Bootstrapper {
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
 
         // DataInitializer
+        System.out.println("DataInitializer");
         DataInitializer dataInitializer = new DataInitializer(sourceDatastore, outDatastore);
         List<String> errors = dataInitializer.create(sourceCatalog, ingestManifestId, runDefinition);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         IngestionManifest ingestionManifest = outDatastore.readObject(ingestManifestLocation, IngestionManifest.class);
 
         // Chunker
+        System.out.println("Chunker");
         Chunker chunker = new Chunker(outDatastore);
         chunker.chunk(ingestionManifest);
 
         // Embedder
+        System.out.println("Embedder");
         Embedder embedder = new Embedder(outDatastore, config);
         embedder.embed(ingestionManifest);
 
-        // VectorStore
+        // VectorStoreLoader
+        System.out.println("VectorStoreLoader");
         VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(outDatastore, outVectorStore);
         vectorStoreLoader.load(ingestionManifest);
 

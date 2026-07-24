@@ -12,6 +12,7 @@ import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
@@ -41,7 +42,10 @@ public class BootstapperMain {
 
         //IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk);
         IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk, outDatastoreS3);
-        IVectorStore<Chunk> outVectorStore = new InMemoryVectorStore<>(new InMemoryEmbeddingStore<TextSegment>(), Chunk.class);
+        //IVectorStore<Chunk> outVectorStore = new InMemoryVectorStore<>(new InMemoryEmbeddingStore<TextSegment>(), Chunk.class);
+
+        IVectorStore<Chunk> outVectorStore = new S3VectorStore<>("rag-server-vector", portlandIngestManifestId, Chunk.class);
+
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
