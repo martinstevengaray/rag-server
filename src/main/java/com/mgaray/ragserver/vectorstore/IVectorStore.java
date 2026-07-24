@@ -14,6 +14,6 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     List<VectorMatch<T>> get(float[] searchVector, int topK);
 
-    void complete(IDatastore datastore, Models.IngestionManifest ingestionManifest);
+    void complete(IDatastore datastore, Models.VectorStoreSpec vectorStoreSpec);
 
 }

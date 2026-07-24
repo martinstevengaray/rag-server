@@ -2,7 +2,7 @@ package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.VectorStoreSpec;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
 import dev.langchain4j.data.embedding.Embedding;
@@ -53,9 +53,9 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     }
 
     @Override
-    public void complete(IDatastore datastore, IngestionManifest ingestionManifest) {
-        String vectorStoreLocation = ingestionManifest.runDefinition().vectorStoreSpec().inMemoryVectorStoreExportLocation();
-        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
+    public void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+        String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
+        datastore.write(inMemoryVectorStoreExportLocation, compress(store.serializeToJson()));
     }
 
     //-----to load contents from disk (unique to InMemoryVectorStore)-----------------------------------------
