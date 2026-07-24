@@ -3,10 +3,13 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.JavaCoreServer;
 import com.mgaray.ragserver.server.WebappHandler;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,10 +34,10 @@ public class WebappMain {
         //IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
         //IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
 
-
+        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(dataStoreDisk, sourceManifestId, Chunk.class);
         WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiApiKey, 10);
 
-        QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreDisk, sourceManifestId);
+        QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreDisk, vectorStore, sourceManifestId);
         JavaCoreServer javaCoreServer = new JavaCoreServer();
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
     }

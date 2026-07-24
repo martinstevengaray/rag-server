@@ -50,6 +50,12 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         return vectorRecords;
     }
 
+    //-----to write and load contents from disk (unique to InMemoryVectorStore)-----------------------------------------
+
+    public void write(IDatastore datastore, String vectorStoreLocation) {
+        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
+    }
+
     public static<T> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
         byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
@@ -57,11 +63,7 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         return new InMemoryVectorStore<T>(store, clazz);
     }
 
-    public void write(IDatastore datastore, String vectorStoreLocation) {
-        datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
-    }
-
-    public static byte[] compress(String value) {
+    private static byte[] compress(String value) {
         try {
             try (ByteArrayOutputStream output = new ByteArrayOutputStream();
                  GZIPOutputStream gzip = new GZIPOutputStream(output)) {
@@ -74,7 +76,7 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         }
     }
 
-    public static String decompress(byte[] compressed) {
+    private static String decompress(byte[] compressed) {
         try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
             return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {

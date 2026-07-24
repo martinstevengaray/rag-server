@@ -32,10 +32,13 @@ public class QueryHandler {
     private final EmbeddingModel embeddingModel;
     private final ChatModel chatModel;
 
-    public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
+    public QueryHandler(WebappConfig config,
+                        IDatastore datastore,
+                        IVectorStore<Chunk> vectorStore,
+                        String sourceManifestId) {
         this.config = config;
         this.datastore = datastore;
-        this.vectorStore = InMemoryVectorStore.load(datastore, sourceManifestId, Chunk.class);
+        this.vectorStore = vectorStore;
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), config.openApiKey());

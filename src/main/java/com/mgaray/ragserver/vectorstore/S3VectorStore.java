@@ -38,26 +38,6 @@ public class S3VectorStore<T> implements IVectorStore<T> {
         ensureIndex();
     }
 
-    /**
-     * Creates the S3 Vectors index for this ingestion manifest if it does not already exist. The index name is the
-     * ingestion manifest id and one index holds one corpus. Idempotent: a ConflictException means the index is already
-     * present, which is the expected case on every run after the first.
-     */
-    private void ensureIndex() {
-        try {
-            s3VectorsClient.createIndex(CreateIndexRequest.builder()
-                    .vectorBucketName(bucket)
-                    .indexName(ingestionManifestId)
-                    .dataType(DataType.FLOAT32)
-                    .dimension(dimension)
-                    .distanceMetric(DistanceMetric.COSINE)
-                    .build());
-            System.out.println("Created S3 Vectors index '" + ingestionManifestId + "' (dimension=" + dimension + ")");
-        } catch (ConflictException alreadyExists) {
-            // Index already exists — nothing to do.
-        }
-    }
-
     @Override
     public void add(float[] vector, T t) {
         Document metadataDocument = Document.mapBuilder().putString(DOCUMENT_PAYLOAD_KEY, JsonUtils.toJson(t)).build();
@@ -104,6 +84,22 @@ public class S3VectorStore<T> implements IVectorStore<T> {
             floats.add(value);
         }
         return floats;
+    }
+
+    //-----ensure S3 index exists (unique to S3VectorStore)-------------------------------------------------------------
+    private void ensureIndex() {
+        try {
+            s3VectorsClient.createIndex(CreateIndexRequest.builder()
+                    .vectorBucketName(bucket)
+                    .indexName(ingestionManifestId)
+                    .dataType(DataType.FLOAT32)
+                    .dimension(dimension)
+                    .distanceMetric(DistanceMetric.COSINE)
+                    .build());
+            System.out.println("Created S3 Vectors index '" + ingestionManifestId + "' (dimension=" + dimension + ")");
+        } catch (ConflictException alreadyExists) {
+            // Index already exists — nothing to do.
+        }
     }
 
 }
