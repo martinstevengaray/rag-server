@@ -2,6 +2,7 @@ package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.VectorMatch;
+import com.mgaray.ragserver.common.Models.IVectorRecord;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import software.amazon.awssdk.services.s3vectors.model.ConflictException;
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class S3VectorStore<T> implements IVectorStore<T> {
+public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
     private final String DOCUMENT_PAYLOAD_KEY = "json";
 
@@ -41,7 +42,7 @@ public class S3VectorStore<T> implements IVectorStore<T> {
     public void add(float[] vector, T t) {
         Document metadataDocument = Document.mapBuilder().putString(DOCUMENT_PAYLOAD_KEY, JsonUtils.toJson(t)).build();
         PutInputVector putInputVector = PutInputVector.builder()
-                .key(UUID.randomUUID().toString())
+                .key(t.id())
                 .data(VectorData.builder().float32(toFloatList(vector)).build())
                 .metadata(metadataDocument)
                 .build();

@@ -29,7 +29,7 @@ public class VectorStoreTest {
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
         List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(searchVector, 5);
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
-            Chunk chunk = vectorMatch.t();
+            Chunk chunk = vectorMatch.record();
             String chunkText = datastore.readString(chunk.textLocation());
             System.out.println(("\n\n--------------------------------------------------------------\n\n"));
             System.out.println(chunkText);

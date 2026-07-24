@@ -54,7 +54,7 @@ public class Models {
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
 
-    public record VectorMatch<T> (T t, double matchScore) {} //todo rename method
+    public record VectorMatch<T extends IVectorRecord> (T record, double matchScore) {}
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 

@@ -101,7 +101,7 @@ public class QueryHandler {
     private List<DataSource> lossyTransform(List<VectorMatch<Chunk>> vectorMatches, Map<String, VectorMatch<Chunk>> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
-            Chunk chunk = vectorMatch.t();
+            Chunk chunk = vectorMatch.record();
             String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
             String dataText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(dataId, dataText));
@@ -114,7 +114,7 @@ public class QueryHandler {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
-            sources.add(vectorMatch.t().sourceRecord().sourceUrl());
+            sources.add(vectorMatch.record().sourceRecord().sourceUrl());
         }
         return new ArrayList<>(sources);
     }

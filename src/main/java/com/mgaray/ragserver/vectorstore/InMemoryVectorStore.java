@@ -3,6 +3,7 @@ package com.mgaray.ragserver.vectorstore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.VectorMatch;
+import com.mgaray.ragserver.common.Models.IVectorRecord;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
@@ -19,7 +20,7 @@ import java.util.zip.GZIPOutputStream;
 
 import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
 
-public class InMemoryVectorStore<T> implements IVectorStore<T> {
+public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
     private final InMemoryEmbeddingStore<TextSegment> store;
     private final Class<T> clazz;
@@ -56,7 +57,7 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
     }
 
-    public static<T> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
+    public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
         byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
