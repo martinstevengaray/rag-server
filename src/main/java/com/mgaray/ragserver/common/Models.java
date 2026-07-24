@@ -45,7 +45,21 @@ public class Models {
     public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
 
-    public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
+    public enum EmbeddingModelType {
+        DUMMY(4),
+        BGE_SMALL_EN_V15_QUANTIZED(384),
+        OPEN_AI_TEXT_EMBEDDING_3_SMALL(1536);
+
+        private final int dimension;
+
+        EmbeddingModelType(int dimension) {
+            this.dimension = dimension;
+        }
+
+        public int dimension() {
+            return dimension;
+        }
+    }
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
 

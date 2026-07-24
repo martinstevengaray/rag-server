@@ -44,12 +44,14 @@ public class BootstapperMain {
         IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk, outDatastoreS3);
         //IVectorStore<Chunk> outVectorStore = new InMemoryVectorStore<>(new InMemoryEmbeddingStore<TextSegment>(), Chunk.class);
 
-        IVectorStore<Chunk> outVectorStore = new S3VectorStore<>("rag-server-vector", portlandIngestManifestId, Chunk.class);
+        EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+        IVectorStore<Chunk> outVectorStore = new S3VectorStore<>(
+                "rag-server-vector", portlandIngestManifestId, embeddingModelType.dimension(), Chunk.class);
 
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL));
+                new EmbeddingSpec(embeddingModelType));
 
         Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore, outVectorStore);
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);

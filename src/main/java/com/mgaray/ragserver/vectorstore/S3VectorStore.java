@@ -4,6 +4,10 @@ import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.VectorRecord;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
+import software.amazon.awssdk.services.s3vectors.model.ConflictException;
+import software.amazon.awssdk.services.s3vectors.model.CreateIndexRequest;
+import software.amazon.awssdk.services.s3vectors.model.DataType;
+import software.amazon.awssdk.services.s3vectors.model.DistanceMetric;
 import software.amazon.awssdk.services.s3vectors.model.PutInputVector;
 import software.amazon.awssdk.services.s3vectors.model.PutVectorsRequest;
 import software.amazon.awssdk.services.s3vectors.model.QueryOutputVector;
@@ -21,14 +25,37 @@ public class S3VectorStore<T> implements IVectorStore<T> {
 
     private final String bucket;
     private final String ingestionManifestId;
+    private final int dimension;
     private final Class<T> clazz;
     private final S3VectorsClient s3VectorsClient;
 
-    public S3VectorStore(String bucket, String ingestionManifestId, Class<T> clazz) {
+    public S3VectorStore(String bucket, String ingestionManifestId, int dimension, Class<T> clazz) {
         this.bucket = bucket;
         this.ingestionManifestId = ingestionManifestId;
+        this.dimension = dimension;
         this.clazz = clazz;
         this.s3VectorsClient = S3VectorsClient.create();
+        ensureIndex();
+    }
+
+    /**
+     * Creates the S3 Vectors index for this ingestion manifest if it does not already exist. The index name is the
+     * ingestion manifest id and one index holds one corpus. Idempotent: a ConflictException means the index is already
+     * present, which is the expected case on every run after the first.
+     */
+    private void ensureIndex() {
+        try {
+            s3VectorsClient.createIndex(CreateIndexRequest.builder()
+                    .vectorBucketName(bucket)
+                    .indexName(ingestionManifestId)
+                    .dataType(DataType.FLOAT32)
+                    .dimension(dimension)
+                    .distanceMetric(DistanceMetric.COSINE)
+                    .build());
+            System.out.println("Created S3 Vectors index '" + ingestionManifestId + "' (dimension=" + dimension + ")");
+        } catch (ConflictException alreadyExists) {
+            // Index already exists — nothing to do.
+        }
     }
 
     @Override
