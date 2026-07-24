@@ -3,7 +3,6 @@ package com.mgaray.ragserver.rag;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
@@ -26,23 +25,23 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class QueryHandler {
 
-    private final WebappConfig config;
+    private final WebappConfig webappConfig;
     private final IDatastore datastore;
     private final IVectorStore<Chunk> vectorStore;
     private final EmbeddingModel embeddingModel;
     private final ChatModel chatModel;
 
-    public QueryHandler(WebappConfig config,
+    public QueryHandler(WebappConfig webappConfig,
                         IDatastore datastore,
                         IVectorStore<Chunk> vectorStore,
                         String sourceManifestId) {
-        this.config = config;
+        this.webappConfig = webappConfig;
         this.datastore = datastore;
         this.vectorStore = vectorStore;
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), config.openApiKey());
-        this.chatModel = createChatModel(config);
+        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), webappConfig.openApiKey());
+        this.chatModel = createChatModel(webappConfig);
     }
 
     public static ChatModel createChatModel(WebappConfig config) {
@@ -64,7 +63,7 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<VectorRecord<Chunk>> vectorRecords = vectorStore.get(queryVector, config.chunksToProvide());
+        List<VectorRecord<Chunk>> vectorRecords = vectorStore.get(queryVector, webappConfig.chunksToProvide());
         Map<String, VectorRecord<Chunk>> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(vectorRecords, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);

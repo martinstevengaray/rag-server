@@ -1,14 +1,12 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -27,18 +25,18 @@ import java.util.concurrent.Future;
 public class Embedder {
 
     private final IDatastore dataStore;
-    private BootstrapperConfig config;
+    private final BootstrapperConfig bootstrapperConfig;
     private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore, BootstrapperConfig config) {
+    public Embedder(IDatastore dataStore, BootstrapperConfig bootstrapperConfig) {
         this.dataStore = dataStore;
-        this.config = config;
-        this.executor = Executors.newFixedThreadPool(config.numberOfEmbeddingThreads());
+        this.bootstrapperConfig = bootstrapperConfig;
+        this.executor = Executors.newFixedThreadPool(bootstrapperConfig.numberOfEmbeddingThreads());
     }
 
     public void embed(IngestionManifest ingestionManifest) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, config.openApiKey());
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, bootstrapperConfig.openApiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {

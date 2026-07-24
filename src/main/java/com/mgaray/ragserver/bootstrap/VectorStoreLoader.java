@@ -20,9 +20,6 @@ public class VectorStoreLoader {
     }
 
     public void load(IngestionManifest ingestionManifest) {
-        if (vectorStore instanceof S3VectorStore) {
-            ((S3VectorStore)vectorStore).ensureIndex(1536);
-        }
         for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
