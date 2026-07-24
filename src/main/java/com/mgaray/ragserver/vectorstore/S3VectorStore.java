@@ -1,8 +1,10 @@
 package com.mgaray.ragserver.vectorstore;
 
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import software.amazon.awssdk.services.s3vectors.model.ConflictException;
@@ -20,7 +22,6 @@ import software.amazon.awssdk.services.s3vectors.model.VectorData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
@@ -76,6 +77,12 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
         }
         return vectorMatches;
+    }
+
+    @Override
+    public void complete(IDatastore datastore, IngestionManifest ingestionManifest) {
+        //ingestionManifest.vectorStoreSpec().s3VectorStoreBucket();
+        //todo
     }
 
     private static List<Float> toFloatList(float[] vector) {

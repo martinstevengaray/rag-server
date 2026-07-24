@@ -6,8 +6,6 @@ import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
-import com.mgaray.ragserver.vectorstore.S3VectorStore;
 
 public class VectorStoreLoader {
 
@@ -24,15 +22,13 @@ public class VectorStoreLoader {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
             for (Chunk chunk : chunkManifest.chunks()) {
+                //todo first see if chunk already exists in vector store
                 String embeddingLocation = chunk.embeddingLocation();
                 float[] vector = datastore.readEmbedding(embeddingLocation);
                 vectorStore.add(vector, chunk);
             }
         }
-        if (vectorStore instanceof InMemoryVectorStore) { //todo
-            String vectorStoreLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
-            ((InMemoryVectorStore<Chunk>)vectorStore).write(datastore, vectorStoreLocation);
-        }
+        vectorStore.complete(datastore, ingestionManifest);
     }
 
 }
