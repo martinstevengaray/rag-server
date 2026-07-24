@@ -35,7 +35,7 @@ public class S3VectorStore<T> implements IVectorStore<T> {
         this.dimension = dimension;
         this.clazz = clazz;
         this.s3VectorsClient = S3VectorsClient.create();
-        ensureIndex();
+        //ensureIndex(); //todo
     }
 
     @Override
