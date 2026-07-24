@@ -19,11 +19,11 @@ public class Models {
 
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
-                                    List<SourceRecord> sourceRecords) {}
+                                    List<SourceRecord> sourceRecords,
+                                    VectorStoreSpec vectorStoreSpec) {}
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
-                                EmbeddingSpec embeddingSpec,
-                                VectorStoreSpec vectorStoreSpec) {}
+                                EmbeddingSpec embeddingSpec) {}
 
     public record VectorStoreSpec(String inMemoryVectorStoreExportLocation,
                                   String s3VectorStoreManifestLocation) {}

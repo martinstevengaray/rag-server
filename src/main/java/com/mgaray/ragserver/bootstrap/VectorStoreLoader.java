@@ -28,7 +28,7 @@ public class VectorStoreLoader {
                 vectorStore.add(vector, chunk);
             }
         }
-        vectorStore.complete(datastore, ingestionManifest.runDefinition().vectorStoreSpec());
+        vectorStore.complete(datastore, ingestionManifest.vectorStoreSpec());
     }
 
 }

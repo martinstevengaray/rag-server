@@ -45,9 +45,9 @@ public class ChunkerTest {
                 chunkManifestLocation);
         sourceRecords.add(sourceRecord);
         RunDefinition runDefinition = new RunDefinition(
-                new ChunkingSpec(8, 0.5f), null, null);
+                new ChunkingSpec(8, 0.5f), null);
         IngestionManifest ingestionManifest =
-                new IngestionManifest(sourceManifestId, runDefinition, sourceRecords);
+                new IngestionManifest(sourceManifestId, runDefinition, sourceRecords, null);
 
         Chunker chunker = new Chunker(dataStore);
         chunker.chunk(ingestionManifest);

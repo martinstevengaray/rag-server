@@ -14,6 +14,7 @@ import java.util.List;
 
 import static com.mgaray.ragserver.common.Models.chunkManifestLocation;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
+import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
 import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
 import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
 
@@ -47,8 +48,10 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
+        VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
+                                                              s3VectorStoreManifestLocation(ingestManifestId));
         IngestionManifest ingestionManifest =
-                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords);
+                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreSpec);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
         return modelValidator.validate(ingestionManifest);
