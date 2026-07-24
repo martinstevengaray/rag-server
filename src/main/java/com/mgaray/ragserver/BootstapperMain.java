@@ -4,6 +4,7 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
@@ -12,9 +13,13 @@ import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.VectorStoreSpec;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
+
+import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
+import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
 
 public class BootstapperMain {
 
@@ -28,6 +33,7 @@ public class BootstapperMain {
     private static final String nabIngestManifestId = "new-american-bible";
 
     public static void main(String[] args) {
+        String ingestManifestId = portlandIngestManifestId;
         int numberOfEmbeddingThreads = 10;
         String openAiApiKey = WebappMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
@@ -46,12 +52,13 @@ public class BootstapperMain {
 
         EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
         IVectorStore<Chunk> outVectorStore = new S3VectorStore<>(
-                "rag-server-vector", portlandIngestManifestId, Chunk.class);
-
-
+                "rag-server-vector", ingestManifestId, Chunk.class);
+        
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(embeddingModelType));
+                new EmbeddingSpec(embeddingModelType),
+                new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
+                                    s3VectorStoreManifestLocation(ingestManifestId)));
 
         Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore, outVectorStore);
         bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);

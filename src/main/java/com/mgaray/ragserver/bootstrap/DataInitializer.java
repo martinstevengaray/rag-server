@@ -47,12 +47,8 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
-        String vectorStoreLocation = inMemoryVectorStoreExportLocation(ingestManifestId);
-        VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(vectorStoreLocation,
-                "rag-server-vector", //todo
-                ingestManifestId);
         IngestionManifest ingestionManifest =
-                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreSpec);
+                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
         return modelValidator.validate(ingestionManifest);

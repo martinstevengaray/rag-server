@@ -54,7 +54,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
 
     @Override
     public void complete(IDatastore datastore, IngestionManifest ingestionManifest) {
-        String vectorStoreLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
+        String vectorStoreLocation = ingestionManifest.runDefinition().vectorStoreSpec().inMemoryVectorStoreExportLocation();
         datastore.write(vectorStoreLocation, compress(store.serializeToJson()));
     }
 
