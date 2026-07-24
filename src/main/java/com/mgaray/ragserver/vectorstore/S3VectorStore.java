@@ -106,6 +106,18 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
         datastore.writeObject(s3VectorStoreManifestLocation, s3VectorStoreManifest);
     }
 
+    @Override
+    public boolean exists(T t) {
+        GetVectorsResponse response = s3VectorsClient.getVectors(GetVectorsRequest.builder()
+                .vectorBucketName(bucket)
+                .indexName(ingestionManifestId)
+                .keys(t.id())
+                .returnData(false)       // we only care about presence, skip the vector payload
+                .returnMetadata(false)
+                .build());
+        return !response.vectors().isEmpty();
+    }
+    
     private static List<Float> toFloatList(float[] vector) {
         List<Float> floats = new ArrayList<>(vector.length);
         for (float value : vector) {
@@ -113,32 +125,5 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
         }
         return floats;
     }
-
-    //todo: key should be available on chunk
-    public boolean exists(String key) {
-        GetVectorsResponse response = s3VectorsClient.getVectors(GetVectorsRequest.builder()
-                .vectorBucketName(bucket)
-                .indexName(ingestionManifestId)
-                .keys(key)
-                .returnData(false)       // we only care about presence, skip the vector payload
-                .returnMetadata(false)
-                .build());
-        return !response.vectors().isEmpty();
-    }
-
-//    //-----ensure S3 index exists (unique to S3VectorStore)-------------------------------------------------------------
-//    public void ensureIndex(int dimension) {
-//        try {
-//            s3VectorsClient.createIndex(CreateIndexRequest.builder()
-//                    .vectorBucketName(bucket)
-//                    .indexName(ingestionManifestId)
-//                    .dataType(DataType.FLOAT32)
-//                    .dimension(dimension)
-//                    .distanceMetric(DistanceMetric.COSINE)
-//                    .build());
-//        } catch (ConflictException alreadyExists) {
-//            // index already exists, do nothing
-//        }
-//    }
 
 }

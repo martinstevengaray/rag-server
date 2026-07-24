@@ -18,4 +18,6 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
 
+    boolean exists(T t);
+
 }

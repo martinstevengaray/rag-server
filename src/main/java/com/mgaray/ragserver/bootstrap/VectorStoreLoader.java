@@ -22,10 +22,11 @@ public class VectorStoreLoader {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
             for (Chunk chunk : chunkManifest.chunks()) {
-                //todo first see if chunk already exists in vector store
-                String embeddingLocation = chunk.embeddingLocation();
-                float[] vector = datastore.readEmbedding(embeddingLocation);
-                vectorStore.add(vector, chunk);
+                if (!vectorStore.exists(chunk)) {
+                    String embeddingLocation = chunk.embeddingLocation();
+                    float[] vector = datastore.readEmbedding(embeddingLocation);
+                    vectorStore.add(vector, chunk);
+                }
             }
         }
         vectorStore.complete(datastore, ingestionManifest.vectorStoreSpec());

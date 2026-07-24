@@ -64,6 +64,13 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         datastore.write(inMemoryVectorStoreExportLocation, compress(store.serializeToJson()));
     }
 
+    @Override
+    public boolean exists(T t) {
+        //not worth implementing a complex exists on InMemoryVectorStore
+        //exists is not something langchain4j supports in InMemoryEmbeddingStore
+        return false;
+    }
+
     //-----to load contents from disk (unique to InMemoryVectorStore)-----------------------------------------
 
     public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
