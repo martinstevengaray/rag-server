@@ -2,7 +2,7 @@ package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.VectorRecord;
+import com.mgaray.ragserver.common.Models.VectorMatch;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
@@ -35,8 +35,8 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
     }
 
     @Override
-    public List<VectorRecord<T>> get(float[] searchVector, int topK) {
-        List<VectorRecord<T>> vectorRecords = new ArrayList<>();
+    public List<VectorMatch<T>> get(float[] searchVector, int topK) {
+        List<VectorMatch<T>> vectorMatches = new ArrayList<>();
         EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
                 .queryEmbedding(new Embedding(searchVector))
                 .maxResults(topK)
@@ -45,9 +45,9 @@ public class InMemoryVectorStore<T> implements IVectorStore<T> {
         for (EmbeddingMatch<TextSegment> match : matches) {
             T chunk = JsonUtils.toObject(match.embedded().text(), clazz);
             double matchScore = match.score();
-            vectorRecords.add(new VectorRecord<T>(chunk, matchScore));
+            vectorMatches.add(new VectorMatch<T>(chunk, matchScore));
         }
-        return vectorRecords;
+        return vectorMatches;
     }
 
     //-----to write and load contents from disk (unique to InMemoryVectorStore)-----------------------------------------

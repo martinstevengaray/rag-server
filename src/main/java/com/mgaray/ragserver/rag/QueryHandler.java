@@ -7,7 +7,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.VectorRecord;
+import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -63,9 +63,9 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<VectorRecord<Chunk>> vectorRecords = vectorStore.get(queryVector, webappConfig.chunksToProvide());
-        Map<String, VectorRecord<Chunk>> lookup = new HashMap<>();
-        List<DataSource> dataSources = lossyTransform(vectorRecords, lookup);
+        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
+        Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
+        List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
@@ -98,23 +98,23 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<VectorRecord<Chunk>> vectorRecords, Map<String, VectorRecord<Chunk>> lookup) {
+    private List<DataSource> lossyTransform(List<VectorMatch<Chunk>> vectorMatches, Map<String, VectorMatch<Chunk>> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
-        for (VectorRecord<Chunk> vectorRecord : vectorRecords) {
-            Chunk chunk = vectorRecord.t();
+        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
+            Chunk chunk = vectorMatch.t();
             String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
             String dataText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(dataId, dataText));
-            lookup.put(dataId, vectorRecord);
+            lookup.put(dataId, vectorMatch);
         }
         return dataSources;
     }
 
-    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorRecord<Chunk>> lookup) {
+    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            VectorRecord<Chunk> vectorRecord = lookup.get(dataSourceKey);
-            sources.add(vectorRecord.t().sourceRecord().sourceUrl());
+            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
+            sources.add(vectorMatch.t().sourceRecord().sourceUrl());
         }
         return new ArrayList<>(sources);
     }

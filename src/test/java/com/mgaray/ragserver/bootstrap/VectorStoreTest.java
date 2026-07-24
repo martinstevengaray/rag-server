@@ -6,7 +6,7 @@ import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.VectorRecord;
+import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -27,9 +27,9 @@ public class VectorStoreTest {
                 new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);
         String searchQuery = "street parking";
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
-        List<VectorRecord<Chunk>> vectorRecords = vectorStore.get(searchVector, 5);
-        for (VectorRecord<Chunk> vectorRecord : vectorRecords) {
-            Chunk chunk = vectorRecord.t();
+        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(searchVector, 5);
+        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
+            Chunk chunk = vectorMatch.t();
             String chunkText = datastore.readString(chunk.textLocation());
             System.out.println(("\n\n--------------------------------------------------------------\n\n"));
             System.out.println(chunkText);

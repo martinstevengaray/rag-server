@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.VectorRecord;
+import com.mgaray.ragserver.common.Models.VectorMatch;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import software.amazon.awssdk.services.s3vectors.model.ConflictException;
@@ -54,9 +54,9 @@ public class S3VectorStore<T> implements IVectorStore<T> {
     }
 
     @Override
-    public List<VectorRecord<T>> get(float[] searchVector, int topK) {
+    public List<VectorMatch<T>> get(float[] searchVector, int topK) {
 
-        List<VectorRecord<T>> vectorRecords = new ArrayList<>();
+        List<VectorMatch<T>> vectorMatches = new ArrayList<>();
         QueryVectorsRequest request = QueryVectorsRequest.builder()
                 .vectorBucketName(bucket)
                 .indexName(ingestionManifestId)
@@ -71,10 +71,10 @@ public class S3VectorStore<T> implements IVectorStore<T> {
             double matchScore = queryOutputVector.distance();
             String tJsonString = queryOutputVector.metadata().asMap().get(DOCUMENT_PAYLOAD_KEY).asString();
             T t = JsonUtils.toObject(tJsonString, clazz);
-            vectorRecords.add(new VectorRecord<>(t, matchScore));
+            vectorMatches.add(new VectorMatch<>(t, matchScore));
 
         }
-        return vectorRecords;
+        return vectorMatches;
     }
 
     private static List<Float> toFloatList(float[] vector) {
