@@ -46,7 +46,7 @@ public class BootstapperMain {
 
         EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
         IVectorStore<Chunk> outVectorStore = new S3VectorStore<>(
-                "rag-server-vector", portlandIngestManifestId, embeddingModelType.dimension(), Chunk.class);
+                "rag-server-vector", portlandIngestManifestId, Chunk.class);
 
 
         RunDefinition runDefinition = new RunDefinition(

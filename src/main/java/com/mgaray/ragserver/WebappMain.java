@@ -38,7 +38,7 @@ public class WebappMain {
 //        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(dataStoreDisk, sourceManifestId, Chunk.class);
 
 
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, 1536, Chunk.class); //1536 todo
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
 
         WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiApiKey, 10);
 

@@ -8,6 +8,8 @@ import software.amazon.awssdk.services.s3vectors.model.ConflictException;
 import software.amazon.awssdk.services.s3vectors.model.CreateIndexRequest;
 import software.amazon.awssdk.services.s3vectors.model.DataType;
 import software.amazon.awssdk.services.s3vectors.model.DistanceMetric;
+import software.amazon.awssdk.services.s3vectors.model.GetVectorsRequest;
+import software.amazon.awssdk.services.s3vectors.model.GetVectorsResponse;
 import software.amazon.awssdk.services.s3vectors.model.PutInputVector;
 import software.amazon.awssdk.services.s3vectors.model.PutVectorsRequest;
 import software.amazon.awssdk.services.s3vectors.model.QueryOutputVector;
@@ -25,17 +27,14 @@ public class S3VectorStore<T> implements IVectorStore<T> {
 
     private final String bucket;
     private final String ingestionManifestId;
-    private final int dimension;
     private final Class<T> clazz;
     private final S3VectorsClient s3VectorsClient;
 
-    public S3VectorStore(String bucket, String ingestionManifestId, int dimension, Class<T> clazz) {
+    public S3VectorStore(String bucket, String ingestionManifestId, Class<T> clazz) {
         this.bucket = bucket;
         this.ingestionManifestId = ingestionManifestId;
-        this.dimension = dimension;
         this.clazz = clazz;
         this.s3VectorsClient = S3VectorsClient.create();
-        //ensureIndex(); //todo
     }
 
     @Override
@@ -86,8 +85,20 @@ public class S3VectorStore<T> implements IVectorStore<T> {
         return floats;
     }
 
+    //todo: key should be available on chunk
+    public boolean exists(String key) {
+        GetVectorsResponse response = s3VectorsClient.getVectors(GetVectorsRequest.builder()
+                .vectorBucketName(bucket)
+                .indexName(ingestionManifestId)
+                .keys(key)
+                .returnData(false)       // we only care about presence, skip the vector payload
+                .returnMetadata(false)
+                .build());
+        return !response.vectors().isEmpty();
+    }
+
     //-----ensure S3 index exists (unique to S3VectorStore)-------------------------------------------------------------
-    private void ensureIndex() {
+    public void ensureIndex(int dimension) {
         try {
             s3VectorsClient.createIndex(CreateIndexRequest.builder()
                     .vectorBucketName(bucket)
@@ -96,9 +107,8 @@ public class S3VectorStore<T> implements IVectorStore<T> {
                     .dimension(dimension)
                     .distanceMetric(DistanceMetric.COSINE)
                     .build());
-            System.out.println("Created S3 Vectors index '" + ingestionManifestId + "' (dimension=" + dimension + ")");
         } catch (ConflictException alreadyExists) {
-            // Index already exists — nothing to do.
+            // index already exists, do nothing
         }
     }
 

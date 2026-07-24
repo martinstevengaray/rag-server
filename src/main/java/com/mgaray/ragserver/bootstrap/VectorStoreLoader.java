@@ -7,6 +7,7 @@ import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
+import com.mgaray.ragserver.vectorstore.S3VectorStore;
 
 public class VectorStoreLoader {
 
@@ -19,6 +20,9 @@ public class VectorStoreLoader {
     }
 
     public void load(IngestionManifest ingestionManifest) {
+        if (vectorStore instanceof S3VectorStore) {
+            ((S3VectorStore)vectorStore).ensureIndex(1536);
+        }
         for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
