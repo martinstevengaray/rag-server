@@ -6,10 +6,7 @@ import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.S3VectorStore;
-import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;
 
@@ -55,23 +52,13 @@ public class Bootstrapper {
 
         // VectorStoreLoader
         System.out.println("VectorStoreLoader");
-        if (outVectorStore instanceof S3VectorStore<Chunk>) {
-            initializeS3VectorStore(runDefinition, (S3VectorStore<Chunk>)outVectorStore);
-        }
+        outVectorStore.initialize(runDefinition.embeddingSpec());
         VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(outDatastore, outVectorStore);
         vectorStoreLoader.load(ingestionManifest);
 
         // Results
         System.out.println(ingestManifestId + " sourceRecords: " + ingestionManifest.sourceRecords().size() +
                 ", errors: " + errors);
-    }
-
-    private void initializeS3VectorStore(RunDefinition runDefinition, S3VectorStore<Chunk> s3VectorStore) {
-        final EmbeddingSpec embeddingSpec = runDefinition.embeddingSpec();
-        final EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, null);
-        int modelDimension = embeddingModel.dimension();
-        System.out.println("modelDimension = " + modelDimension);
-        s3VectorStore.ensureIndex(modelDimension);
     }
 
 }

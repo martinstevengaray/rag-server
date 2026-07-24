@@ -1,10 +1,13 @@
 package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
 import com.mgaray.ragserver.common.Models.S3VectorStoreManifest;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
 import software.amazon.awssdk.services.s3vectors.model.ConflictException;
@@ -58,7 +61,6 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
     @Override
     public List<VectorMatch<T>> get(float[] searchVector, int topK) {
-
         List<VectorMatch<T>> vectorMatches = new ArrayList<>();
         QueryVectorsRequest request = QueryVectorsRequest.builder()
                 .vectorBucketName(bucket)
@@ -78,6 +80,23 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
         }
         return vectorMatches;
+    }
+
+    @Override
+    public void initialize(EmbeddingSpec embeddingSpec) { //ensure vector store index is created
+        final EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, null);
+        int dimension = embeddingModel.dimension();
+        try {
+            s3VectorsClient.createIndex(CreateIndexRequest.builder()
+                    .vectorBucketName(bucket)
+                    .indexName(ingestionManifestId)
+                    .dataType(DataType.FLOAT32)
+                    .dimension(dimension)
+                    .distanceMetric(DistanceMetric.COSINE)
+                    .build());
+        } catch (ConflictException alreadyExists) {
+            // index already exists, do nothing
+        }
     }
 
     @Override
@@ -107,19 +126,19 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
         return !response.vectors().isEmpty();
     }
 
-    //-----ensure S3 index exists (unique to S3VectorStore)-------------------------------------------------------------
-    public void ensureIndex(int dimension) {
-        try {
-            s3VectorsClient.createIndex(CreateIndexRequest.builder()
-                    .vectorBucketName(bucket)
-                    .indexName(ingestionManifestId)
-                    .dataType(DataType.FLOAT32)
-                    .dimension(dimension)
-                    .distanceMetric(DistanceMetric.COSINE)
-                    .build());
-        } catch (ConflictException alreadyExists) {
-            // index already exists, do nothing
-        }
-    }
+//    //-----ensure S3 index exists (unique to S3VectorStore)-------------------------------------------------------------
+//    public void ensureIndex(int dimension) {
+//        try {
+//            s3VectorsClient.createIndex(CreateIndexRequest.builder()
+//                    .vectorBucketName(bucket)
+//                    .indexName(ingestionManifestId)
+//                    .dataType(DataType.FLOAT32)
+//                    .dimension(dimension)
+//                    .distanceMetric(DistanceMetric.COSINE)
+//                    .build());
+//        } catch (ConflictException alreadyExists) {
+//            // index already exists, do nothing
+//        }
+//    }
 
 }

@@ -2,6 +2,7 @@ package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.VectorStoreSpec;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
@@ -50,6 +51,11 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
             vectorMatches.add(new VectorMatch<T>(chunk, matchScore));
         }
         return vectorMatches;
+    }
+
+    @Override
+    public void initialize(Models.EmbeddingSpec embeddingSpec) {
+        //mothing to do
     }
 
     @Override

@@ -1,10 +1,10 @@
 package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.VectorStoreSpec;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 
 import java.util.List;
 
@@ -14,6 +14,8 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     List<VectorMatch<T>> get(float[] searchVector, int topK);
 
-    void complete(IDatastore datastore, Models.VectorStoreSpec vectorStoreSpec);
+    void initialize(EmbeddingSpec embeddingSpec);
+
+    void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
 
 }
