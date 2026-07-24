@@ -20,10 +20,15 @@ public class Models {
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
                                     List<SourceRecord> sourceRecords,
-                                    String vectorStoreLocation) {}
+                                    VectorStoreSpec vectorStoreSpec) {}
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
                                 EmbeddingSpec embeddingSpec) {}
+
+
+    public record VectorStoreSpec(String inMemoryVectorStoreExportLocation,
+                                  String s3VectorStoreBucket,
+                                  String s3VectorStoreIndexName) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
@@ -95,7 +100,7 @@ public class Models {
         return sourceManifestId + "/sourceManifest.json";
     }
 
-    public static String vectorStoreLocation(String sourceManifestId) {
+    public static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
         return sourceManifestId + "/vectorStore.json.gz";
     }
 

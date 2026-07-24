@@ -30,7 +30,7 @@ public class VectorStoreLoader {
             }
         }
         if (vectorStore instanceof InMemoryVectorStore) { //todo
-            String vectorStoreLocation = ingestionManifest.vectorStoreLocation();
+            String vectorStoreLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
             ((InMemoryVectorStore<Chunk>)vectorStore).write(datastore, vectorStoreLocation);
         }
     }

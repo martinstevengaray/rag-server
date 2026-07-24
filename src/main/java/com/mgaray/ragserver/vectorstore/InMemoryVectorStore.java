@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import static com.mgaray.ragserver.common.Models.vectorStoreLocation;
+import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
 
 public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
@@ -58,7 +58,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     }
 
     public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(vectorStoreLocation(sourceManifestId));
+        byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         return new InMemoryVectorStore<T>(store, clazz);
