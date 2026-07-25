@@ -20,10 +20,16 @@ public class Models {
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
                                     List<SourceRecord> sourceRecords,
-                                    String vectorStoreLocation) {}
+                                    VectorStoreSpec vectorStoreSpec) {}
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
                                 EmbeddingSpec embeddingSpec) {}
+
+    public record VectorStoreSpec(String inMemoryVectorStoreExportLocation,
+                                  String s3VectorStoreManifestLocation) {}
+
+    public record S3VectorStoreManifest(String s3VectorStoreBucket,
+                                        String s3VectorStoreIndexName) {}
 
     public record SourceRecord(String id,
                                String sourceUrl,
@@ -34,28 +40,34 @@ public class Models {
 
     public record ChunkManifest(List<Chunk> chunks) {}
 
+
+    public interface IVectorRecord { String id(); }
+
     public record Chunk(SourceRecord sourceRecord,
                         int index,
                         String textLocation,
-                        String embeddingLocation) {}
+                        String embeddingLocation)  implements IVectorRecord {
+        public String id() { return sourceRecord.id + ":" + index; }
+    }
 
     public record ChunkingSpec(int wordCount,
                                float percentOverlap) {}
 
     public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
-    public record ChunkMatch(Chunk chunk,
-                             double matchScore) {}
-
     public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
 
 
+    //-----Webapp-------------------------------------------------------------------------------------------------------
+
+    public record VectorMatch<T extends IVectorRecord> (T record, double matchScore) {}
+
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
-    public record BootstrapperConfig(int numberOfEmbeddingThreads) {}
+    public record BootstrapperConfig(int numberOfEmbeddingThreads, String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
-                               String apiKey,
+                               String openApiKey,
                                int chunksToProvide) {}
 
     public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
@@ -89,8 +101,11 @@ public class Models {
         return sourceManifestId + "/sourceManifest.json";
     }
 
-    public static String vectorStoreLocation(String sourceManifestId) {
+    public static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
         return sourceManifestId + "/vectorStore.json.gz";
+    }
+    public static String s3VectorStoreManifestLocation(String sourceManifestId) {
+        return sourceManifestId + "/s3VectorStore.json";
     }
 
 /*

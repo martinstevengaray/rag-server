@@ -145,7 +145,7 @@
         let sessionState = null;   // null on first request, then echoed back from the server
 
         // Pretty-print sessionState as JSON. It may arrive as an object or as a
-        // JSON string; fall back to the raw value if it isn't valid JSON.
+        // JSON string; fall back to the raw value if it isn'record valid JSON.
         function formatJson(value) {
             if (value == null) return "(none)";
             let obj = value;

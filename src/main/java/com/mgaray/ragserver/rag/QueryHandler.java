@@ -2,13 +2,12 @@ package com.mgaray.ragserver.rag;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
-import com.mgaray.ragserver.bootstrap.VectorStore;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
-import com.mgaray.ragserver.common.Models.ChunkMatch;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
+import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -26,20 +25,23 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class QueryHandler {
 
-    private final WebappConfig config;
+    private final WebappConfig webappConfig;
     private final IDatastore datastore;
-    private final VectorStore vectorStore;
+    private final IVectorStore<Chunk> vectorStore;
     private final EmbeddingModel embeddingModel;
     private final ChatModel chatModel;
 
-    public QueryHandler(WebappConfig config, IDatastore datastore, String sourceManifestId) {
-        this.config = config;
+    public QueryHandler(WebappConfig webappConfig,
+                        IDatastore datastore,
+                        IVectorStore<Chunk> vectorStore,
+                        String sourceManifestId) {
+        this.webappConfig = webappConfig;
         this.datastore = datastore;
-        this.vectorStore = VectorStore.load(datastore, sourceManifestId);
+        this.vectorStore = vectorStore;
         String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec());
-        this.chatModel = createChatModel(config);
+        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), webappConfig.openApiKey());
+        this.chatModel = createChatModel(webappConfig);
     }
 
     public static ChatModel createChatModel(WebappConfig config) {
@@ -49,7 +51,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
         };
         return OpenAiChatModel.builder()
-                .apiKey(config.apiKey())
+                .apiKey(config.openApiKey())
                 .modelName(chatModelName)
                 //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
                 .build();
@@ -61,9 +63,9 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<ChunkMatch> chunkMatches = vectorStore.get(queryVector, config.chunksToProvide());
-        Map<String, ChunkMatch> lookup = new HashMap<>();
-        List<DataSource> dataSources = lossyTransform(chunkMatches, lookup);
+        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
+        Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
+        List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
@@ -96,23 +98,23 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<ChunkMatch> chunkMatches, Map<String, ChunkMatch> lookup) {
+    private List<DataSource> lossyTransform(List<VectorMatch<Chunk>> vectorMatches, Map<String, VectorMatch<Chunk>> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
-        for (ChunkMatch chunkMatch : chunkMatches) {
-            Chunk chunk = chunkMatch.chunk();
+        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
+            Chunk chunk = vectorMatch.record();
             String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
             String dataText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(dataId, dataText));
-            lookup.put(dataId, chunkMatch);
+            lookup.put(dataId, vectorMatch);
         }
         return dataSources;
     }
 
-    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, ChunkMatch> lookup) {
+    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            ChunkMatch chunkMatch = lookup.get(dataSourceKey);
-            sources.add(chunkMatch.chunk().sourceRecord().sourceUrl());
+            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
+            sources.add(vectorMatch.record().sourceRecord().sourceUrl());
         }
         return new ArrayList<>(sources);
     }

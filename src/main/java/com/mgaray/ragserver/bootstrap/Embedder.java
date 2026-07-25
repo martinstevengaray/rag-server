@@ -6,7 +6,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
+import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -25,16 +25,18 @@ import java.util.concurrent.Future;
 public class Embedder {
 
     private final IDatastore dataStore;
+    private final BootstrapperConfig bootstrapperConfig;
     private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore, int numberOfEmbeddingThread) {
+    public Embedder(IDatastore dataStore, BootstrapperConfig bootstrapperConfig) {
         this.dataStore = dataStore;
-        this.executor = Executors.newFixedThreadPool(numberOfEmbeddingThread);
+        this.bootstrapperConfig = bootstrapperConfig;
+        this.executor = Executors.newFixedThreadPool(bootstrapperConfig.numberOfEmbeddingThreads());
     }
 
     public void embed(IngestionManifest ingestionManifest) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec);
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, bootstrapperConfig.openApiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
@@ -64,7 +66,7 @@ public class Embedder {
         }
     }
 
-    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec) {
+    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec, String openApiKey) {
         return switch (embeddingSpec.embeddingModelType()) {
             case DUMMY -> {
                 final float[] embedding;
@@ -82,7 +84,7 @@ public class Embedder {
             }
             case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
             case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
-                    .apiKey(System.getenv("OPENAI_API_KEY"))
+                    .apiKey(openApiKey)
                     .modelName("text-embedding-3-small") //consider: text-embedding-3-large
                     .build();
         };
@@ -202,7 +204,7 @@ public class Embedder {
     public void exampleTwo() {
         // 1. Initialize the embedding model (requires your OPENAI_API_KEY environment variable)
         EmbeddingModel embeddingModel = OpenAiEmbeddingModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .openApiKey(System.getenv("OPENAI_API_KEY"))
                 .modelName("text-embedding-3-small") // Standard, high-performance model
                 //text-embedding-3-large
                 .build();

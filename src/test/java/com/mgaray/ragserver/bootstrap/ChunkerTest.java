@@ -1,11 +1,19 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.common.Models.SourceRecord;
+import com.mgaray.ragserver.common.Models.RunDefinition;
+import com.mgaray.ragserver.common.Models.ChunkingSpec;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.common.Models.ChunkManifest;
+import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.mgaray.ragserver.common.Models.chunkManifestLocation;
+import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
 
 public class ChunkerTest {
 
@@ -22,13 +30,13 @@ public class ChunkerTest {
     public static void main(String[] args) {
         String localRootFolderBucket = "/Users/turtlemccully/projects/rag-server/local/ChunkerTest";
         IDatastore dataStore = new Datastore(Datastore.Mode.IN_MEMORY, localRootFolderBucket);
-        List<Models.SourceRecord> sourceRecords = new ArrayList<>();
+        List<SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
-        String sourceLocationTextLocation = Models.sourceRecordTextLocation(sourceManifestId,sourceRecordId);
+        String sourceLocationTextLocation = sourceRecordTextLocation(sourceManifestId,sourceRecordId);
         dataStore.writeString(sourceLocationTextLocation, chunkText);
-        String chunkManifestLocation = Models.chunkManifestLocation(sourceManifestId, sourceRecordId);
-        Models.SourceRecord sourceRecord = new Models.SourceRecord(
+        String chunkManifestLocation = chunkManifestLocation(sourceManifestId, sourceRecordId);
+        SourceRecord sourceRecord = new SourceRecord(
                 sourceRecordId,
                 null,
                 null,
@@ -36,16 +44,16 @@ public class ChunkerTest {
                 sourceLocationTextLocation,
                 chunkManifestLocation);
         sourceRecords.add(sourceRecord);
-        Models.RunDefinition runDefinition = new Models.RunDefinition(
-                new Models.ChunkingSpec(8, 0.5f), null);
-        Models.IngestionManifest ingestionManifest =
-                new Models.IngestionManifest(sourceManifestId, runDefinition, sourceRecords, null);
+        RunDefinition runDefinition = new RunDefinition(
+                new ChunkingSpec(8, 0.5f), null);
+        IngestionManifest ingestionManifest =
+                new IngestionManifest(sourceManifestId, runDefinition, sourceRecords, null);
 
         Chunker chunker = new Chunker(dataStore);
         chunker.chunk(ingestionManifest);
 
-        Models.ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, Models.ChunkManifest.class);
-        for (Models.Chunk chunk : chunkManifest.chunks()) {
+        ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+        for (Chunk chunk : chunkManifest.chunks()) {
             String text = dataStore.readString(chunk.textLocation());
             System.out.println(text);
         }
