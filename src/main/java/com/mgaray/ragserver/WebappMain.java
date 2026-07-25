@@ -23,10 +23,14 @@ public class WebappMain {
     private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
     private static final String sourceManifestId = "portland-city-code";
     private static final String openAiApiKey;// = System.getenv("OPEN_AI_API_KEY");
+    private static final String symmetricSigningKey;
+
 
     static {
         openAiApiKey = readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
+        symmetricSigningKey= readKeyFromConfig(
+                "/Users/turtlemccully/projects/rag-server/local/config.sh", "SYMMETRIC_SIGNING_KEY");
     }
 
     public static void main(String[] args) throws Exception {
@@ -40,7 +44,7 @@ public class WebappMain {
 
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
 
-        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiApiKey, 10);
+        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, 10, openAiApiKey, symmetricSigningKey);
 
         QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreS3, vectorStoreS3, sourceManifestId);
 //        QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreDisk, vectorStoreMemory, sourceManifestId);

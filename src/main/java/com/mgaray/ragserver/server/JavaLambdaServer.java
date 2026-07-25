@@ -57,7 +57,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         float[] chunkEmbedding = embeddingModel.embed("embed this piece of text").content().vector();
         System.out.println("chunkEmbedding: " + chunkEmbedding);
 
-        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiKey, 10));
+        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, 20, openAiKey, symmetricSigningKey));
         String chatResult = chatModel.chat("What is vitamin D used for");
         System.out.println("chatResult: " + chatResult);
     }

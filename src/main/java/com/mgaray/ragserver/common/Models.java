@@ -67,8 +67,9 @@ public class Models {
     public record BootstrapperConfig(int numberOfEmbeddingThreads, String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
+                               int chunksToProvide,
                                String openApiKey,
-                               int chunksToProvide) {}
+                               String symmetricSigningKey) {}
 
     public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
 
