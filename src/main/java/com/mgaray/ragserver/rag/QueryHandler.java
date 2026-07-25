@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
@@ -67,7 +68,9 @@ public class QueryHandler {
         Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
+        System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
+        System.out.println("chatModelResponseJson: " + chatModelResponseJson);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
         List<String> sources = sources(chatModelResponse, lookup);
         String chatResponse = chatModelResponse.response();
@@ -102,9 +105,10 @@ public class QueryHandler {
         List<DataSource> dataSources = new ArrayList<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
             Chunk chunk = vectorMatch.record();
+            String id = UUID.randomUUID().toString();  //prevents hallucination but is hard to debug todo
             String chunkText = datastore.readString(chunk.textLocation());
-            dataSources.add(new DataSource(chunk.id(), chunkText));
-            lookup.put(chunk.id(), vectorMatch);
+            dataSources.add(new DataSource(id, chunkText));
+            lookup.put(id, vectorMatch);
         }
         return dataSources;
     }
@@ -112,7 +116,7 @@ public class QueryHandler {
     private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
+            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);  //may be null on hallucination todo
             sources.add(vectorMatch.record().sourceRecord().sourceUrl());
         }
         return new ArrayList<>(sources);
