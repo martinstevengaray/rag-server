@@ -16,7 +16,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -26,6 +28,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
 
     private final InMemoryEmbeddingStore<TextSegment> store;
     private final Class<T> clazz;
+    private final Map<String, T> idToT;
 
     public InMemoryVectorStore(Class<T> clazz) {
         this(new InMemoryEmbeddingStore<>(), clazz);
@@ -34,11 +37,14 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     private InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store, Class<T> clazz) {
         this.store = store;
         this.clazz = clazz;
+        this.idToT = new HashMap<>();
     }
 
     @Override
     public void add(float[] vector, T t) {
-        store.add(new Embedding(vector), TextSegment.from(JsonUtils.toJson(t)));
+        store.remove(t.id());
+        store.add(t.id(), new Embedding(vector), TextSegment.from(JsonUtils.toJson(t)));
+        idToT.put(t.id(), t);
     }
 
     @Override
@@ -57,6 +63,10 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return vectorMatches;
     }
 
+    public T get(String id) {
+        return idToT.get(id);
+    }
+
     @Override
     public void initialize(Models.EmbeddingSpec embeddingSpec) {
         //mothing to do
@@ -70,9 +80,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
 
     @Override
     public boolean exists(T t) {
-        //not worth implementing a complex exists on InMemoryVectorStore
-        //exists is not something langchain4j supports in InMemoryEmbeddingStore
-        return false;
+        return idToT.containsKey(t.id());
     }
 
     //-----to load contents from disk (unique to InMemoryVectorStore)-----------------------------------------

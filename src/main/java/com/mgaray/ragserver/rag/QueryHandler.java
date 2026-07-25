@@ -8,7 +8,6 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -20,6 +19,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -66,6 +66,9 @@ public class QueryHandler {
         String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
         List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
+
+        //todo add previously used Chunks
+
         Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
         List<DataSourceId> dataSourceIdsAvailable = dataSourceIds(vectorMatches);
@@ -80,6 +83,20 @@ public class QueryHandler {
         sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, dataSourceIdsAvailable, dataSourceIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
         return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+    }
+
+    //todo
+    private List<Chunk> loadChunksPreviouslyUsed(SessionState sessionState) {
+        Set<DataSourceId> dataSourceIds = new HashSet<>();
+        for (PromptExchange promptExchange : sessionState.promptExchanges) {
+            dataSourceIds.addAll(promptExchange.dataSourceIdsUsed());
+
+        }
+        List<Chunk> chunksPreviouslyUsed = new ArrayList<>();
+//        for (DataSourceId dataSourceId : dataSourceIds) {
+//            datastore.
+//        }
+        return chunksPreviouslyUsed;
     }
 
     private SessionState getSessionState(Request request) {
@@ -199,6 +216,18 @@ Always respond in the following json format, without a prefix or suffix:
 
     private record DataSource(String id, String text) {} //used in prompt todo rename?
 
-    private record DataSourceId(String sourceRecordId, String chunkIndex) {}
+    private record DataSourceId(String sourceRecordId, String chunkIndex) {
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            DataSourceId that = (DataSourceId) o;
+            return Objects.equals(chunkIndex, that.chunkIndex) && Objects.equals(sourceRecordId, that.sourceRecordId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(sourceRecordId, chunkIndex);
+        }
+    }
 
 }

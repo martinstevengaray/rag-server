@@ -82,6 +82,10 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
         return vectorMatches;
     }
 
+    public T get(String id) {
+        return null; //todo;
+    }
+
     @Override
     public void initialize(EmbeddingSpec embeddingSpec) { //ensure vector store index is created
         final EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, null);
@@ -108,13 +112,14 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
     @Override
     public boolean exists(T t) {
-        GetVectorsResponse response = s3VectorsClient.getVectors(GetVectorsRequest.builder()
+        GetVectorsRequest getVectorsRequest = GetVectorsRequest.builder()
                 .vectorBucketName(bucket)
                 .indexName(ingestionManifestId)
                 .keys(t.id())
                 .returnData(false)       // we only care about presence, skip the vector payload
                 .returnMetadata(false)
-                .build());
+                .build();
+        GetVectorsResponse response = s3VectorsClient.getVectors(getVectorsRequest);
         return !response.vectors().isEmpty();
     }
     
