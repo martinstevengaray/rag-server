@@ -102,10 +102,9 @@ public class QueryHandler {
         List<DataSource> dataSources = new ArrayList<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
             Chunk chunk = vectorMatch.record();
-            String dataId = chunk.sourceRecord().id() + "#" + chunk.index();
-            String dataText = datastore.readString(chunk.textLocation());
-            dataSources.add(new DataSource(dataId, dataText));
-            lookup.put(dataId, vectorMatch);
+            String chunkText = datastore.readString(chunk.textLocation());
+            dataSources.add(new DataSource(chunk.id(), chunkText));
+            lookup.put(chunk.id(), vectorMatch);
         }
         return dataSources;
     }
