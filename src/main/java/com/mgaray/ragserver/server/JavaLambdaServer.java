@@ -88,14 +88,14 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         System.out.println(JsonUtils.toJson(input));
 
         String method = extractMethod(input);        //POST OR GET
-        System.out.println("method=" + method);
-        //todo path=?
+        String path = extractPath(input);
+        System.out.println("method=" + method + ", path=" + path);
         String responseString = null;
         if ("GET".equals(method)) {
-            responseString = this.webappHandler.handleGet("/");
+            responseString = this.webappHandler.handleGet(path);
             return proxyResponseHtml(200, responseString);
         } else if ("POST".equals(method)) {
-            responseString = this.webappHandler.handlePost("/", extractBody(input));
+            responseString = this.webappHandler.handlePost(path, extractBody(input));
             return proxyResponseJson(200, responseString);
         } else {
             Request request = extractRequest(input);
@@ -115,6 +115,21 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
             method = JsonUtils.getNestedField(input, "requestContext", "http", "method");
         }
         return method;
+    }
+
+    /**
+     * Handles REST API (v1: "path") and HTTP API v2 / Function URL ("rawPath"). Falls back to "/"
+     * so handlers always get a usable path; the query string is deliberately excluded.
+     */
+    private static String extractPath(Map<String, Object> input) {
+        String path = (String) input.get("path");
+        if (path == null) {
+            path = (String) input.get("rawPath");
+        }
+        if (path == null) {
+            path = JsonUtils.getNestedField(input, "requestContext", "http", "path");
+        }
+        return (path != null && !path.isBlank()) ? path : "/";
     }
 
     /**
