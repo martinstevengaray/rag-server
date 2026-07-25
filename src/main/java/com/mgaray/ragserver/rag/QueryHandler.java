@@ -8,6 +8,7 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.VectorMatch;
+import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -67,14 +68,16 @@ public class QueryHandler {
         List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
         Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
         List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
+        List<DataSourceId> dataSourceIdsAvailable = dataSourceIds(vectorMatches);
         String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
         System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         System.out.println("chatModelResponseJson: " + chatModelResponseJson);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
+        List<DataSourceId> dataSourceIdsUsed = dataSourceIds(chatModelResponse, lookup);
         List<String> sources = sources(chatModelResponse, lookup);
         String chatResponse = chatModelResponse.response();
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chatModelResponse.dataSourcesUsed()));
+        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, dataSourceIdsAvailable, dataSourceIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
         return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
@@ -105,7 +108,7 @@ public class QueryHandler {
         List<DataSource> dataSources = new ArrayList<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
             Chunk chunk = vectorMatch.record();
-            String id = UUID.randomUUID().toString();  //prevents hallucination but is hard to debug todo
+            String id = UUID.randomUUID().toString(); //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
             String chunkText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(id, chunkText));
             lookup.put(id, vectorMatch);
@@ -113,11 +116,38 @@ public class QueryHandler {
         return dataSources;
     }
 
+    private List<DataSourceId> dataSourceIds(List<VectorMatch<Chunk>> vectorMatches) {
+        List<DataSourceId> dataSourceIds = new ArrayList<>();
+        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
+            Chunk chunk = vectorMatch.record();
+            dataSourceIds.add(new DataSourceId(chunk.sourceRecord().id(), Integer.toString(chunk.index())));
+        }
+        return dataSourceIds;
+    }
+
+    private List<DataSourceId> dataSourceIds(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
+        List<DataSourceId> dataSourceIds = new ArrayList<>();
+        for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
+            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
+            if (vectorMatch == null) { //hallucination (source cited was not part of prompt)
+                dataSourceIds.add(new DataSourceId(dataSourceKey, dataSourceKey));
+            } else {
+                Chunk chunk = vectorMatch.record();
+                dataSourceIds.add(new DataSourceId(chunk.sourceRecord().id(), Integer.toString(chunk.index())));
+            }
+        }
+        return dataSourceIds;
+    }
+
     private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);  //may be null on hallucination todo
-            sources.add(vectorMatch.record().sourceRecord().sourceUrl());
+            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
+            if (vectorMatch == null) { //hallucination (source cited was not part of prompt)
+                sources.add(dataSourceKey);
+            } else {
+                sources.add(vectorMatch.record().sourceRecord().sourceUrl());
+            }
         }
         return new ArrayList<>(sources);
     }
@@ -165,8 +195,10 @@ Always respond in the following json format, without a prefix or suffix:
 
     private record SessionState(List<PromptExchange> promptExchanges) {}
 
-    private record PromptExchange(String prompt, String response, List<String> dataSourceIds) {}
+    private record PromptExchange(String prompt, String response, List<DataSourceId> dataSourceIdsAvailable, List<DataSourceId> dataSourceIdsUsed) {}
 
-    private record DataSource(String id, String text) {}
+    private record DataSource(String id, String text) {} //used in prompt todo rename?
+
+    private record DataSourceId(String sourceRecordId, String chunkIndex) {}
 
 }
