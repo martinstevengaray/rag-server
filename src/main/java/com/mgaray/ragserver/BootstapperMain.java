@@ -4,7 +4,6 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
@@ -13,53 +12,60 @@ import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.VectorStoreSpec;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-
-import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
-import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
 
 public class BootstapperMain {
 
-    private static final String sourceBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
-    private static final String outBucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
+    private static final String localSourceRoot = "/Users/turtlemccully/projects/rag-server/local/sources";
+    private static final String localIngestionRoot = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
+    private static final String s3SourceBucket = "rag-server-source";
+    private static final String s3IngestionBucket = "rag-server-ingestion";
+    private static final String s3VectorStoreBucket = "rag-server-vector";
 
     private static final String portlandIngestManifestId = "portland-city-code";
     private static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
-    private static final String oregonIngestManifestId = "oregon-state-code";
-    private static final String websourceIngestManifestId = "web-catholic-bible";
-    private static final String nabIngestManifestId = "new-american-bible";
+
+
+//    private static final String sourceBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
+//    private static final String outBucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
+//
+//    private static final String oregonIngestManifestId = "oregon-state-code";
+//    private static final String websourceIngestManifestId = "web-catholic-bible";
+//    private static final String nabIngestManifestId = "new-american-bible";
 
     public static void main(String[] args) {
         String ingestManifestId = portlandIngestManifestId;
         int numberOfEmbeddingThreads = 10;
         String openAiApiKey = WebappMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
-        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+        BootstrapperConfig bootstrapperConfig = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
-        //IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, sourceBucket);
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, "rag-server-source");
+        IDatastore sourceDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localSourceRoot);
+        IDatastore sourceDatastoreS3 = new Datastore(Datastore.Mode.S3, s3SourceBucket);
 
-        IDatastore outDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore outDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, outBucket);
-        IDatastore outDatastoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
+        IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
+        IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
+        IDatastore ingestionDatastoreS3 = new Datastore(Datastore.Mode.S3, s3IngestionBucket);
 
-        //IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk);
-        IDatastore outDatastore = new DatastoreCache(outDatastoreMemory, outDatastoreDisk, outDatastoreS3);
-        //IVectorStore<Chunk> outVectorStore = new InMemoryVectorStore<>(new InMemoryEmbeddingStore<TextSegment>(), Chunk.class);
+        IDatastore ingestionDatastoreWithCacheDisk = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk);
+        IDatastore ingestionDatastoreWithCacheS3 = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk, ingestionDatastoreS3);
 
         EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
-        IVectorStore<Chunk> outVectorStore = new S3VectorStore<>(
-                "rag-server-vector", ingestManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
 
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(embeddingModelType));
 
-        Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, outDatastore, outVectorStore);
-        bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
+        { //in memory vector store
+            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreMemory);
+            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
+        }
+        { //s3 vector store
+            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
+            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
+        }
     }
 
 }

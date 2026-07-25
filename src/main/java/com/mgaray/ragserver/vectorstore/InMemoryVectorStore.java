@@ -27,7 +27,11 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     private final InMemoryEmbeddingStore<TextSegment> store;
     private final Class<T> clazz;
 
-    public InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store, Class<T> clazz) {
+    public InMemoryVectorStore(Class<T> clazz) {
+        this(new InMemoryEmbeddingStore<>(), clazz);
+    }
+
+    private InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store, Class<T> clazz) {
         this.store = store;
         this.clazz = clazz;
     }
