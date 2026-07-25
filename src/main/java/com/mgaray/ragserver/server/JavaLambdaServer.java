@@ -3,14 +3,20 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
+import com.mgaray.ragserver.awsresources.Datastore;
+import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.AwsServicesDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
+//import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.S3Utils;
+import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
+import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
@@ -20,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.mgaray.ragserver.awsresources.Datastore.Mode.S3;
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
@@ -27,6 +34,8 @@ import static com.mgaray.ragserver.rag.QueryHandler.createChatModel;
 
 
 public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+
+    private final WebappHandler webappHandler;
 
     public JavaLambdaServer() {
         String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
@@ -39,6 +48,18 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String vectorStoreBucket = System.getenv("VECTOR_STORE_BUCKET");
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
+        int chunksToProvide = Integer.valueOf(chunksToProvideString);
+
+        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, chunksToProvide, openAiKey, symmetricSigningKey);
+        IDatastore ingestionDatastore = new Datastore(S3, ingestionManifestBucket);
+        IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
+        QueryHandler queryHandler = new QueryHandler(webappConfig, ingestionDatastore, vectorStore, ingestionManifestId);
+        this.webappHandler = new WebappHandler(queryHandler);
+
+//public QueryHandler(WebappConfig webappConfig,
+//                IDatastore datastore,
+//                IVectorStore< Models.Chunk > vectorStore,
+//                String sourceManifestId) {
         System.out.println( //"openAiKey: " + openAiKey + "," +
                             //"symmetricSigningKey: " + symmetricSigningKey + ", " +
                             "chatModelTypeString: " + chatModelTypeString + ", " +
@@ -57,7 +78,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         float[] chunkEmbedding = embeddingModel.embed("embed this piece of text").content().vector();
         System.out.println("chunkEmbedding: " + chunkEmbedding);
 
-        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiKey, 10));
+        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, 20, openAiKey, symmetricSigningKey));
         String chatResult = chatModel.chat("What is vitamin D used for");
         System.out.println("chatResult: " + chatResult);
     }
@@ -68,13 +89,23 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
 
         String method = extractMethod(input);        //POST OR GET
         System.out.println("method=" + method);
-        Request request = extractRequest(input);
-        System.out.println(JsonUtils.toJson(request));
+        //todo path=?
+        String responseString = null;
+        if ("GET".equals(method)) {
+            responseString = this.webappHandler.handleGet("/");
+            return proxyResponseHtml(200, responseString);
+        } else if ("POST".equals(method)) {
+            responseString = this.webappHandler.handlePost("/", extractBody(input));
+            return proxyResponseJson(200, responseString);
+        } else {
+            Request request = extractRequest(input);
+            System.out.println(JsonUtils.toJson(request));
 
-        Response response = new Response("chatResponse", List.of("source1", "source2"), "sessionState", "details");
-        System.out.println(JsonUtils.toJson(response));
+            Response response = new Response("chatResponse", List.of("source1", "source2"), "sessionState", "details");
+            System.out.println(JsonUtils.toJson(response));
 
-        return proxyResponse(200, JsonUtils.toJson(response));
+            return proxyResponseJson(200, JsonUtils.toJson(response));
+        }
     }
 
     /** Handles REST API (v1: "httpMethod") and HTTP API v2 / Function URL ("requestContext.http.method"). */
@@ -86,8 +117,11 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         return method;
     }
 
-    /** The proxy "body" is always a JSON string (optionally base64-encoded), never a nested object. */
-    private static Request extractRequest(Map<String, Object> input) {
+    /**
+     * The proxy "body" is always a JSON string (optionally base64-encoded), never a nested object,
+     * so it is passed through as-is rather than re-serialized.
+     */
+    private static String extractBody(Map<String, Object> input) {
         String body = (String) input.get("body");
         if (body == null || body.isBlank()) {
             return null;
@@ -95,15 +129,31 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         if (Boolean.TRUE.equals(input.get("isBase64Encoded"))) {
             body = new String(Base64.getDecoder().decode(body), StandardCharsets.UTF_8);
         }
-        return JsonUtils.toObject(body, Request.class);
+        return body;
+    }
+
+    private static Request extractRequest(Map<String, Object> input) {
+        String body = extractBody(input);
+        return (body != null) ? JsonUtils.toObject(body, Request.class) : null;
     }
 
     /** Proxy integrations require a {statusCode, headers, body} envelope with body as a JSON string. */
-    private static Map<String, Object> proxyResponse(int statusCode, String body) {
+    private static Map<String, Object> proxyResponseJson(int statusCode, String body) {
         Map<String, Object> result = new HashMap<>();
         result.put("statusCode", statusCode);
         result.put("headers", Map.of(
                 "Content-Type", "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin", "*"));
+        result.put("body", body);
+        result.put("isBase64Encoded", false);
+        return result;
+    }
+
+    private static Map<String, Object> proxyResponseHtml(int statusCode, String body) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("statusCode", statusCode);
+        result.put("headers", Map.of(
+                "Content-Type", "text/html; charset=utf-8",
                 "Access-Control-Allow-Origin", "*"));
         result.put("body", body);
         result.put("isBase64Encoded", false);
