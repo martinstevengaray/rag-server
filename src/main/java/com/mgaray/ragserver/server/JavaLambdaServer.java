@@ -95,7 +95,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
             responseString = this.webappHandler.handleGet("/");
             return proxyResponseHtml(200, responseString);
         } else if ("POST".equals(method)) {
-            responseString = this.webappHandler.handlePost("/", JsonUtils.toJson(input.get("body")));
+            responseString = this.webappHandler.handlePost("/", extractBody(input));
             return proxyResponseJson(200, responseString);
         } else {
             Request request = extractRequest(input);
@@ -117,8 +117,11 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         return method;
     }
 
-    /** The proxy "body" is always a JSON string (optionally base64-encoded), never a nested object. */
-    private static Request extractRequest(Map<String, Object> input) {
+    /**
+     * The proxy "body" is always a JSON string (optionally base64-encoded), never a nested object,
+     * so it is passed through as-is rather than re-serialized.
+     */
+    private static String extractBody(Map<String, Object> input) {
         String body = (String) input.get("body");
         if (body == null || body.isBlank()) {
             return null;
@@ -126,7 +129,12 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         if (Boolean.TRUE.equals(input.get("isBase64Encoded"))) {
             body = new String(Base64.getDecoder().decode(body), StandardCharsets.UTF_8);
         }
-        return JsonUtils.toObject(body, Request.class);
+        return body;
+    }
+
+    private static Request extractRequest(Map<String, Object> input) {
+        String body = extractBody(input);
+        return (body != null) ? JsonUtils.toObject(body, Request.class) : null;
     }
 
     /** Proxy integrations require a {statusCode, headers, body} envelope with body as a JSON string. */

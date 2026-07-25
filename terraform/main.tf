@@ -4,6 +4,8 @@ provider "aws" {
 
 locals {
   lambda_zip = "${path.module}/../build/distributions/rag-server-lambda-${var.app_version}.zip"
+
+  vector_bucket_arn = "arn:aws:s3vectors:${var.aws_region}:${data.aws_caller_identity.current.account_id}:bucket/${var.vector_store_bucket}"
 }
 
 # Latest AWS Parameters and Secrets Lambda Extension layer for this region,
@@ -18,6 +20,8 @@ data "aws_ssm_parameter" "secrets_extension" {
 data "aws_kms_alias" "ssm" {
   name = "alias/aws/ssm"
 }
+
+data "aws_caller_identity" "current" {}
 
 # Terraform owns these parameters' existence, not their values: the real secrets
 # are pushed out-of-band by ./deploy-secrets.sh so they never enter terraform state.
@@ -102,6 +106,35 @@ resource "aws_iam_role_policy" "s3_access" {
         Effect   = "Allow"
         Action   = ["s3:GetObject", "s3:PutObject"]
         Resource = "arn:aws:s3:::*/*"
+      }
+    ]
+  })
+}
+
+# S3 Vectors is a separate service from S3, with its own "s3vectors:" actions and
+# ARN namespace, so the s3_access policy above does not reach it (see S3VectorStore).
+# The Lambda only queries; writes happen during ingestion, which runs outside Lambda.
+resource "aws_iam_role_policy" "s3_vectors_read" {
+  name = "${var.aws_lambda_function_name}-s3-vectors-read"
+  role = aws_iam_role.lambda.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["s3vectors:GetVectorBucket", "s3vectors:ListIndexes"]
+        Resource = local.vector_bucket_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3vectors:GetIndex",
+          "s3vectors:QueryVectors",
+          "s3vectors:GetVectors",
+          "s3vectors:ListVectors"
+        ]
+        Resource = "${local.vector_bucket_arn}/index/*"
       }
     ]
   })
