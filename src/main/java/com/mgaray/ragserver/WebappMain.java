@@ -31,11 +31,11 @@ public class WebappMain {
 
     public static void main(String[] args) throws Exception {
         //IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-//        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
+        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
         //IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
 
-//        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(dataStoreDisk, sourceManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, sourceManifestId, Chunk.class);
 
 
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
@@ -43,6 +43,7 @@ public class WebappMain {
         WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, openAiApiKey, 10);
 
         QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreS3, vectorStoreS3, sourceManifestId);
+//        QueryHandler queryHandler = new QueryHandler(webappConfig, dataStoreDisk, vectorStoreMemory, sourceManifestId);
         JavaCoreServer javaCoreServer = new JavaCoreServer();
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
     }
