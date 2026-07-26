@@ -20,10 +20,6 @@ public class Datastore implements IDatastore {
         this.inMemoryDatastore = Mode.IN_MEMORY.equals(mode) ? new ConcurrentHashMap<>() : null;
     }
 
-    public IDatastore monitor() {
-        return new DatastoreMonitor(this, mode);
-    }
-
     @Override
     public boolean exists(String storageLocation) {
         return switch(mode) {
