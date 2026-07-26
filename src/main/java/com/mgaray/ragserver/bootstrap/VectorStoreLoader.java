@@ -29,7 +29,7 @@ public class VectorStoreLoader {
                 }
             }
         }
-        vectorStore.complete(datastore, ingestionManifest.vectorStoreSpec());
+        vectorStore.writeResults(datastore, ingestionManifest.vectorStoreSpec());
     }
 
 }

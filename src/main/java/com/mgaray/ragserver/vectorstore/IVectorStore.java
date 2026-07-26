@@ -18,7 +18,7 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     void initialize(EmbeddingSpec embeddingSpec);
 
-    void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
+    void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
 
     boolean exists(T t);
 

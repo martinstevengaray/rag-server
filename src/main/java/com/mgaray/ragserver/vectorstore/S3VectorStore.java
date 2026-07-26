@@ -117,7 +117,7 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
     }
 
     @Override
-    public void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+    public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String s3VectorStoreManifestLocation = vectorStoreSpec.s3VectorStoreManifestLocation();
         S3VectorStoreManifest s3VectorStoreManifest = new S3VectorStoreManifest(bucket, ingestionManifestId);
         datastore.writeObject(s3VectorStoreManifestLocation, s3VectorStoreManifest);

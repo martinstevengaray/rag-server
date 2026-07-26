@@ -14,7 +14,6 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -68,7 +67,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     }
 
     @Override
-    public void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+    public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
         datastore.write(inMemoryVectorStoreExportLocation, GzipUtils.compress(store.serializeToJson()));
     }
