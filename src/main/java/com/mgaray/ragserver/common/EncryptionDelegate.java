@@ -32,7 +32,7 @@ public class EncryptionDelegate {
 
     public String encrypt(String plaintext) {
         try {
-            byte[] compressed = InMemoryVectorStore.compress(plaintext);
+            byte[] compressed = GzipUtils.compress(plaintext);
             byte[] iv = new byte[IV_SIZE_BYTES];
             SECURE_RANDOM.nextBytes(iv);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -64,7 +64,7 @@ public class EncryptionDelegate {
             GCMParameterSpec parameterSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, parameterSpec);
             byte[] compressed = cipher.doFinal(ciphertext);
-            return InMemoryVectorStore.decompress(compressed);
+            return GzipUtils.decompress(compressed);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

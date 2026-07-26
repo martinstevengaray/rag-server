@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.vectorstore;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.common.GzipUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.VectorStoreSpec;
@@ -75,7 +76,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     @Override
     public void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
-        datastore.write(inMemoryVectorStoreExportLocation, compress(store.serializeToJson()));
+        datastore.write(inMemoryVectorStoreExportLocation, GzipUtils.compress(store.serializeToJson()));
     }
 
     @Override
@@ -87,7 +88,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
 
     public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
         byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation(sourceManifestId));
-        String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
+        String vectorStoreJson = GzipUtils.decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         InMemoryVectorStore<T> vectorStore = new InMemoryVectorStore<>(store, clazz);
         //loop through contents from vectorStoreJson to load idToT lookup map
@@ -99,25 +100,5 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return vectorStore;
     }
 
-    public static byte[] compress(String value) {//todo move to util class
-        try {
-            try (ByteArrayOutputStream output = new ByteArrayOutputStream();
-                 GZIPOutputStream gzip = new GZIPOutputStream(output)) {
-                gzip.write(value.getBytes(StandardCharsets.UTF_8));
-                gzip.finish();
-                return output.toByteArray();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String decompress(byte[] compressed) { //todo move to util class
-        try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
-            return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
 }
