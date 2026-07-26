@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
@@ -63,31 +64,31 @@ public class QueryHandler {
     }
 
     public Response query(Request request) {
-        String userPrompt = request.userPrompt();
-        //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         SessionState sessionState = getSessionState(request);
-        String vectorStoreQuery = userPrompt;//createVectorStoreQuery(sessionState, userPrompt);
-        float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
-        List<Chunk> chunksForPrompt = chunksForPrompt(vectorMatches, sessionState);
+        String userPrompt = request.userPrompt();
+        List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState);
         Map<String, Chunk> lookup = new HashMap<>();
         List<DataSource> dataSourcesForPrompt = lossyTransform(chunksForPrompt, lookup);
-        List<String> chunkIdsAvailable = chunkIdsAvailable(chunksForPrompt);
         String prompt = createPrompt(dataSourcesForPrompt, sessionState.promptExchanges(), userPrompt);
         System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         System.out.println("chatModelResponseJson: " + chatModelResponseJson);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
         List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
-        List<String> sources = sources(chatModelResponse, lookup);
+        List<String> sourceUrls = sourceUrls(chatModelResponse, lookup);
         String chatResponse = chatModelResponse.response();
+        List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
         sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
         sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
-        return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+        return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
-    private List<Chunk> chunksForPrompt(List<VectorMatch<Chunk>> vectorMatches, SessionState sessionState) {
+    private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState) {
+        //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
+        String vectorStoreQuery = userPrompt;//createVectorStoreQuery(sessionState, userPrompt);
+        float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
+        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
         Map<String, Chunk> chunksForPrompt = new LinkedHashMap<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
             Chunk chunk = vectorMatch.record();
@@ -142,14 +143,6 @@ public class QueryHandler {
         return dataSources;
     }
 
-    private List<String> chunkIdsAvailable(List<Chunk> chunksForPrompt) {
-        List<String> chunkIds = new ArrayList<>();
-        for (Chunk chunk : chunksForPrompt) {
-            chunkIds.add(chunk.id());
-        }
-        return chunkIds;
-    }
-
     private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
         List<String> chunkIds = new ArrayList<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
@@ -163,7 +156,7 @@ public class QueryHandler {
         return chunkIds;
     }
 
-    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+    private List<String> sourceUrls(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
