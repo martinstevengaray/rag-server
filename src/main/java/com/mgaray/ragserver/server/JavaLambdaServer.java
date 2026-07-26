@@ -11,6 +11,7 @@ import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.S3Utils;
 import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.ServerModels.Request;
@@ -51,9 +52,14 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         int chunksToProvide = Integer.valueOf(chunksToProvideString);
 
         WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, chunksToProvide, openAiKey, symmetricSigningKey);
-        IDatastore ingestionDatastore = new Datastore(S3, ingestionManifestBucket);
+        IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
-        QueryHandler queryHandler = new QueryHandler(webappConfig, ingestionDatastore, vectorStore, ingestionManifestId);
+
+        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
+
+        QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
         this.webappHandler = new WebappHandler(queryHandler);
 
 //public QueryHandler(WebappConfig webappConfig,
@@ -68,10 +74,10 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
                             "vectorStoreBucket: " + vectorStoreBucket + ", " +
                             "ingestionManifestId: " + ingestionManifestId);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
-        byte[] ingestionManifestBytes = S3Utils.readBytes(ingestionManifestBucket, ingestionManifestLocation);
-        String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
-        IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);
+//        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+//        byte[] ingestionManifestBytes = S3Utils.readBytes(ingestionManifestBucket, ingestionManifestLocation);
+//        String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
+//        IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);
         System.out.println(JsonUtils.toJson(ingestionManifest));
         EmbeddingModel embeddingModel = createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), openAiKey);
 

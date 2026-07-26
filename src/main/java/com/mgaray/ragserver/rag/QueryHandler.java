@@ -5,10 +5,10 @@ import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.common.EncryptionDelegate;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.VectorMatch;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -41,13 +41,13 @@ public class QueryHandler {
     public QueryHandler(WebappConfig webappConfig,
                         IDatastore datastore,
                         IVectorStore<Chunk> vectorStore,
-                        String sourceManifestId) {
+                        EmbeddingSpec embeddingSpec) {
         this.webappConfig = webappConfig;
         this.datastore = datastore;
         this.vectorStore = vectorStore;
-        String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), webappConfig.openApiKey());
+//        String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
+//        IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
+        this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openApiKey());
         this.chatModel = createChatModel(webappConfig);
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
