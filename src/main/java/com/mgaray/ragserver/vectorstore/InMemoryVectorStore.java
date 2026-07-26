@@ -99,7 +99,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return vectorStore;
     }
 
-    public static byte[] compress(String value) {
+    public static byte[] compress(String value) {//todo move to util class
         try {
             try (ByteArrayOutputStream output = new ByteArrayOutputStream();
                  GZIPOutputStream gzip = new GZIPOutputStream(output)) {
@@ -112,7 +112,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         }
     }
 
-    public static String decompress(byte[] compressed) {
+    public static String decompress(byte[] compressed) { //todo move to util class
         try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
             return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
