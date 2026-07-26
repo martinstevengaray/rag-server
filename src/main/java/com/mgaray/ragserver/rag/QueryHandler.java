@@ -93,9 +93,11 @@ public class QueryHandler {
             for (String chunkId : promptExchange.chunkIdsUsed) {
                 if (!chunksForPrompt.containsKey(chunkId)) {
                     Chunk chunk = vectorStore.get(chunkId);
-                    //if (chunk != null) {  //incase a hallucination makes it
+                    if (chunk != null) {  //incase a hallucination makes it into sessionState
                         chunksForPrompt.put(chunk.id(), chunk);
-                    //}
+                    } else {
+                        System.out.println("Chunk could not be found for id = " + chunkId);
+                    }
                 }
             }
         }
