@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
@@ -31,7 +32,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     private InMemoryVectorStore(InMemoryEmbeddingStore<TextSegment> store, Class<T> clazz) {
         this.store = store;
         this.clazz = clazz;
-        this.idToT = new HashMap<>();
+        this.idToT = new ConcurrentHashMap<>();
     }
 
     @Override

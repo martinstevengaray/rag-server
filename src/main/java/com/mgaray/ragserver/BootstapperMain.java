@@ -2,6 +2,7 @@ package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.DatastoreMonitor;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
@@ -58,14 +59,14 @@ public class BootstapperMain {
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(embeddingModelType));
         { //in memory vector store
-            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreMemory);
+            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheDisk, vectorStoreMemory);
             bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
         }
-        { //s3 vector store
-            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
-            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
-        }
-        Datastore.complete();
+//        { //s3 vector store
+//            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
+//            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
+//        }
+        DatastoreMonitor.stop();
     }
 
 }
