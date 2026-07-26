@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3vectors.model.ConflictException;
 import software.amazon.awssdk.services.s3vectors.model.CreateIndexRequest;
 import software.amazon.awssdk.services.s3vectors.model.DataType;
 import software.amazon.awssdk.services.s3vectors.model.DistanceMetric;
+import software.amazon.awssdk.services.s3vectors.model.GetOutputVector;
 import software.amazon.awssdk.services.s3vectors.model.GetVectorsRequest;
 import software.amazon.awssdk.services.s3vectors.model.GetVectorsResponse;
 import software.amazon.awssdk.services.s3vectors.model.PutInputVector;
@@ -83,7 +84,19 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
     }
 
     public T get(String id) {
-        return null; //todo;
+        GetVectorsRequest getVectorsRequest = GetVectorsRequest.builder()
+                .vectorBucketName(bucket)
+                .indexName(ingestionManifestId)
+                .keys(id)
+                .returnData(false)       // the payload lives in the metadata, skip the vector itself
+                .returnMetadata(true)
+                .build();
+        GetVectorsResponse response = s3VectorsClient.getVectors(getVectorsRequest);
+        for (GetOutputVector getOutputVector : response.vectors()) {
+            String tJsonString = getOutputVector.metadata().asMap().get(DOCUMENT_PAYLOAD_KEY).asString();
+            return JsonUtils.toObject(tJsonString, clazz);
+        }
+        return null;
     }
 
     @Override

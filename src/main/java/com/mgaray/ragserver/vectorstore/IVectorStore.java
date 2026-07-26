@@ -14,6 +14,8 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     List<VectorMatch<T>> get(float[] searchVector, int topK);
 
+    T get(String id);
+
     void initialize(EmbeddingSpec embeddingSpec);
 
     void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec);

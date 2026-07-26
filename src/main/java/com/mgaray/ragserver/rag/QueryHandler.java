@@ -17,9 +17,9 @@ import dev.langchain4j.model.chat.ChatModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,40 +63,43 @@ public class QueryHandler {
         String userPrompt = request.userPrompt();
         //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         SessionState sessionState = getSessionState(request);
-        String vectorStoreQuery = createVectorStoreQuery(sessionState, userPrompt);
+        String vectorStoreQuery = userPrompt;//createVectorStoreQuery(sessionState, userPrompt);
         float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
         List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
-
-        //todo add previously used Chunks
-
-        Map<String, VectorMatch<Chunk>> lookup = new HashMap<>();
-        List<DataSource> dataSources = lossyTransform(vectorMatches, lookup);
-        List<DataSourceId> dataSourceIdsAvailable = dataSourceIds(vectorMatches);
-        String prompt = createPrompt(dataSources, sessionState.promptExchanges(), userPrompt);
+        List<Chunk> chunksForPrompt = chunksForPrompt(vectorMatches, sessionState);
+        Map<String, Chunk> lookup = new HashMap<>();
+        List<DataSource> dataSourcesForPrompt = lossyTransform(chunksForPrompt, lookup);
+        List<String> chunkIdsAvailable = chunkIdsAvailable(chunksForPrompt);
+        String prompt = createPrompt(dataSourcesForPrompt, sessionState.promptExchanges(), userPrompt);
         System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         System.out.println("chatModelResponseJson: " + chatModelResponseJson);
         ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
-        List<DataSourceId> dataSourceIdsUsed = dataSourceIds(chatModelResponse, lookup);
+        List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
         List<String> sources = sources(chatModelResponse, lookup);
         String chatResponse = chatModelResponse.response();
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, dataSourceIdsAvailable, dataSourceIdsUsed));
+        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
         return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
-    //todo
-    private List<Chunk> loadChunksPreviouslyUsed(SessionState sessionState) {
-        Set<DataSourceId> dataSourceIds = new HashSet<>();
-        for (PromptExchange promptExchange : sessionState.promptExchanges) {
-            dataSourceIds.addAll(promptExchange.dataSourceIdsUsed());
-
+    private List<Chunk> chunksForPrompt(List<VectorMatch<Chunk>> vectorMatches, SessionState sessionState) {
+        Map<String, Chunk> chunksForPrompt = new LinkedHashMap<>();
+        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
+            Chunk chunk = vectorMatch.record();
+            chunksForPrompt.put(chunk.id(), chunk);
         }
-        List<Chunk> chunksPreviouslyUsed = new ArrayList<>();
-//        for (DataSourceId dataSourceId : dataSourceIds) {
-//            datastore.
-//        }
-        return chunksPreviouslyUsed;
+        for (PromptExchange promptExchange : sessionState.promptExchanges) {
+            for (String chunkId : promptExchange.chunkIdsUsed) {
+                if (!chunksForPrompt.containsKey(chunkId)) {
+                    Chunk chunk = vectorStore.get(chunkId);
+                    //if (chunk != null) {  //incase a hallucination makes it
+                        chunksForPrompt.put(chunk.id(), chunk);
+                    //}
+                }
+            }
+        }
+        return new ArrayList<>(chunksForPrompt.values());
     }
 
     private SessionState getSessionState(Request request) {
@@ -121,49 +124,46 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<VectorMatch<Chunk>> vectorMatches, Map<String, VectorMatch<Chunk>> lookup) {
+    private List<DataSource> lossyTransform(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
         List<DataSource> dataSources = new ArrayList<>();
-        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
-            Chunk chunk = vectorMatch.record();
+        for (Chunk chunk : chunksForPrompt) {
             String id = UUID.randomUUID().toString(); //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
             String chunkText = datastore.readString(chunk.textLocation());
             dataSources.add(new DataSource(id, chunkText));
-            lookup.put(id, vectorMatch);
+            lookup.put(id, chunk);
         }
         return dataSources;
     }
 
-    private List<DataSourceId> dataSourceIds(List<VectorMatch<Chunk>> vectorMatches) {
-        List<DataSourceId> dataSourceIds = new ArrayList<>();
-        for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
-            Chunk chunk = vectorMatch.record();
-            dataSourceIds.add(new DataSourceId(chunk.sourceRecord().id(), Integer.toString(chunk.index())));
+    private List<String> chunkIdsAvailable(List<Chunk> chunksForPrompt) {
+        List<String> chunkIds = new ArrayList<>();
+        for (Chunk chunk : chunksForPrompt) {
+            chunkIds.add(chunk.id());
         }
-        return dataSourceIds;
+        return chunkIds;
     }
 
-    private List<DataSourceId> dataSourceIds(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
-        List<DataSourceId> dataSourceIds = new ArrayList<>();
+    private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+        List<String> chunkIds = new ArrayList<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
-            if (vectorMatch == null) { //hallucination (source cited was not part of prompt)
-                dataSourceIds.add(new DataSourceId(dataSourceKey, dataSourceKey));
+            Chunk chunk = lookup.get(dataSourceKey);
+            if (chunk == null) { //hallucination (source cited was not part of prompt)
+                chunkIds.add("hallucination:" + dataSourceKey);
             } else {
-                Chunk chunk = vectorMatch.record();
-                dataSourceIds.add(new DataSourceId(chunk.sourceRecord().id(), Integer.toString(chunk.index())));
+                chunkIds.add(chunk.id());
             }
         }
-        return dataSourceIds;
+        return chunkIds;
     }
 
-    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, VectorMatch<Chunk>> lookup) {
+    private List<String> sources(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
-            VectorMatch<Chunk> vectorMatch = lookup.get(dataSourceKey);
-            if (vectorMatch == null) { //hallucination (source cited was not part of prompt)
-                sources.add(dataSourceKey);
+            Chunk chunk = lookup.get(dataSourceKey);
+            if (chunk == null) { //hallucination (source cited was not part of prompt)
+                sources.add("hallucination:" + dataSourceKey);
             } else {
-                sources.add(vectorMatch.record().sourceRecord().sourceUrl());
+                sources.add(chunk.sourceRecord().sourceUrl());
             }
         }
         return new ArrayList<>(sources);
@@ -212,22 +212,9 @@ Always respond in the following json format, without a prefix or suffix:
 
     private record SessionState(List<PromptExchange> promptExchanges) {}
 
-    private record PromptExchange(String prompt, String response, List<DataSourceId> dataSourceIdsAvailable, List<DataSourceId> dataSourceIdsUsed) {}
+    private record PromptExchange(String prompt, String response, List<String> chunkIdsAvailable, List<String> chunkIdsUsed) {}
 
     private record DataSource(String id, String text) {} //used in prompt todo rename?
 
-    private record DataSourceId(String sourceRecordId, String chunkIndex) {
-        @Override
-        public boolean equals(Object o) {
-            if (o == null || getClass() != o.getClass()) return false;
-            DataSourceId that = (DataSourceId) o;
-            return Objects.equals(chunkIndex, that.chunkIndex) && Objects.equals(sourceRecordId, that.sourceRecordId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(sourceRecordId, chunkIndex);
-        }
-    }
 
 }
