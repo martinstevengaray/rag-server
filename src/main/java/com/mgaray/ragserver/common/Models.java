@@ -81,23 +81,27 @@ public class Models {
 
 
 
-
+    //used in DataInitializer
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
         return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
     }
 
+    //used in DataInitializer
     public static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
         return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
     }
 
+    //used in Chunker
     public static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
         return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
     }
 
+    //used in Chunker
     public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
         return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
+    //Used in many places
     public static String ingestManifestLocation(String sourceManifestId) {
         return sourceManifestId + "/sourceManifest.json";
     }
@@ -105,6 +109,8 @@ public class Models {
     public static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
         return sourceManifestId + "/vectorStore.json.gz";
     }
+
+    //used in DataInitializer
     public static String s3VectorStoreManifestLocation(String sourceManifestId) {
         return sourceManifestId + "/s3VectorStore.json";
     }

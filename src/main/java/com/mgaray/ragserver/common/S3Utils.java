@@ -3,11 +3,18 @@ package com.mgaray.ragserver.common;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class S3Utils {
 
@@ -53,6 +60,34 @@ public class S3Utils {
             client().putObject(request, RequestBody.fromBytes(bytes));
         } catch (Exception e) {
             throw new RuntimeException("Failed to write s3://" + bucket + "/" + key, e);
+        }
+    }
+
+    // Lists the immediate children of keyPrefix, mirroring FileUtils.listFolder: one level deep, each entry a
+    // full "bucket/key" path, with no trailing slash on the prefixes standing in for subfolders.
+    public static List<String> list(String bucket, String keyPrefix) {
+        try {
+            String prefix = keyPrefix.isEmpty() || keyPrefix.endsWith("/") ? keyPrefix : keyPrefix + "/";
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucket)
+                    .prefix(prefix)
+                    .delimiter("/")          // stop at one level, exposing subfolders as common prefixes
+                    .build();
+            List<String> children = new ArrayList<>();
+            for (ListObjectsV2Response response : client().listObjectsV2Paginator(request)) {
+                for (CommonPrefix commonPrefix : response.commonPrefixes()) {
+                    String subfolder = commonPrefix.prefix();   // always ends with the delimiter
+                    children.add(bucket + "/" + subfolder.substring(0, subfolder.length() - 1));
+                }
+                for (S3Object s3Object : response.contents()) {
+                    if (!s3Object.key().equals(prefix)) {       // skip the folder placeholder object, if any
+                        children.add(bucket + "/" + s3Object.key());
+                    }
+                }
+            }
+            return children;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to list s3://" + bucket + "/" + keyPrefix, e);
         }
     }
 
