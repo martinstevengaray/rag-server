@@ -89,7 +89,13 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation(sourceManifestId));
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
-        return new InMemoryVectorStore<T>(store, clazz);
+        InMemoryVectorStore<T> vectorStore = new InMemoryVectorStore<>(store, clazz);
+        for (Map<String, Object> entry : (List<Map<String, Object>>) JsonUtils.parse(vectorStoreJson).get("entries")) {
+            String recordJson = JsonUtils.getNestedField(entry, "embedded", "text");
+            T t = JsonUtils.toObject(recordJson, clazz);
+            vectorStore.idToT.put(t.id(), t);
+        }
+        return vectorStore;
     }
 
     private static byte[] compress(String value) {
