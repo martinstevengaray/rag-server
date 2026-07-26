@@ -25,8 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-
 public class QueryHandler {
 
     private static final boolean encryptSessionState = false;

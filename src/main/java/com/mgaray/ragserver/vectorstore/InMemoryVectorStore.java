@@ -3,27 +3,20 @@ package com.mgaray.ragserver.vectorstore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.GzipUtils;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.VectorStoreSpec;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.IVectorRecord;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
-
-import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
 
 public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
@@ -69,7 +62,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     }
 
     @Override
-    public void initialize(Models.EmbeddingSpec embeddingSpec) {
+    public void initialize(EmbeddingSpec embeddingSpec) {
         //mothing to do
     }
 
@@ -84,10 +77,12 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return idToT.containsKey(t.id());
     }
 
-    //-----to load contents from disk (unique to InMemoryVectorStore)-----------------------------------------
+    //-----to load contents from disk (unique to InMemoryVectorStore)---------------------------------------------------
 
-    public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore, String sourceManifestId, Class<T> clazz) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation(sourceManifestId));
+    public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore,
+                                                                       String inMemoryVectorStoreExportLocation,
+                                                                       Class<T> clazz) {
+        byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation);
         String vectorStoreJson = GzipUtils.decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         InMemoryVectorStore<T> vectorStore = new InMemoryVectorStore<>(store, clazz);

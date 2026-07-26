@@ -106,6 +106,7 @@ public class Models {
         return sourceManifestId + "/sourceManifest.json";
     }
 
+    //used in DataInitializer
     public static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
         return sourceManifestId + "/vectorStore.json.gz";
     }

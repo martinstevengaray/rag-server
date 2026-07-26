@@ -12,6 +12,7 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.ChatModelType;
 import com.mgaray.ragserver.common.S3Utils;
 import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.ServerModels.Request;
@@ -50,8 +51,9 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
         int chunksToProvide = Integer.valueOf(chunksToProvideString);
+        ChatModelType chatModelType = ChatModelType.valueOf(chatModelTypeString);
 
-        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, chunksToProvide, openAiKey, symmetricSigningKey);
+        WebappConfig webappConfig = new WebappConfig(chatModelType, chunksToProvide, openAiKey, symmetricSigningKey);
         IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
 

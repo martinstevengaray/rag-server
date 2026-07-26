@@ -37,22 +37,23 @@ public class WebappMain {
     }
 
     public static void main(String[] args) throws Exception {
+
         IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
-
-        IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, sourceManifestId, Chunk.class);
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
-
         IDatastore datastore = dataStoreS3;//new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
+
+        String ingestionManifestLocation = ingestManifestLocation(sourceManifestId);
+        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+
+        String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
+        IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
         IVectorStore<Chunk> vectorStore = vectorStoreS3;
 
         WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, 10, openAiApiKey, symmetricSigningKey);
 
-        String ingestionManifestLocation = ingestManifestLocation(sourceManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-
         QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
 
         JavaCoreServer javaCoreServer = new JavaCoreServer();
