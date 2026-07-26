@@ -9,6 +9,7 @@ import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.VectorMatch;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -87,21 +88,29 @@ public class QueryHandler {
     }
 
     private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState) {
+        VectorQueryConfig vectorQueryConfig = webappConfig.vectorQueryConfig();
         //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
-        String vectorStoreQuery = userPrompt;//createVectorStoreQuery(sessionState, userPrompt);
-        float[] queryVector = embeddingModel.embed(vectorStoreQuery).content().vector();
-        List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(queryVector, webappConfig.chunksToProvide());
+        List<VectorMatch<Chunk>> vectorMatches = new ArrayList<>();
+        String conversationVectorStoreQuery = createConversationVectorStoreQuery(sessionState, userPrompt);
+        float[] conversationQueryVector = embeddingModel.embed(conversationVectorStoreQuery).content().vector();
+        vectorMatches.addAll(vectorStore.get(conversationQueryVector, vectorQueryConfig.conversationChunkCount()));
+        float[] userPromptQueryVector = embeddingModel.embed(userPrompt).content().vector();
+        vectorMatches.addAll(vectorStore.get(userPromptQueryVector, vectorQueryConfig.mostRecentPromptChunkCount()));
         Map<String, Chunk> chunksForPrompt = new LinkedHashMap<>();
         for (VectorMatch<Chunk> vectorMatch : vectorMatches) {
             Chunk chunk = vectorMatch.record();
             chunksForPrompt.put(chunk.id(), chunk);
         }
+        int max = vectorQueryConfig.conversationPreviouslyUsedChunkMaxCount();
         for (PromptExchange promptExchange : sessionState.promptExchanges) {
             for (String chunkId : promptExchange.chunkIdsUsed) {
                 if (!chunksForPrompt.containsKey(chunkId)) {
                     Chunk chunk = vectorStore.get(chunkId);
                     if (chunk != null) {  //incase a hallucination makes it into sessionState
                         chunksForPrompt.put(chunk.id(), chunk);
+                        if (--max <= 0) {
+                            return new ArrayList<>(chunksForPrompt.values());
+                        }
                     } else {
                         System.out.println("Chunk could not be found for id = " + chunkId);
                     }
@@ -126,7 +135,7 @@ public class QueryHandler {
         return sessionState;
     }
 
-    private String createVectorStoreQuery(SessionState sessionState, String userPrompt) {
+    private String createConversationVectorStoreQuery(SessionState sessionState, String userPrompt) {
         StringBuilder stringBuilder = new StringBuilder();
         for (PromptExchange promptExchange : sessionState.promptExchanges()) {
             stringBuilder.append(promptExchange.prompt() + "\n");

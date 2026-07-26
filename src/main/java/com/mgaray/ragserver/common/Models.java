@@ -60,16 +60,22 @@ public class Models {
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
 
-    public record VectorMatch<T extends IVectorRecord> (T record, double matchScore) {}
+    public record VectorMatch<T extends IVectorRecord> (T record,
+                                                        double matchScore) {}
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
-    public record BootstrapperConfig(int numberOfEmbeddingThreads, String openApiKey) {}
+    public record BootstrapperConfig(int numberOfEmbeddingThreads,
+                                     String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
-                               int chunksToProvide,
+                               VectorQueryConfig vectorQueryConfig,
                                String openApiKey,
                                String symmetricSigningKey) {}
+
+    public record VectorQueryConfig(int conversationChunkCount,
+                                    int mostRecentPromptChunkCount,
+                                    int conversationPreviouslyUsedChunkMaxCount) {}
 
     public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
 

@@ -7,13 +7,12 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.AwsServicesDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
-//import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.ChatModelType;
-import com.mgaray.ragserver.common.S3Utils;
+import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.ServerModels.Request;
 import com.mgaray.ragserver.server.ServerModels.Response;
@@ -50,10 +49,12 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String vectorStoreBucket = System.getenv("VECTOR_STORE_BUCKET");
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
-        int chunksToProvide = Integer.valueOf(chunksToProvideString);
+        VectorQueryConfig vectorQueryConfig = JsonUtils.toObject(chunksToProvideString, VectorQueryConfig.class);
         ChatModelType chatModelType = ChatModelType.valueOf(chatModelTypeString);
 
-        WebappConfig webappConfig = new WebappConfig(chatModelType, chunksToProvide, openAiKey, symmetricSigningKey);
+        System.out.println("vectorQueryConfig: " + JsonUtils.toJson(vectorQueryConfig));
+
+        WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiKey, symmetricSigningKey);
         IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
 
@@ -86,7 +87,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         float[] chunkEmbedding = embeddingModel.embed("embed this piece of text").content().vector();
         System.out.println("chunkEmbedding: " + chunkEmbedding);
 
-        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, 20, openAiKey, symmetricSigningKey));
+        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, vectorQueryConfig, openAiKey, symmetricSigningKey));
         String chatResult = chatModel.chat("What is vitamin D used for");
         System.out.println("chatResult: " + chatResult);
     }
