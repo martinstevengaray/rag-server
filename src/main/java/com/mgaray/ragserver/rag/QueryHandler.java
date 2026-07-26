@@ -2,6 +2,7 @@ package com.mgaray.ragserver.rag;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
+import com.mgaray.ragserver.common.EncryptionDelegate;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
@@ -32,6 +33,7 @@ public class QueryHandler {
     private final IVectorStore<Chunk> vectorStore;
     private final EmbeddingModel embeddingModel;
     private final ChatModel chatModel;
+    private final EncryptionDelegate encryptionDelegate;
 
     public QueryHandler(WebappConfig webappConfig,
                         IDatastore datastore,
@@ -44,6 +46,7 @@ public class QueryHandler {
         IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         this.embeddingModel = Embedder.createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), webappConfig.openApiKey());
         this.chatModel = createChatModel(webappConfig);
+        this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
 
     public static ChatModel createChatModel(WebappConfig config) {
@@ -80,6 +83,7 @@ public class QueryHandler {
         String chatResponse = chatModelResponse.response();
         sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
+        sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
         return new Response(chatResponse, sources, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
@@ -109,7 +113,8 @@ public class QueryHandler {
         if (sessionStateJson == null) {
             return new SessionState(new ArrayList<>());
         }
-        SessionState sessionState = JsonUtils.toObject(request.sessionState(), SessionState.class);
+        sessionStateJson = encryptionDelegate.decrypt(sessionStateJson);
+        SessionState sessionState = JsonUtils.toObject(sessionStateJson, SessionState.class);
         if (sessionState.promptExchanges() == null) {
             return new SessionState(new ArrayList<>());
         }
