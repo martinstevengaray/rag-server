@@ -29,6 +29,8 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class QueryHandler {
 
+    private static final boolean encryptSessionState = false;
+
     private final WebappConfig webappConfig;
     private final IDatastore datastore;
     private final IVectorStore<Chunk> vectorStore;
@@ -80,7 +82,9 @@ public class QueryHandler {
         List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
         sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
         String sessionStateJson = JsonUtils.toJson(sessionState);
-        sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
+        if (encryptSessionState) {
+            sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
+        }
         return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
@@ -114,7 +118,9 @@ public class QueryHandler {
         if (sessionStateJson == null) {
             return new SessionState(new ArrayList<>());
         }
-        sessionStateJson = encryptionDelegate.decrypt(sessionStateJson);
+        if (encryptSessionState) {
+            sessionStateJson = encryptionDelegate.decrypt(sessionStateJson);
+        }
         SessionState sessionState = JsonUtils.toObject(sessionStateJson, SessionState.class);
         if (sessionState.promptExchanges() == null) {
             return new SessionState(new ArrayList<>());
