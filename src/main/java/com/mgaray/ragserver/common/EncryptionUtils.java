@@ -1,9 +1,12 @@
 package com.mgaray.ragserver.common;
 
+import com.mgaray.ragserver.WebappMain;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -19,7 +22,11 @@ public class EncryptionUtils {
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     public static void main(String[] args) throws GeneralSecurityException {
-        SecretKey secretKey = generateKey();
+        String asymmetricSigningKey =
+                WebappMain.readKeyFromConfig("/Users/turtlemccully/projects/rag-server/local/config.sh",
+                        "SYMMETRIC_SIGNING_KEY");
+        System.out.println(asymmetricSigningKey);
+        SecretKey secretKey = keyFromBase64(asymmetricSigningKey); //generateKey();
 
         String originalText = "This is a secret message.";
 
@@ -35,6 +42,10 @@ public class EncryptionUtils {
                 "Key:       " +
                         Base64.getEncoder().encodeToString(secretKey.getEncoded())
         );
+    }
+
+    public static SecretKey keyFromBase64(String base64Key) {
+        return new SecretKeySpec(Base64.getDecoder().decode(base64Key), "AES");
     }
 
     public static SecretKey generateKey() throws GeneralSecurityException {

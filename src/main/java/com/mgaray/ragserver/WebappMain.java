@@ -1,7 +1,6 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
@@ -58,7 +57,8 @@ public class WebappMain {
             for (String line : lines) {
                 String prefix = "export " + key + "=";
                 if (line.startsWith(prefix)) {
-                    return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
+                    return line.substring(prefix.length()).split("\"")[1];
+                    //return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
                 }
             }
         } catch (Exception e) {
