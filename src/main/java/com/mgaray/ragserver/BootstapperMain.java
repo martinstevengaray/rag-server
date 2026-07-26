@@ -48,10 +48,15 @@ public class BootstapperMain {
         IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
         IDatastore ingestionDatastoreS3 = new Datastore(Datastore.Mode.S3, s3IngestionBucket);
 
+        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store").start(10000L);
+        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
+        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
+        ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3, Datastore.Mode.S3);
+
         IDatastore ingestionDatastoreWithCacheDisk = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk);
         IDatastore ingestionDatastoreWithCacheS3 = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk, ingestionDatastoreS3);
 
-        EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+        EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
 
@@ -66,7 +71,6 @@ public class BootstapperMain {
 //            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
 //            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
 //        }
-        DatastoreMonitor.stop();
     }
 
 }
