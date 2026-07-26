@@ -162,7 +162,7 @@ resource "aws_lambda_function" "this" {
       OPEN_AI_API_KEY_SSM_PARAMETER_KEY       = aws_ssm_parameter.open_ai_api_key.name
       SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY = aws_ssm_parameter.symmetric_signing_key.name
       CHAT_MODEL_TYPE                         = var.chat_model_type
-      CHUNKS_TO_PROVIDE                       = var.chunks_to_provide
+      VECTOR_QUERY_CONFIG                     = var.vector_query_config
       INGESTION_MANIFEST_BUCKET               = var.ingestion_manifest_bucket
       VECTOR_STORE_BUCKET                     = var.vector_store_bucket
       INGESTION_MANIFEST_ID                   = var.ingestion_manifest_id

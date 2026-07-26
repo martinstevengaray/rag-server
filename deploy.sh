@@ -23,7 +23,7 @@ source local/config.sh
 
 export TF_VAR_aws_lambda_function_name="${LAMBDA_FUNCTION_NAME}"
 export TF_VAR_chat_model_type="${CHAT_MODEL_TYPE}"
-export TF_VAR_chunks_to_provide="${CHUNKS_TO_PROVIDE}"
+export TF_VAR_vector_query_config="${VECTOR_QUERY_CONFIG}"
 export TF_VAR_ingestion_manifest_bucket="${INGESTION_MANIFEST_BUCKET}"
 export TF_VAR_vector_store_bucket="${VECTOR_STORE_BUCKET}"
 export TF_VAR_ingestion_manifest_id="${INGESTION_MANIFEST_ID}"

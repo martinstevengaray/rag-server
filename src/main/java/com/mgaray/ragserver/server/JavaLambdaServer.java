@@ -44,12 +44,12 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(
                 System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
         String chatModelTypeString = System.getenv("CHAT_MODEL_TYPE");
-        String chunksToProvideString = System.getenv("CHUNKS_TO_PROVIDE");
+        String vectorQueryConfigJson = System.getenv("VECTOR_QUERY_CONFIG");
         String ingestionManifestBucket = System.getenv("INGESTION_MANIFEST_BUCKET");
         String vectorStoreBucket = System.getenv("VECTOR_STORE_BUCKET");
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
-        VectorQueryConfig vectorQueryConfig = JsonUtils.toObject(chunksToProvideString, VectorQueryConfig.class);
+        VectorQueryConfig vectorQueryConfig = JsonUtils.toObject(vectorQueryConfigJson, VectorQueryConfig.class);
         ChatModelType chatModelType = ChatModelType.valueOf(chatModelTypeString);
 
         System.out.println("vectorQueryConfig: " + JsonUtils.toJson(vectorQueryConfig));
@@ -72,7 +72,7 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         System.out.println( //"openAiKey: " + openAiKey + "," +
                             //"symmetricSigningKey: " + symmetricSigningKey + ", " +
                             "chatModelTypeString: " + chatModelTypeString + ", " +
-                            "chunksToProvideString: " + chunksToProvideString + ", " +
+                            "vectorQueryConfigJson: " + vectorQueryConfigJson + ", " +
                             "ingestionManifestBucket: " + ingestionManifestBucket + ", " +
                             "vectorStoreBucket: " + vectorStoreBucket + ", " +
                             "ingestionManifestId: " + ingestionManifestId);
