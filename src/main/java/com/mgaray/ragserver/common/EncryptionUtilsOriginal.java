@@ -13,7 +13,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
-public class EncryptionUtils {
+public class EncryptionUtilsOriginal {
 
     private static final int KEY_SIZE_BITS = 256;
     private static final int IV_SIZE_BYTES = 12;
