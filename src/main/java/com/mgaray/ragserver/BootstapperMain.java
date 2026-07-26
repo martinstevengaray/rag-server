@@ -57,7 +57,6 @@ public class BootstapperMain {
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(500, 0.5f),
                 new EmbeddingSpec(embeddingModelType));
-
         { //in memory vector store
             Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreMemory);
             bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
@@ -66,6 +65,7 @@ public class BootstapperMain {
             Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
             bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
         }
+        Datastore.complete();
     }
 
 }
