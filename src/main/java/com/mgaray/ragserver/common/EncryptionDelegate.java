@@ -1,13 +1,12 @@
 package com.mgaray.ragserver.common;
 
+import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
+
 import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -33,12 +32,13 @@ public class EncryptionDelegate {
 
     public String encrypt(String plaintext) {
         try {
+            byte[] compressed = InMemoryVectorStore.compress(plaintext);
             byte[] iv = new byte[IV_SIZE_BYTES];
             SECURE_RANDOM.nextBytes(iv);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec parameterSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, parameterSpec);
-            byte[] ciphertext = cipher.doFinal(plaintext.getBytes(StandardCharsets.UTF_8));
+            byte[] ciphertext = cipher.doFinal(compressed);
             // Store the IV together with the ciphertext.
             ByteBuffer result = ByteBuffer.allocate(iv.length + ciphertext.length);
             result.put(iv);
@@ -63,8 +63,8 @@ public class EncryptionDelegate {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             GCMParameterSpec parameterSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, parameterSpec);
-            byte[] plaintext = cipher.doFinal(ciphertext);
-            return new String(plaintext, StandardCharsets.UTF_8);
+            byte[] compressed = cipher.doFinal(ciphertext);
+            return InMemoryVectorStore.decompress(compressed);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

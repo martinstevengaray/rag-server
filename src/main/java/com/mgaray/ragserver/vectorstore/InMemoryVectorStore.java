@@ -90,6 +90,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         String vectorStoreJson = decompress(vectorStoreJsonGzBytes);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         InMemoryVectorStore<T> vectorStore = new InMemoryVectorStore<>(store, clazz);
+        //loop through contents from vectorStoreJson to load idToT lookup map
         for (Map<String, Object> entry : (List<Map<String, Object>>) JsonUtils.parse(vectorStoreJson).get("entries")) {
             String recordJson = JsonUtils.getNestedField(entry, "embedded", "text");
             T t = JsonUtils.toObject(recordJson, clazz);
@@ -98,7 +99,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return vectorStore;
     }
 
-    private static byte[] compress(String value) {
+    public static byte[] compress(String value) {
         try {
             try (ByteArrayOutputStream output = new ByteArrayOutputStream();
                  GZIPOutputStream gzip = new GZIPOutputStream(output)) {
@@ -111,7 +112,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         }
     }
 
-    private static String decompress(byte[] compressed) {
+    public static String decompress(byte[] compressed) {
         try(GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(compressed))) {
             return new String(gzip.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
