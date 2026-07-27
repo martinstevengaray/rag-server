@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.mgaray.ragserver.awsresources.Datastore.Mode.S3;
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;

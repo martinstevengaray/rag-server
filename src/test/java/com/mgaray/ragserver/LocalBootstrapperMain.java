@@ -1,6 +1,5 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
@@ -36,8 +35,8 @@ public class LocalBootstrapperMain {
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
-        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
-        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
+        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
+        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
         IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreDisk);
 
         IVectorStore<Chunk> vectorStore = new InMemoryVectorStore<>(Chunk.class);

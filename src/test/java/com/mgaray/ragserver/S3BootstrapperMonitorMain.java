@@ -1,6 +1,5 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
@@ -40,9 +39,9 @@ public class S3BootstrapperMonitorMain {
         IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
         DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
-        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
-        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
-        ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3, Datastore.Mode.S3);
+        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
+        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
+        ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3);
         IDatastore ingestionDatastore =
                 new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreDisk, ingestionDatastoreS3);
 

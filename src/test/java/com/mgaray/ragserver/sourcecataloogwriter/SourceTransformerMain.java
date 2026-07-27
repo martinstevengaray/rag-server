@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.sourcecataloogwriter;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.awsresources.S3Datastore;
 

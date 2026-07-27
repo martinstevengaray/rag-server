@@ -9,7 +9,6 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
-import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.BootstrapperMain;
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
