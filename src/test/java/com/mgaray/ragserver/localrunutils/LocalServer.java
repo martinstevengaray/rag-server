@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.localserver;
+package com.mgaray.ragserver.localrunutils;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;

@@ -1,4 +1,7 @@
-package com.mgaray.ragserver.awsresources;
+package com.mgaray.ragserver.localrunutils;
+
+import com.mgaray.ragserver.awsresources.Datastore;
+import com.mgaray.ragserver.awsresources.IDatastore;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

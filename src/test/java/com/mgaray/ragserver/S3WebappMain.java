@@ -8,8 +8,8 @@ import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.localserver.LocalServer;
-import com.mgaray.ragserver.localserver.WebappHandler;
+import com.mgaray.ragserver.localrunutils.LocalServer;
+import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
@@ -17,19 +17,18 @@ import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
-public class LocalWebappS3SourceMain {
+public class S3WebappMain {
 
     private static final String localDiskRoot = "local/s3bucket";
     private static final String s3Bucket = "rag-server-ingestion";
     private static final String s3VectorStoreBucket = "rag-server-vector";
     private static final String sourceManifestId = "portland-city-code";
-    private static final String openAiApiKey = BootstrapperMain.readKeyFromConfig(
+    private static final String openAiApiKey = BootstrapperMain.readConfig(
                 "local/config.sh", "OPEN_AI_API_KEY");
-    private static final String symmetricSigningKey = BootstrapperMain.readKeyFromConfig(
+    private static final String symmetricSigningKey = BootstrapperMain.readConfig(
                     "local/config.sh", "SYMMETRIC_SIGNING_KEY");
 
     public static void main(String[] args) throws Exception {
-
         IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, s3Bucket);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreS3);

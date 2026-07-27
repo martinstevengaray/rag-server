@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.localserver;
+package com.mgaray.ragserver.localrunutils;
 
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.Request;

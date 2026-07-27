@@ -21,7 +21,7 @@ public class VectorStoreTest {
     public static void main(String[] args) {
         IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId, Chunk.class);
-        String openAiApiKey = BootstrapperMain.readKeyFromConfig(
+        String openAiApiKey = BootstrapperMain.readConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
         EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(
                 new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);

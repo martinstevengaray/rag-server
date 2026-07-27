@@ -2,7 +2,6 @@ package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
-import com.mgaray.ragserver.awsresources.DatastoreMonitor;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
@@ -21,56 +20,43 @@ import java.util.List;
 
 public class BootstrapperMain {
 
-    private static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
-    private static final int numberOfEmbeddingThreads = 10;
-    private static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+    public static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
+    public static final int numberOfEmbeddingThreads = 10;
+    public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+    public static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+    public static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
 
-    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
-    private static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
-    private static final String localIngestionRoot = "local/s3bucket";
-    private static final String s3SourceBucket = "rag-server-source";
-    private static final String s3IngestionBucket = "rag-server-ingestion";
-    private static final String s3VectorStoreBucket = "rag-server-vector";
-
+    public static final String localIngestionRoot = "local/s3bucket";
+    public static final String s3SourceBucket = "rag-server-source";
+    public static final String s3IngestionBucket = "rag-server-ingestion";
+    public static final String s3VectorStoreBucket = "rag-server-vector";
     public static final String portlandIngestManifestId = "portland-city-code";
     public static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
     public static final String oregonIngestManifestId = "oregon-state-code";
     public static final String oregonSourceCatalogLocation = "oregon-state-code/sourceCatalog.json";
 
     public static void main(String[] args) {
-        String openAiApiKey = BootstrapperMain.readKeyFromConfig(
-                "local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
-
         IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, s3SourceBucket);
-
         IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
         IDatastore ingestionDatastoreS3 = new Datastore(Datastore.Mode.S3, s3IngestionBucket);
-
-        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
-        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
-        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
-        ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3, Datastore.Mode.S3);
-
-        IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk, ingestionDatastoreS3);
-
+        IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreS3);
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
-
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
-        Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
+        Bootstrapper bootstrapper =
+                new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
         bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
 
-    public static String readKeyFromConfig(String configFilename, String key) {
+    public static String readConfig(String configFilename, String key) {
         try {
             List<String> lines = Files.readAllLines(Path.of(configFilename));
             for (String line : lines) {
                 String prefix = "export " + key + "=";
                 if (line.startsWith(prefix)) {
                     return line.substring(prefix.length()).split("\"")[1];
-                    //return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
                 }
             }
         } catch (Exception e) {
