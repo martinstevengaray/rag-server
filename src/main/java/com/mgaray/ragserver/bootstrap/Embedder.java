@@ -7,6 +7,7 @@ import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
+import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
@@ -34,12 +35,12 @@ public class Embedder {
         this.executor = Executors.newFixedThreadPool(bootstrapperConfig.numberOfEmbeddingThreads());
     }
 
-    public void embed(IngestionManifest ingestionManifest) {
+    public void embed(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, bootstrapperConfig.openApiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
-            for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+            for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {
                 futures.add(executor.submit(() -> embed(sourceRecord, embeddingModel)));
             }
             for (Future<?> future : futures) {

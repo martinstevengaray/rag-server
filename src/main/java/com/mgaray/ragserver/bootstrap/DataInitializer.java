@@ -8,6 +8,7 @@ import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.VectorStoreSpec;
+import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
 import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
 import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
+import static com.mgaray.ragserver.common.Models.sourceRecordsDocumentLocation;
 
 public class DataInitializer {
 
@@ -29,7 +31,7 @@ public class DataInitializer {
         this.outDatastore = outDatastore;
     }
 
-    public List<String> create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
+    public IngestionManifest create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
         List<SourceRecord> sourceRecords = new ArrayList<>();
         for (Source source : sourceCatalog.sources()) {
             String sourceRecordId = source.id();
@@ -48,13 +50,19 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
+        SourceRecordsDocument sourceRecordsDocument = new SourceRecordsDocument(sourceRecords);
+        String sourceRecordsLocation = sourceRecordsDocumentLocation(ingestManifestId);
+        if (!outDatastore.exists(sourceRecordsLocation)) {
+            outDatastore.writeObject(sourceRecordsLocation, sourceRecordsDocument);
+        }
+
         VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
                                                               s3VectorStoreManifestLocation(ingestManifestId));
         IngestionManifest ingestionManifest =
-                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreSpec);
+                new IngestionManifest(ingestManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
-        return modelValidator.validate(ingestionManifest); //todo move validation elsewhere and return IngestionManifest
+        return ingestionManifest;
     }
 
 }

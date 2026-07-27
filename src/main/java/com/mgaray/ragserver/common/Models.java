@@ -19,8 +19,11 @@ public class Models {
 
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
-                                    List<SourceRecord> sourceRecords,
+                                    String sourceRecordsDocumentLocation,
+//                                    List<SourceRecord> sourceRecords,
                                     VectorStoreSpec vectorStoreSpec) {}
+
+    public record SourceRecordsDocument(List<SourceRecord> sourceRecords) {}
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
                                 EmbeddingSpec embeddingSpec) {}
@@ -85,7 +88,10 @@ public class Models {
 
 
 
-
+    //used in DataInitializer
+    public static String sourceRecordsDocumentLocation(String sourceManifestId) {
+        return sourceManifestId + "/sourceRecordsDocument.json";
+    }
 
     //used in DataInitializer
     public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {

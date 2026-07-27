@@ -7,6 +7,7 @@ import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
+import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 import com.mgaray.ragserver.awsresources.Datastore;
 
 import java.util.ArrayList;
@@ -44,13 +45,14 @@ public class ChunkerTest {
                 sourceLocationTextLocation,
                 chunkManifestLocation);
         sourceRecords.add(sourceRecord);
+        SourceRecordsDocument sourceRecordsDocument = new SourceRecordsDocument(sourceRecords);
         RunDefinition runDefinition = new RunDefinition(
                 new ChunkingSpec(8, 0.5f), null);
         IngestionManifest ingestionManifest =
-                new IngestionManifest(sourceManifestId, runDefinition, sourceRecords, null);
+                new IngestionManifest(sourceManifestId, runDefinition, null, null);
 
         Chunker chunker = new Chunker(dataStore);
-        chunker.chunk(ingestionManifest);
+        chunker.chunk(ingestionManifest, sourceRecordsDocument);
 
         ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
         for (Chunk chunk : chunkManifest.chunks()) {
