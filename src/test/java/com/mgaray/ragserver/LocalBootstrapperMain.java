@@ -3,6 +3,8 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
@@ -29,10 +31,10 @@ public class LocalBootstrapperMain {
 
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, localSourceRoot);
+        IDatastore sourceDatastore = new LocalDiskDatastore(localSourceRoot);
 
-        IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
+        IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
+        IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
         ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
         ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);

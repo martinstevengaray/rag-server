@@ -6,6 +6,7 @@ import com.mgaray.ragserver.common.S3Utils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Deprecated
 public class Datastore implements IDatastore {
 
     public enum Mode {IN_MEMORY, LOCAL_DISK, S3}

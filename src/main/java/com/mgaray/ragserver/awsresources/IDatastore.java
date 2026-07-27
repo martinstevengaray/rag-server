@@ -10,20 +10,9 @@ import java.util.Map;
 public interface IDatastore {
 
     //primary operations that need to be overwritten per datastore technology
-    boolean exists(String storageLocation);
-    void write(String storageLocation, byte[] bytes);
     byte[] read(String storageLocation);
-
-    //convenience write methods
-    default void writeObject(String storageLocation, Object object) {
-        write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
-    }
-    default void writeString(String storageLocation, String content) {
-        write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
-    }
-    default void writeEmbedding(String storageLocation, float[] embedding) {
-        write(storageLocation, FileUtils.toBytes(embedding));
-    }
+    void write(String storageLocation, byte[] bytes);
+    boolean exists(String storageLocation);
 
     //convenience read methods
     default <T> T readObject(String storageLocation, Class<T> clazz) {
@@ -35,6 +24,17 @@ public interface IDatastore {
     }
     default float[] readEmbedding(String storageLocation) {
         return FileUtils.toFloatArray(read(storageLocation));
+    }
+
+    //convenience write methods
+    default void writeObject(String storageLocation, Object object) {
+        write(storageLocation, JsonUtils.toJsonPretty(object).getBytes(StandardCharsets.UTF_8));
+    }
+    default void writeString(String storageLocation, String content) {
+        write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
+    }
+    default void writeEmbedding(String storageLocation, float[] embedding) {
+        write(storageLocation, FileUtils.toBytes(embedding));
     }
 
     //used upstream only, as convenience methods for transforming arbitrary sources

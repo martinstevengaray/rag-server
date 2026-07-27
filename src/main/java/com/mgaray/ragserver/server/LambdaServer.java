@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.S3Datastore;
 import com.mgaray.ragserver.common.AwsServicesDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
@@ -55,7 +56,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         System.out.println("vectorQueryConfig: " + JsonUtils.toJson(vectorQueryConfig));
 
         WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiKey, symmetricSigningKey);
-        IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
+        IDatastore datastore = new S3Datastore(ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
 
         String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);

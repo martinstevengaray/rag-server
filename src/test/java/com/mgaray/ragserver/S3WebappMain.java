@@ -3,6 +3,8 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.S3Datastore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
@@ -29,8 +31,8 @@ public class S3WebappMain {
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
         String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
 
-        IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, s3Bucket);
+        IDatastore datastoreMemory = new InMemoryDatastore();
+        IDatastore dataStoreS3 = new S3Datastore(s3Bucket);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreS3);
 
         String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);

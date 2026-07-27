@@ -3,6 +3,8 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.S3Datastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
@@ -38,9 +40,9 @@ public class BootstrapperMain {
     public static void main(String[] args) {
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, s3SourceBucket);
-        IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore ingestionDatastoreS3 = new Datastore(Datastore.Mode.S3, s3IngestionBucket);
+        IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
+        IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
+        IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
         IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreS3);
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);

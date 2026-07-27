@@ -3,6 +3,8 @@ package com.mgaray.ragserver;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
@@ -27,8 +29,8 @@ public class LocalWebappMain {
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
         String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
 
-        IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
+        IDatastore datastoreMemory = new InMemoryDatastore();
+        IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk);
 
         String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
