@@ -1,7 +1,6 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
 import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
@@ -31,7 +30,7 @@ public class LocalWebappMain {
 
         IDatastore datastoreMemory = new InMemoryDatastore();
         IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);
-        IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk);
+        IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreDisk);
 
         String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);

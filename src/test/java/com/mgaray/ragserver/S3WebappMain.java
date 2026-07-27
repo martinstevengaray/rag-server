@@ -1,7 +1,6 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
 import com.mgaray.ragserver.awsresources.S3Datastore;
@@ -33,7 +32,7 @@ public class S3WebappMain {
 
         IDatastore datastoreMemory = new InMemoryDatastore();
         IDatastore dataStoreS3 = new S3Datastore(s3Bucket);
-        IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreS3);
+        IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreS3);
 
         String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);

@@ -3,7 +3,6 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.S3Datastore;
 import com.mgaray.ragserver.common.AwsServicesDelegate;

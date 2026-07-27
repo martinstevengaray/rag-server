@@ -1,12 +1,12 @@
 package com.mgaray.ragserver.awsresources;
 
-public class DatastoreCache implements IDatastore {
+public class TieredDatastore implements IDatastore {
 
     private IDatastore[] datastores; //ordered from most volatile to the least volatile
 
     //instantiate with datastore sequence from most volatile to the least volatile
     //for example: new DatastoreCache(inMemoryDatastore, localDiskDatastore, s3Datastore);
-    public DatastoreCache(IDatastore... datastores) {
+    public TieredDatastore(IDatastore... datastores) {
         this.datastores = datastores;
     }
 

@@ -1,7 +1,6 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
 import com.mgaray.ragserver.awsresources.S3Datastore;
@@ -43,7 +42,7 @@ public class BootstrapperMain {
         IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
-        IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreS3);
+        IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreS3);
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
