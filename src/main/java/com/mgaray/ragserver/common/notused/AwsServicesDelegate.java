@@ -1,5 +1,6 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.common.notused;
 
+import com.mgaray.ragserver.common.JsonUtils;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 

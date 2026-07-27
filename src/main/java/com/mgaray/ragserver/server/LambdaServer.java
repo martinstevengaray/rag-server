@@ -5,7 +5,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.S3Datastore;
-import com.mgaray.ragserver.common.AwsServicesDelegate;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
@@ -38,10 +38,10 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
     private final QueryHandler queryHandler;
 
     public LambdaServer() {
-        String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
-                System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
-        String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(
-                System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
+        SsmDelegate ssmDelegate = new SsmDelegate();
+        String openAiKey = ssmDelegate.getParameter(System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
+        String symmetricSigningKey =
+                ssmDelegate.getParameter(System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
         String chatModelTypeString = System.getenv("CHAT_MODEL_TYPE");
         String vectorQueryConfigJson = System.getenv("VECTOR_QUERY_CONFIG");
         String ingestionManifestBucket = System.getenv("INGESTION_MANIFEST_BUCKET");
