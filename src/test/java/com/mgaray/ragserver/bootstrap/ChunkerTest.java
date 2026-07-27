@@ -13,8 +13,6 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.chunkManifestLocation;
-import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
 
 public class ChunkerTest {
 
@@ -34,9 +32,9 @@ public class ChunkerTest {
         List<SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
-        String sourceLocationTextLocation = sourceRecordTextLocation(sourceManifestId,sourceRecordId);
+        String sourceLocationTextLocation = "test_sourceLocationTextLocation";;
         dataStore.writeString(sourceLocationTextLocation, chunkText);
-        String chunkManifestLocation = chunkManifestLocation(sourceManifestId, sourceRecordId);
+        String chunkManifestLocation = "test_chunkManifestLocation";
         SourceRecord sourceRecord = new SourceRecord(
                 sourceRecordId,
                 null,

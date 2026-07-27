@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.rag;
+package com.mgaray.ragserver.server;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;

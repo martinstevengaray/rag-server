@@ -15,6 +15,10 @@ import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
 public class BootstapperMain {
 
     private static final String localSourceRoot = "/Users/turtlemccully/projects/rag-server/local/sources";
@@ -37,7 +41,7 @@ public class BootstapperMain {
     public static void main(String[] args) {
         String ingestManifestId = portlandIngestManifestId;
         int numberOfEmbeddingThreads = 10;
-        String openAiApiKey = WebappMain.readKeyFromConfig(
+        String openAiApiKey = readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
         BootstrapperConfig bootstrapperConfig = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
@@ -71,6 +75,22 @@ public class BootstapperMain {
 //            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
 //            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
 //        }
+    }
+
+    public static String readKeyFromConfig(String configFilename, String key) {
+        try {
+            List<String> lines = Files.readAllLines(Path.of(configFilename));
+            for (String line : lines) {
+                String prefix = "export " + key + "=";
+                if (line.startsWith(prefix)) {
+                    return line.substring(prefix.length()).split("\"")[1];
+                    //return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        throw new IllegalArgumentException(key +" not found in " + configFilename);
     }
 
 }

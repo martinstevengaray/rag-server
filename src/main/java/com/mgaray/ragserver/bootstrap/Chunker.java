@@ -12,9 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.chunkTextLocation;
-import static com.mgaray.ragserver.common.Models.embeddingLocation;
-
 public class Chunker {
 
     private final IDatastore dataStore;
@@ -72,6 +69,14 @@ public class Chunker {
             }
         }
         return chunks;
+    }
+
+    private static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
+    }
+
+    private static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
 }

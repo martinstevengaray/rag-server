@@ -17,21 +17,21 @@ public class Bootstrapper {
     private final BootstrapperConfig bootstrapperConfig;
     private final IDatastore sourceDatastore;
     private final IDatastore ingestionDatastore;
-    private final IVectorStore<Chunk> outVectorStore;
+    private final IVectorStore<Chunk> vectorStore;
     private final ModelValidator modelValidator = new ModelValidator();
 
     public Bootstrapper(BootstrapperConfig bootstrapperConfig,
                         IDatastore sourceDatastore,
                         IDatastore ingestionDatastore,
-                        IVectorStore<Chunk> outVectorStore) {
+                        IVectorStore<Chunk> vectorStore) {
         this.bootstrapperConfig = bootstrapperConfig;
         this.sourceDatastore = sourceDatastore;
         this.ingestionDatastore = ingestionDatastore;
-        this.outVectorStore = outVectorStore;
+        this.vectorStore = vectorStore;
     }
 
     public void bootstrap(String sourceCatalogLocation,
-                          String ingestManifestId,
+                          String ingestionManifestId,
                           RunDefinition runDefinition) {
         // SourceCatalog
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
@@ -39,12 +39,12 @@ public class Bootstrapper {
         // DataInitializer
         System.out.println("DataInitializer");
         DataInitializer dataInitializer = new DataInitializer(sourceDatastore, ingestionDatastore);
-        IngestionManifest ingestionManifest = dataInitializer.create(sourceCatalog, ingestManifestId, runDefinition);
+        IngestionManifest ingestionManifest = dataInitializer.create(sourceCatalog, ingestionManifestId, runDefinition);
         SourceRecordsDocument sourceRecordsDocument = ingestionDatastore.readObject
                 (ingestionManifest.sourceRecordsDocumentLocation(), SourceRecordsDocument.class);
         List<String> errors = modelValidator.validate(ingestionManifest, sourceRecordsDocument);
         if (!errors.isEmpty()) {
-            System.out.println(ingestManifestId + "errors: " + errors);
+            System.out.println(ingestionManifestId + "errors: " + errors);
             return;
         }
 
@@ -60,12 +60,12 @@ public class Bootstrapper {
 
         // VectorStoreLoader
         System.out.println("VectorStoreLoader");
-        outVectorStore.initialize(runDefinition.embeddingSpec());
-        VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, outVectorStore);
+        vectorStore.initialize(runDefinition.embeddingSpec());
+        VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, vectorStore);
         vectorStoreLoader.load(ingestionManifest, sourceRecordsDocument);
 
         // Complete
-        System.out.println(ingestManifestId + " complete");
+        System.out.println(ingestionManifestId + " complete");
     }
 
 }

@@ -15,12 +15,12 @@ import com.mgaray.ragserver.common.Models.ChatModelType;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.Request;
 import com.mgaray.ragserver.common.Models.Response;
-import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -31,12 +31,12 @@ import static com.mgaray.ragserver.awsresources.Datastore.Mode.S3;
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-import static com.mgaray.ragserver.rag.QueryHandler.createChatModel;
+import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 
 public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
-    private final WebappHandler webappHandler;
+    private final QueryHandler queryHandler;
 
     public JavaLambdaServer() {
         String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
@@ -62,8 +62,8 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
 
-        QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
-        this.webappHandler = new WebappHandler(queryHandler);
+        this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
+//        this.webappHandler = new WebappHandler(queryHandler);
 
 //public QueryHandler(WebappConfig webappConfig,
 //                IDatastore datastore,
@@ -101,10 +101,10 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         System.out.println("method=" + method + ", path=" + path);
         String responseString = null;
         if ("GET".equals(method)) {
-            responseString = this.webappHandler.handleGet(path);
+            responseString = this.handleGet(path);
             return proxyResponseHtml(200, responseString);
         } else if ("POST".equals(method)) {
-            responseString = this.webappHandler.handlePost(path, extractBody(input));
+            responseString = this.handlePost(path, extractBody(input));
             return proxyResponseJson(200, responseString);
         } else {
             Request request = extractRequest(input);
@@ -114,6 +114,24 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
             System.out.println(JsonUtils.toJson(response));
 
             return proxyResponseJson(200, JsonUtils.toJson(response));
+        }
+    }
+
+    public String handlePost(String path, String body) {
+        System.out.println("Post: " + path + ", " + body);
+        Request request = JsonUtils.toObject(body, Request.class);
+        Response response = queryHandler.query(request);
+        String responseJson = JsonUtils.toJson(response);
+        System.out.println("Response: " + responseJson);
+        return responseJson;
+    }
+
+    public String handleGet(String path) {
+        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+            byte[] bytes = inputStream.readAllBytes();
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 

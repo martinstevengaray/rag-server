@@ -12,12 +12,7 @@ import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.chunkManifestLocation;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
-import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
-import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
-import static com.mgaray.ragserver.common.Models.sourceRecordsDocumentLocation;
 
 public class DataInitializer {
 
@@ -61,6 +56,27 @@ public class DataInitializer {
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
         ingestionDatastore.writeObject(ingestManifestLocation, ingestionManifest);
         return ingestionManifest;
+    }
+
+
+    private static String sourceRecordsDocumentLocation(String sourceManifestId) {
+        return sourceManifestId + "/sourceRecordsDocument.json";
+    }
+
+    private static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
+    }
+
+    private static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+    }
+
+    private static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
+        return sourceManifestId + "/vectorStore.json.gz";
+    }
+
+    private static String s3VectorStoreManifestLocation(String sourceManifestId) {
+        return sourceManifestId + "/s3VectorStore.json";
     }
 
 }

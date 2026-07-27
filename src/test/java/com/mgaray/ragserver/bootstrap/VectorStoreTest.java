@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.WebappMain;
+import com.mgaray.ragserver.BootstapperMain;
 import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
@@ -21,7 +21,7 @@ public class VectorStoreTest {
     public static void main(String[] args) {
         IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId, Chunk.class);
-        String openAiApiKey = WebappMain.readKeyFromConfig(
+        String openAiApiKey = BootstapperMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
         EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(
                 new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);

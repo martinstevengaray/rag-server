@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.server;
 
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.common.Models.Request;
 import com.mgaray.ragserver.common.Models.Response;
 

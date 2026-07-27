@@ -1,23 +1,18 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.rag.QueryHandler;
 import com.mgaray.ragserver.server.JavaCoreServer;
+import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.server.WebappHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
@@ -31,9 +26,9 @@ public class WebappMain {
 
 
     static {
-        openAiApiKey = readKeyFromConfig(
+        openAiApiKey = BootstapperMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
-        symmetricSigningKey= readKeyFromConfig(
+        symmetricSigningKey= BootstapperMain.readKeyFromConfig(
                 "/Users/turtlemccully/projects/rag-server/local/config.sh", "SYMMETRIC_SIGNING_KEY");
     }
 
@@ -61,22 +56,6 @@ public class WebappMain {
 
         JavaCoreServer javaCoreServer = new JavaCoreServer();
         javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
-    }
-
-    public static String readKeyFromConfig(String configFilename, String key) {
-        try {
-            List<String> lines = Files.readAllLines(Path.of(configFilename));
-            for (String line : lines) {
-                String prefix = "export " + key + "=";
-                if (line.startsWith(prefix)) {
-                    return line.substring(prefix.length()).split("\"")[1];
-                    //return line.substring(prefix.length() + 1, line.length() -1); //1 offsets for start and end quotes
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        throw new IllegalArgumentException(key +" not found in " + configFilename);
     }
 
 }
