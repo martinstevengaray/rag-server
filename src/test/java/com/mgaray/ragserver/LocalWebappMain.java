@@ -16,11 +16,9 @@ import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-
 public class LocalWebappMain {
 
-    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
@@ -32,8 +30,7 @@ public class LocalWebappMain {
         IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);
         IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreDisk);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);;
 
         String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
         IVectorStore<Chunk> vectorStoreMemory =

@@ -29,7 +29,6 @@ import java.util.Map;
 
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 
@@ -57,8 +56,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         IDatastore datastore = new S3Datastore(ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
 
         this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);

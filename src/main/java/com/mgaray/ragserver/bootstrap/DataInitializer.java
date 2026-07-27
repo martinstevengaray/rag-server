@@ -12,8 +12,6 @@ import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-
 public class DataInitializer {
 
     private final IDatastore sourceDatastore;
@@ -53,8 +51,7 @@ public class DataInitializer {
                                                               s3VectorStoreManifestLocation(ingestManifestId));
         IngestionManifest ingestionManifest =
                 new IngestionManifest(ingestManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
-        String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
-        ingestionDatastore.writeObject(ingestManifestLocation, ingestionManifest);
+        ingestionDatastore.writeIngestionManifest(ingestionManifest);
         return ingestionManifest;
     }
 

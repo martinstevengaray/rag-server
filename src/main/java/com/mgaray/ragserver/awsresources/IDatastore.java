@@ -2,6 +2,7 @@ package com.mgaray.ragserver.awsresources;
 
 import com.mgaray.ragserver.common.ByteUtils;
 import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.common.Models.IngestionManifest;
 
 import java.nio.charset.StandardCharsets;
 
@@ -33,6 +34,19 @@ public interface IDatastore {
     }
     default void writeEmbedding(String storageLocation, float[] embedding) {
         write(storageLocation, ByteUtils.toBytes(embedding));
+    }
+
+    //convenience methods specific to models
+    default IngestionManifest readIngestionManifest(String ingestionManifestId) {
+        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+        return readObject(ingestionManifestLocation, IngestionManifest.class);
+    }
+    default void writeIngestionManifest(IngestionManifest ingestionManifest) {
+        String ingestionManifestLocation = ingestManifestLocation(ingestionManifest.id());
+        writeObject(ingestionManifestLocation, ingestionManifest);
+    }
+    private static String ingestManifestLocation(String ingestionManifestId) {
+        return ingestionManifestId + "/ingestionManifest.json";
     }
 
 }

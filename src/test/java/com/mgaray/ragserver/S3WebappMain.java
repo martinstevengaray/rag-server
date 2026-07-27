@@ -16,11 +16,9 @@ import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-
 public class S3WebappMain {
 
-    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
 
@@ -34,10 +32,9 @@ public class S3WebappMain {
         IDatastore dataStoreS3 = new S3Datastore(s3Bucket);
         IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreS3);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);
 
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 
