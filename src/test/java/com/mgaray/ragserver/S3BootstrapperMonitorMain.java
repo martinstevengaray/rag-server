@@ -52,3 +52,14 @@ public class S3BootstrapperMonitorMain {
     }
 
 }
+
+
+/*
+
+portland-city-code complete
+----- ingestion store ----- (final)
+LOCAL_DISK: 0r, 6086w, 6085e
+IN_MEMORY: 9158r, 6086w, 6085e
+S3: 0r, 6086w, 6085e
+
+ */
