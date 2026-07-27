@@ -17,10 +17,11 @@ import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
-public class DiskWebappMain {
+public class LocalWebappMain {
 
-    private static final String localDiskRoot = "local/s3bucket";
-    private static final String sourceManifestId = "portland-city-code";
+    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+
+    private static final String localIngestionRoot = LocalBootstrapperMain.localIngestionRoot;
     private static final String openAiApiKey = BootstrapperMain.readConfig(
             "local/config.sh", "OPEN_AI_API_KEY");
     private static final String symmetricSigningKey = BootstrapperMain.readConfig(
@@ -28,14 +29,15 @@ public class DiskWebappMain {
 
     public static void main(String[] args) throws Exception {
         IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localDiskRoot);
+        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk);
 
-        String ingestionManifestLocation = ingestManifestLocation(sourceManifestId);
+        String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
 
         String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
-        IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
+        IVectorStore<Chunk> vectorStoreMemory =
+                InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 

@@ -19,10 +19,10 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class S3WebappMain {
 
-    private static final String localDiskRoot = "local/s3bucket";
-    private static final String s3Bucket = "rag-server-ingestion";
-    private static final String s3VectorStoreBucket = "rag-server-vector";
-    private static final String sourceManifestId = "portland-city-code";
+    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+
+    private static final String s3Bucket = BootstrapperMain.s3IngestionBucket;
+    private static final String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;
     private static final String openAiApiKey = BootstrapperMain.readConfig(
                 "local/config.sh", "OPEN_AI_API_KEY");
     private static final String symmetricSigningKey = BootstrapperMain.readConfig(
@@ -33,10 +33,10 @@ public class S3WebappMain {
         IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, s3Bucket);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreS3);
 
-        String ingestionManifestLocation = ingestManifestLocation(sourceManifestId);
+        String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
 
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, sourceManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 

@@ -14,7 +14,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 
-public class DiskBootstrapperMain {
+public class LocalBootstrapperMain {
 
     private static final int numberOfEmbeddingThreads = 10;
     private static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
@@ -23,7 +23,7 @@ public class DiskBootstrapperMain {
     private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
     private static final String localSourceRoot = "local/sources";
-    private static final String localIngestionRoot = "local/s3bucket";
+    public static final String localIngestionRoot = "local/s3bucket";
 
     public static void main(String[] args) {
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
