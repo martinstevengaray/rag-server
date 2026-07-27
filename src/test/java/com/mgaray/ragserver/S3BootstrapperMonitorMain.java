@@ -17,19 +17,18 @@ import com.mgaray.ragserver.vectorstore.S3VectorStore;
 
 public class S3BootstrapperMonitorMain {
 
-    private static final ChunkingSpec chunkingSpec = BootstrapperMain.chunkingSpec;
-    private static final int numberOfEmbeddingThreads = BootstrapperMain.numberOfEmbeddingThreads;
-    private static final EmbeddingModelType embeddingModelType = BootstrapperMain.embeddingModelType;
-    private static final String ingestManifestId = BootstrapperMain.ingestManifestId;
-    private static final String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
-    private static final String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-    private static final String s3SourceBucket = BootstrapperMain.s3SourceBucket;
-    private static final String s3IngestionBucket = BootstrapperMain.s3IngestionBucket;;
-    private static final String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;;
-
-
     public static void main(String[] args) {
+        ChunkingSpec chunkingSpec = BootstrapperMain.chunkingSpec;
+        int numberOfEmbeddingThreads = BootstrapperMain.numberOfEmbeddingThreads;
+        EmbeddingModelType embeddingModelType = BootstrapperMain.embeddingModelType;
+        String ingestManifestId = BootstrapperMain.ingestManifestId;
+        String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
+        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
+        String s3SourceBucket = BootstrapperMain.s3SourceBucket;
+        String s3IngestionBucket = BootstrapperMain.s3IngestionBucket;;
+        String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;;
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
         IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, s3SourceBucket);

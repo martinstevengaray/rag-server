@@ -8,26 +8,25 @@ import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.ChatModelType;
 import com.mgaray.ragserver.localrunutils.LocalServer;
 import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 
-import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 
 public class LocalWebappMain {
 
     private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
-
-    private static final String localIngestionRoot = LocalBootstrapperMain.localIngestionRoot;
-    private static final String openAiApiKey = BootstrapperMain.readConfig(
-            "local/config.sh", "OPEN_AI_API_KEY");
-    private static final String symmetricSigningKey = BootstrapperMain.readConfig(
-            "local/config.sh", "SYMMETRIC_SIGNING_KEY");
+    private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
+        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
+        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
+
         IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
         IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk);
@@ -41,7 +40,7 @@ public class LocalWebappMain {
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 
-        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
+        WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
 
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStoreMemory, embeddingSpec);

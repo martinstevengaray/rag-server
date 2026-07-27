@@ -16,17 +16,17 @@ import com.mgaray.ragserver.common.Models.Chunk;
 
 public class LocalBootstrapperMain {
 
-    private static final int numberOfEmbeddingThreads = 10;
-    private static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
-    private static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
-
-    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
-    private static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
     private static final String localSourceRoot = "local/sources";
-    public static final String localIngestionRoot = "local/s3bucket";
 
     public static void main(String[] args) {
+        ChunkingSpec chunkingSpec = BootstrapperMain.chunkingSpec;
+        int numberOfEmbeddingThreads = BootstrapperMain.numberOfEmbeddingThreads;
+        EmbeddingModelType embeddingModelType = BootstrapperMain.embeddingModelType;
+        String ingestManifestId = BootstrapperMain.ingestManifestId;
+        String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
+        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
         String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
         IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, localSourceRoot);
