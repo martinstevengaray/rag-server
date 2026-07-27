@@ -2,8 +2,8 @@ package com.mgaray.ragserver.server;
 
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.rag.QueryHandler;
-import com.mgaray.ragserver.server.ServerModels.Request;
-import com.mgaray.ragserver.server.ServerModels.Response;
+import com.mgaray.ragserver.common.Models.Request;
+import com.mgaray.ragserver.common.Models.Response;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;

@@ -42,15 +42,15 @@ public class WebappMain {
         IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
         IDatastore dataStoreS3 = new Datastore(Datastore.Mode.S3, "rag-server-ingestion");
-        IDatastore datastore = dataStoreS3;//new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
+        IDatastore datastore = dataStoreDisk;//new DatastoreCache(datastoreMemory, dataStoreDisk, dataStoreS3);
 
         String ingestionManifestLocation = ingestManifestLocation(sourceManifestId);
         IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
 
         String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
-        //IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
+        IVectorStore<Chunk> vectorStoreMemory = InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>("rag-server-vector", sourceManifestId, Chunk.class);
-        IVectorStore<Chunk> vectorStore = vectorStoreS3;
+        IVectorStore<Chunk> vectorStore = vectorStoreMemory;
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 

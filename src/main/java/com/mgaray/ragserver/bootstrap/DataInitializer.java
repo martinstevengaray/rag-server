@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.ModelValidator;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.Source;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
@@ -22,13 +21,12 @@ import static com.mgaray.ragserver.common.Models.sourceRecordsDocumentLocation;
 
 public class DataInitializer {
 
-    private final ModelValidator modelValidator = new ModelValidator();
     private final IDatastore sourceDatastore;
-    private final IDatastore outDatastore;
+    private final IDatastore ingestionDatastore;
 
-    public DataInitializer(IDatastore sourceDatastore, IDatastore outDatastore) {
+    public DataInitializer(IDatastore sourceDatastore, IDatastore ingestionDatastore) {
         this.sourceDatastore = sourceDatastore;
-        this.outDatastore = outDatastore;
+        this.ingestionDatastore = ingestionDatastore;
     }
 
     public IngestionManifest create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
@@ -38,8 +36,8 @@ public class DataInitializer {
             String inputTextLocation = source.location();
             String textLocation = sourceRecordTextLocation(ingestManifestId, sourceRecordId);
             String chunkManifestLocation = chunkManifestLocation(ingestManifestId, sourceRecordId);
-            if (!outDatastore.exists(textLocation)) { // copy source text if not already done so
-                outDatastore.writeString(textLocation, sourceDatastore.readString(inputTextLocation));
+            if (!ingestionDatastore.exists(textLocation)) { // copy source text if not already done so
+                ingestionDatastore.writeString(textLocation, sourceDatastore.readString(inputTextLocation));
             }
             SourceRecord sourceRecord = new SourceRecord(
                     sourceRecordId,
@@ -52,8 +50,8 @@ public class DataInitializer {
         }
         SourceRecordsDocument sourceRecordsDocument = new SourceRecordsDocument(sourceRecords);
         String sourceRecordsLocation = sourceRecordsDocumentLocation(ingestManifestId);
-        if (!outDatastore.exists(sourceRecordsLocation)) {
-            outDatastore.writeObject(sourceRecordsLocation, sourceRecordsDocument);
+        if (!ingestionDatastore.exists(sourceRecordsLocation)) {
+            ingestionDatastore.writeObject(sourceRecordsLocation, sourceRecordsDocument);
         }
 
         VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
@@ -61,7 +59,7 @@ public class DataInitializer {
         IngestionManifest ingestionManifest =
                 new IngestionManifest(ingestManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
-        outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
+        ingestionDatastore.writeObject(ingestManifestLocation, ingestionManifest);
         return ingestionManifest;
     }
 

@@ -63,6 +63,10 @@ public class Models {
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
 
+    public record Request(String userPrompt, String sessionState) {}
+
+    public record Response(String chatResponse, List<String> sources, String sessionState, String details) {}
+
     public record VectorMatch<T extends IVectorRecord> (T record,
                                                         double matchScore) {}
 
