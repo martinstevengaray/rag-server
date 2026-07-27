@@ -34,11 +34,11 @@ import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 
-public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+public class LambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
     private final QueryHandler queryHandler;
 
-    public JavaLambdaServer() {
+    public LambdaServer() {
         String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
                 System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
         String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(

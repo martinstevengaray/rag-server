@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.datainitializer;
+package com.mgaray.ragserver.sourcecataloogwriter;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.Datastore;

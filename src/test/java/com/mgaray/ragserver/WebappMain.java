@@ -7,9 +7,9 @@ import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.server.JavaCoreServer;
+import com.mgaray.ragserver.localserver.LocalServer;
 import com.mgaray.ragserver.server.QueryHandler;
-import com.mgaray.ragserver.server.WebappHandler;
+import com.mgaray.ragserver.localserver.WebappHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
@@ -54,8 +54,8 @@ public class WebappMain {
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
 
-        JavaCoreServer javaCoreServer = new JavaCoreServer();
-        javaCoreServer.startServer(new WebappHandler(queryHandler), 80);
+        LocalServer localServer = new LocalServer();
+        localServer.startServer(new WebappHandler(queryHandler), 80);
     }
 
 }
