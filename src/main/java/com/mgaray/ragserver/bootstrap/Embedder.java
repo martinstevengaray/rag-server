@@ -86,7 +86,11 @@ public class Embedder {
             case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
             case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
                     .apiKey(openApiKey)
-                    .modelName("text-embedding-3-small") //consider: text-embedding-3-large
+                    .modelName("text-embedding-3-small")
+                    .build();
+            case OPEN_AI_TEXT_EMBEDDING_3_LARGE -> OpenAiEmbeddingModel.builder()
+                    .apiKey(openApiKey)
+                    .modelName("text-embedding-3-large")
                     .build();
         };
     }

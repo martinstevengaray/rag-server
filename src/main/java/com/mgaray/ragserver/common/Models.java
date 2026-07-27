@@ -58,7 +58,10 @@ public class Models {
 
     public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
-    public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
+    public enum EmbeddingModelType { DUMMY,
+                                     BGE_SMALL_EN_V15_QUANTIZED,
+                                     OPEN_AI_TEXT_EMBEDDING_3_SMALL,
+                                     OPEN_AI_TEXT_EMBEDDING_3_LARGE }
 
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
@@ -84,7 +87,9 @@ public class Models {
                                     int mostRecentPromptChunkCount,
                                     int conversationPreviouslyUsedChunkMaxCount) {}
 
-    public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
+    public enum ChatModelType { OPEN_AI_GPT_4O_MINI,
+                                OPEN_AI_GPT_4O,
+                                OPEN_AI_GPT_56_SOL }
 
 
 
