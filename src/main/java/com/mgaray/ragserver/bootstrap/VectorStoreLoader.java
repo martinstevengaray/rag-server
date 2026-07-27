@@ -28,7 +28,7 @@ public class VectorStoreLoader {
             for (Chunk chunk : chunkManifest.chunks()) {
                 if (!vectorStore.exists(chunk)) {
                     String embeddingLocation = chunk.embeddingLocation();
-                    float[] vector = datastore.readEmbedding(embeddingLocation);
+                    float[] vector = datastore.readFloatArray(embeddingLocation);
                     vectorStore.add(vector, chunk);
                 }
             }

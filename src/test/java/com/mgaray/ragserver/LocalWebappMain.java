@@ -10,6 +10,7 @@ import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.ChatModelType;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.LocalServer;
 import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
@@ -23,8 +24,8 @@ public class LocalWebappMain {
 
     public static void main(String[] args) throws Exception {
         String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
-        String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
+        String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 
         IDatastore datastoreMemory = new InMemoryDatastore();
         IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);

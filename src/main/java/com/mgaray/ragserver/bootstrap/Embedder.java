@@ -62,7 +62,7 @@ public class Embedder {
                 String chunkTextLocation = chunk.textLocation();
                 String chunkText = dataStore.readString(chunkTextLocation);
                 float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                dataStore.writeEmbedding(embeddingLocation, chunkEmbedding);
+                dataStore.writeFloatArray(embeddingLocation, chunkEmbedding);
             }
         }
     }

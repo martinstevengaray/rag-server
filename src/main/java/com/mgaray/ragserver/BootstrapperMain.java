@@ -14,6 +14,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
+import com.mgaray.ragserver.common.SsmDelegate;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,7 +38,7 @@ public class BootstrapperMain {
     public static final String oregonSourceCatalogLocation = "oregon-state-code/sourceCatalog.json";
 
     public static void main(String[] args) {
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
         IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
@@ -50,23 +51,23 @@ public class BootstrapperMain {
                 new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
         bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
-
-    public static String readConfig(String configFilename, String key) {
-        try {
-            List<String> lines = Files.readAllLines(Path.of(configFilename));
-            for (String line : lines) {
-                String prefix = "export " + key + "=";
-                if (line.startsWith(prefix)) {
-                    return line.substring(prefix.length()).split("\"")[1];
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        throw new IllegalArgumentException(key +" not found in " + configFilename);
-    }
-
 }
+
+//    public static String readConfig(String configFilename, String key) {
+//        try {
+//            List<String> lines = Files.readAllLines(Path.of(configFilename));
+//            for (String line : lines) {
+//                String prefix = "export " + key + "=";
+//                if (line.startsWith(prefix)) {
+//                    return line.substring(prefix.length()).split("\"")[1];
+//                }
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        throw new IllegalArgumentException(key +" not found in " + configFilename);
+//    }
+
 
 
 //    private static final String localSourceRoot = "/Users/turtlemccully/projects/rag-server/local/sources";

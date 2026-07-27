@@ -10,6 +10,7 @@ import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.ChatModelType;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.LocalServer;
 import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
@@ -21,12 +22,11 @@ public class S3WebappMain {
     private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
-
     public static void main(String[] args) throws Exception {
         String s3Bucket = BootstrapperMain.s3IngestionBucket;
         String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
-        String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
+        String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 
         IDatastore datastoreMemory = new InMemoryDatastore();
         IDatastore dataStoreS3 = new S3Datastore(s3Bucket);
