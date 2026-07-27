@@ -31,6 +31,9 @@ public class Bootstrapper {
     public void bootstrap(String sourceCatalogLocation,
                           String ingestionManifestId,
                           RunDefinition runDefinition) {
+        // Start
+        long tick = System.currentTimeMillis();
+
         // SourceCatalogValidator
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
         List<String> errors = SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
@@ -65,8 +68,9 @@ public class Bootstrapper {
             vectorStoreLoader.load(ingestionManifest, sourceRecordsDocument);
         }
 
-        // Complete
-        System.out.println(ingestionManifestId + " complete");
+        // Finish
+        long elapsedTime = System.currentTimeMillis() - tick;
+        System.out.println(ingestionManifestId + " complete in " + elapsedTime / 60000L + " minutes");
     }
 
 }
