@@ -13,19 +13,20 @@ public class DatastoreMonitor {
     private final String title;
     private Map<Datastore.Mode, Counters> modeToCounters;
 
-    public DatastoreMonitor(String title) {
+    public DatastoreMonitor(String title, long periodMs) {
         this.title = title;
         this.modeToCounters = new ConcurrentHashMap<>();
         this.modeToCounters.put(Datastore.Mode.IN_MEMORY, new Counters());
         this.modeToCounters.put(Datastore.Mode.LOCAL_DISK, new Counters());
         this.modeToCounters.put(Datastore.Mode.S3, new Counters());
+        start(periodMs);
     }
 
     public IDatastore add(IDatastore iDatastore, Datastore.Mode type) {
         return new MonitoredDatastore(iDatastore, type);
     }
 
-    public DatastoreMonitor start(long periodMs) {
+    private void start(long periodMs) {
         Thread thread = new Thread(() -> {
             while(true) {
                 System.out.println(getCounterSummary(null));
@@ -39,7 +40,6 @@ public class DatastoreMonitor {
         thread.setDaemon(true); //thread should not keep jvm alive
         Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println(getCounterSummary("final"))));
         thread.start();
-        return this;
     }
 
     public String getCounterSummary(String qualifier) {

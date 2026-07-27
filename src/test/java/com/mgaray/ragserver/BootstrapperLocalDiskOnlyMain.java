@@ -16,15 +16,16 @@ import com.mgaray.ragserver.common.Models.Chunk;
 
 public class BootstrapperLocalDiskOnlyMain {
 
-    private static final String localSourceRoot = "local/sources";
-    private static final String localIngestionRoot = "local/s3bucket";
     private static final int numberOfEmbeddingThreads = 10;
     private static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+    private static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
+
     private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
+    private static final String localSourceRoot = "local/sources";
+    private static final String localIngestionRoot = "local/s3bucket";
 
     public static void main(String[] args) {
-
         String openAiApiKey = BootstrapperMain.readKeyFromConfig(
                 "local/config.sh", "OPEN_AI_API_KEY");
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
@@ -34,7 +35,7 @@ public class BootstrapperLocalDiskOnlyMain {
         IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
         IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
 
-        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store").start(10000L);
+        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
         ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
         ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
 
@@ -42,9 +43,8 @@ public class BootstrapperLocalDiskOnlyMain {
 
         IVectorStore<Chunk> vectorStore = new InMemoryVectorStore<>(Chunk.class);
 
-        RunDefinition runDefinition = new RunDefinition(
-                new ChunkingSpec(500, 0.5f),
-                new EmbeddingSpec(embeddingModelType));
+        RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
+
         Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStore);
         bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
 
