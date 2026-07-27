@@ -1,10 +1,15 @@
 package com.mgaray.ragserver.sourcecataloogwriter;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.bootstrap.SourceCatalogValidator;
+import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.Source;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class SourceTransformer {
@@ -29,7 +34,7 @@ public class SourceTransformer {
                 String sourceId = "title" + inputSourceRecordId;
                 String textLocation = originalSourceTextLocation(sourceCatalogId, inputSourceRecordId);
                 outputDataStore.writeString(textLocation, text);
-                Map<String, Object> record = inputDataStore.readJson(inputRecordLocation);
+                Map<String, Object> record = readJson(inputRecordLocation);
                 Source source = new Source(
                         sourceId,
                         record.get("source_url").toString(),
@@ -48,7 +53,7 @@ public class SourceTransformer {
     //ors001.txt - ors838.txt (recall: 627 exist in total)
     public List<String> sourceFolderForOregon(String sourceCatalogId) {
         List<Source> sources = new ArrayList<>();
-        List<Map<String, Object>> manifest = inputDataStore.readJsonl("/manifest.jsonl");
+        List<Map<String, Object>> manifest = readJsonl("/manifest.jsonl");
         for (Map<String, Object> record : manifest) {
             String inputSourceRecordId = record.get("chapter").toString();
             if (inputSourceRecordId.length() == 1) { inputSourceRecordId = "00" + inputSourceRecordId; }
@@ -74,7 +79,7 @@ public class SourceTransformer {
 
     public List<String> sourceFolderForNabAndWebc(String sourceCatalogId) {
         List<Source> sources = new ArrayList<>();
-        List<Map<String, Object>> chapters = inputDataStore.readJsonl("/chapters.jsonl");
+        List<Map<String, Object>> chapters = readJsonl("/chapters.jsonl");
         for (Map<String, Object> record : chapters) {
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
@@ -102,6 +107,25 @@ public class SourceTransformer {
         return sourceManifestId + "/sources/" + sourceId + ".txt";
     }
 
+    private Map<String, Object> readJson(String storageLocation) {
+        String json = new String(inputDataStore.read(storageLocation), StandardCharsets.UTF_8);
+        return JsonUtils.parse(json);
+    }
+    private List<Map<String, Object>> readJsonl(String storageLocation) {
+        String json = new String(inputDataStore.read(storageLocation), StandardCharsets.UTF_8);
+        return parseJsonl(json);
+    }
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    public static List<Map<String, Object>> parseJsonl(String jsonl) {
+        try (MappingIterator<Map<String, Object>> iterator = objectMapper
+                .readerFor(new TypeReference<Map<String, Object>>() {})
+                .readValues(jsonl)) {
+            return iterator.readAll();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 }

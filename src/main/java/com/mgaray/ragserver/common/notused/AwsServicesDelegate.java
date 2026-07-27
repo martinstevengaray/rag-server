@@ -1,6 +1,5 @@
 package com.mgaray.ragserver.common.notused;
 
-import com.mgaray.ragserver.common.JsonUtils;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
 
@@ -34,7 +33,7 @@ public class AwsServicesDelegate {
             throw new IllegalStateException("reading " + ssmParameterKey
                     + " from parameter store failed: HTTP " + response.statusCode());
         }
-        return JsonUtils.getNestedField(response.body(), "Parameter", "Value");
+        return JsonUtilsAll.getNestedField(response.body(), "Parameter", "Value");
     }
 
     private static String urlEncode(String value) {

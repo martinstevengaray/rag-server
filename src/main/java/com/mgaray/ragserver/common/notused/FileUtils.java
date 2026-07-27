@@ -1,7 +1,5 @@
 package com.mgaray.ragserver.common.notused;
 
-import com.mgaray.ragserver.common.JsonUtils;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -110,11 +108,11 @@ public class FileUtils {
 
 
     public static Map<String, Object> readJsonFile(String fileName) {
-        return JsonUtils.parse(readFile(fileName));
+        return JsonUtilsAll.parse(readFile(fileName));
     }
 
     public static List<Map<String, Object>> readJsonlFile(String fileName) {
-        return JsonUtils.parseJsonl(readFile(fileName));
+        return JsonUtilsAll.parseJsonl(readFile(fileName));
     }
 
 }
