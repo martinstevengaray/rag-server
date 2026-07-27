@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.awsresources;
 
+import com.mgaray.ragserver.common.ByteUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 
 import java.nio.ByteBuffer;
@@ -24,7 +25,7 @@ public interface IDatastore {
         return new String(read(storageLocation), StandardCharsets.UTF_8);
     }
     default float[] readEmbedding(String storageLocation) {
-        return toFloatArray(read(storageLocation));
+        return ByteUtils.toFloatArray(read(storageLocation));
     }
 
     //convenience write methods
@@ -35,7 +36,7 @@ public interface IDatastore {
         write(storageLocation, content.getBytes(StandardCharsets.UTF_8));
     }
     default void writeEmbedding(String storageLocation, float[] embedding) {
-        write(storageLocation, toBytes(embedding));
+        write(storageLocation, ByteUtils.toBytes(embedding));
     }
 
     //used upstream only, as convenience methods for transforming arbitrary sources
@@ -46,26 +47,6 @@ public interface IDatastore {
     default List<Map<String, Object>> readJsonl(String storageLocation) {
         String json = new String(read(storageLocation), StandardCharsets.UTF_8);
         return JsonUtils.parseJsonl(json);
-    }
-
-    private static float[] toFloatArray(byte[] bytes) {
-        if (bytes.length % Float.BYTES != 0) {
-            throw new IllegalArgumentException("Byte array length must be a multiple of " + Float.BYTES);
-        }
-        ByteBuffer buffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
-        float[] values = new float[bytes.length / Float.BYTES];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = buffer.getFloat();
-        }
-        return values;
-    }
-
-    private static byte[] toBytes(float[] values) {
-        ByteBuffer buffer = ByteBuffer.allocate(values.length * Float.BYTES).order(ByteOrder.LITTLE_ENDIAN);
-        for (float value : values) {
-            buffer.putFloat(value);
-        }
-        return buffer.array();
     }
 
 }

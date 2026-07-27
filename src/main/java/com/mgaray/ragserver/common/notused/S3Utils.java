@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.common.notused;
 
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;
