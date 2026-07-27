@@ -4,8 +4,8 @@ public class DatastoreCache implements IDatastore {
 
     private IDatastore[] datastores; //ordered from most volatile to the least volatile
 
-    //instantiate in with datastore sequence from most volatile to the least volatile
-    //for example: new DatastoreCache(inMemoryDataStore, localDiskMemoryStore, s3Datastore);
+    //instantiate with datastore sequence from most volatile to the least volatile
+    //for example: new DatastoreCache(inMemoryDatastore, localDiskDatastore, s3Datastore);
     public DatastoreCache(IDatastore... datastores) {
         this.datastores = datastores;
     }
