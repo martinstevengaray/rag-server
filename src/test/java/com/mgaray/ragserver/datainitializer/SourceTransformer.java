@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.datainitializer;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.bootstrap.SourceCatalogValidator;
 import com.mgaray.ragserver.common.Models.Source;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 
@@ -41,7 +42,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -68,7 +69,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceCatalogId) {
@@ -90,7 +91,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
     private static String sourceCatalogLocation(String sourceCatalogId) {
@@ -101,22 +102,6 @@ public class SourceTransformer {
         return sourceManifestId + "/sources/" + sourceId + ".txt";
     }
 
-    private static List<String> validateSourceCatalog(SourceCatalog sourceCatalog) {
-        List<String> errors = new ArrayList<>();
-        Set<String> ids = new HashSet<>();;
-        Set<String> sourceUrls = new HashSet<>();
-        for (Source source : sourceCatalog.sources()) {
-            ids.add(source.id());
-            sourceUrls.add(source.sourceUrl());
-        }
-        if (ids.size() != sourceCatalog.sources().size()) { //verify each source has a unique ids
-            errors.add("ids.size() != source.sourceRecords().size() : " + ids.size() +" != " + sourceCatalog.sources().size());
-        }
-        if (sourceUrls.size() != sourceCatalog.sources().size()) { //verify each source has a unique sourceUrl
-            errors.add("sourceUrls.size() != source.sourceRecords().size() : " + sourceUrls.size() +" != " + sourceCatalog.sources().size());
-        }
-        System.out.println(sourceCatalog.title() + ": " + sourceCatalog.sources().size());
-        return errors;
-    }
+
 
 }

@@ -1,7 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.ModelValidator;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.BootstrapperConfig;
@@ -18,7 +17,6 @@ public class Bootstrapper {
     private final IDatastore sourceDatastore;
     private final IDatastore ingestionDatastore;
     private final IVectorStore<Chunk> vectorStore;
-    private final ModelValidator modelValidator = new ModelValidator();
 
     public Bootstrapper(BootstrapperConfig bootstrapperConfig,
                         IDatastore sourceDatastore,
@@ -33,8 +31,14 @@ public class Bootstrapper {
     public void bootstrap(String sourceCatalogLocation,
                           String ingestionManifestId,
                           RunDefinition runDefinition) {
-        // SourceCatalog
+        // SourceCatalogValidator
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
+        List<String> errors = SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
+        if (!errors.isEmpty()) {
+            System.out.println("source catalog errors with ingestionManifestId: " + ingestionManifestId +
+                    ", errors: " + errors);
+            return;
+        }
 
         // DataInitializer
         System.out.println("DataInitializer");
@@ -42,11 +46,6 @@ public class Bootstrapper {
         IngestionManifest ingestionManifest = dataInitializer.create(sourceCatalog, ingestionManifestId, runDefinition);
         SourceRecordsDocument sourceRecordsDocument = ingestionDatastore.readObject
                 (ingestionManifest.sourceRecordsDocumentLocation(), SourceRecordsDocument.class);
-        List<String> errors = modelValidator.validate(ingestionManifest, sourceRecordsDocument);
-        if (!errors.isEmpty()) {
-            System.out.println(ingestionManifestId + "errors: " + errors);
-            return;
-        }
 
         // Chunker
         System.out.println("Chunker");
