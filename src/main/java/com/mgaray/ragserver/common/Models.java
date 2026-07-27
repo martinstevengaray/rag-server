@@ -19,8 +19,11 @@ public class Models {
 
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
-                                    List<SourceRecord> sourceRecords,
+                                    String sourceRecordsDocumentLocation,
+//                                    List<SourceRecord> sourceRecords,
                                     VectorStoreSpec vectorStoreSpec) {}
+
+    public record SourceRecordsDocument(List<SourceRecord> sourceRecords) {}
 
     public record RunDefinition(ChunkingSpec chunkingSpec,
                                 EmbeddingSpec embeddingSpec) {}
@@ -55,59 +58,49 @@ public class Models {
 
     public record EmbeddingSpec(EmbeddingModelType embeddingModelType) {}
 
-    public enum EmbeddingModelType { DUMMY, BGE_SMALL_EN_V15_QUANTIZED, OPEN_AI_TEXT_EMBEDDING_3_SMALL }
+    public enum EmbeddingModelType { DUMMY,
+                                     BGE_SMALL_EN_V15_QUANTIZED,
+                                     OPEN_AI_TEXT_EMBEDDING_3_SMALL,
+                                     OPEN_AI_TEXT_EMBEDDING_3_LARGE }
 
 
     //-----Webapp-------------------------------------------------------------------------------------------------------
 
-    public record VectorMatch<T extends IVectorRecord> (T record, double matchScore) {}
+    public record Request(String userPrompt, String sessionState) {}
+
+    public record Response(String chatResponse, List<String> sources, String sessionState, String details) {}
+
+    public record VectorMatch<T extends IVectorRecord> (T record,
+                                                        double matchScore) {}
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
-    public record BootstrapperConfig(int numberOfEmbeddingThreads, String openApiKey) {}
+    public record BootstrapperConfig(int numberOfEmbeddingThreads,
+                                     String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
-                               int chunksToProvide,
+                               VectorQueryConfig vectorQueryConfig,
                                String openApiKey,
                                String symmetricSigningKey) {}
 
-    public enum ChatModelType { OPEN_AI_GPT_4O_MINI, OPEN_AI_GPT_4O, OPEN_AI_GPT_56_SOL }
+    public record VectorQueryConfig(int conversationChunkCount,
+                                    int mostRecentPromptChunkCount,
+                                    int conversationPreviouslyUsedChunkMaxCount) {}
+
+    public enum ChatModelType { OPEN_AI_GPT_4O_MINI,
+                                OPEN_AI_GPT_4O,
+                                OPEN_AI_GPT_56_SOL }
 
 
 
 
-
-
-
-
-
-
-    public static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
-        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
-    }
-
-    public static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
-        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
-    }
-
-    public static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
-        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
-    }
-
-    public static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
-        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
-    }
 
     public static String ingestManifestLocation(String sourceManifestId) {
         return sourceManifestId + "/sourceManifest.json";
     }
 
-    public static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
-        return sourceManifestId + "/vectorStore.json.gz";
-    }
-    public static String s3VectorStoreManifestLocation(String sourceManifestId) {
-        return sourceManifestId + "/s3VectorStore.json";
-    }
+}
+
 
 /*
 
@@ -147,4 +140,3 @@ public class Models {
 
  */
 
-}

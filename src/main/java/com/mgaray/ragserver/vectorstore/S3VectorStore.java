@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3vectors.model.ConflictException;
 import software.amazon.awssdk.services.s3vectors.model.CreateIndexRequest;
 import software.amazon.awssdk.services.s3vectors.model.DataType;
 import software.amazon.awssdk.services.s3vectors.model.DistanceMetric;
+import software.amazon.awssdk.services.s3vectors.model.GetOutputVector;
 import software.amazon.awssdk.services.s3vectors.model.GetVectorsRequest;
 import software.amazon.awssdk.services.s3vectors.model.GetVectorsResponse;
 import software.amazon.awssdk.services.s3vectors.model.PutInputVector;
@@ -82,6 +83,22 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
         return vectorMatches;
     }
 
+    public T get(String id) {
+        GetVectorsRequest getVectorsRequest = GetVectorsRequest.builder()
+                .vectorBucketName(bucket)
+                .indexName(ingestionManifestId)
+                .keys(id)
+                .returnData(false)       // the payload lives in the metadata, skip the vector itself
+                .returnMetadata(true)
+                .build();
+        GetVectorsResponse response = s3VectorsClient.getVectors(getVectorsRequest);
+        for (GetOutputVector getOutputVector : response.vectors()) {
+            String tJsonString = getOutputVector.metadata().asMap().get(DOCUMENT_PAYLOAD_KEY).asString();
+            return JsonUtils.toObject(tJsonString, clazz);
+        }
+        return null;
+    }
+
     @Override
     public void initialize(EmbeddingSpec embeddingSpec) { //ensure vector store index is created
         final EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, null);
@@ -100,7 +117,13 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
     }
 
     @Override
-    public void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+    public boolean resultsExist(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+        String s3VectorStoreManifestLocation = vectorStoreSpec.s3VectorStoreManifestLocation();
+        return datastore.exists(s3VectorStoreManifestLocation);
+    }
+
+    @Override
+    public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String s3VectorStoreManifestLocation = vectorStoreSpec.s3VectorStoreManifestLocation();
         S3VectorStoreManifest s3VectorStoreManifest = new S3VectorStoreManifest(bucket, ingestionManifestId);
         datastore.writeObject(s3VectorStoreManifestLocation, s3VectorStoreManifest);
@@ -108,13 +131,14 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
     @Override
     public boolean exists(T t) {
-        GetVectorsResponse response = s3VectorsClient.getVectors(GetVectorsRequest.builder()
+        GetVectorsRequest getVectorsRequest = GetVectorsRequest.builder()
                 .vectorBucketName(bucket)
                 .indexName(ingestionManifestId)
                 .keys(t.id())
                 .returnData(false)       // we only care about presence, skip the vector payload
                 .returnMetadata(false)
-                .build());
+                .build();
+        GetVectorsResponse response = s3VectorsClient.getVectors(getVectorsRequest);
         return !response.vectors().isEmpty();
     }
     

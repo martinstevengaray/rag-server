@@ -1,22 +1,21 @@
-package com.mgaray.ragserver.server;
+package com.mgaray.ragserver.localrunutils;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 
-public class JavaCoreServer {
+public class LocalServer {
 
     public interface IListener {
         String handlePost(String path, String body);
         String handleGet(String path);
     }
 
-    public JavaCoreServer() {}
+    public LocalServer() {}
 
     public void startServer(IListener iListener, int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);

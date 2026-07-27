@@ -26,8 +26,8 @@ variable "chat_model_type" {
   type        = string
 }
 
-variable "chunks_to_provide" {
-  description = "CHUNKS_TO_PROVIDE env var: number of retrieved chunks handed to the model"
+variable "vector_query_config" {
+  description = "VECTOR_QUERY_CONFIG env var: number of retrieved chunks handed to the model"
   type        = string
 }
 

@@ -63,7 +63,7 @@ public class Datastore implements IDatastore {
                 yield matchingKeys;
             }
             case LOCAL_DISK -> FileUtils.listFolder(bucket + "/" + keyPrefix);
-            case S3 -> throw new UnsupportedOperationException("Unsupported mode: " + mode);
+            case S3 -> S3Utils.list(bucket, keyPrefix);
         };
     }
 

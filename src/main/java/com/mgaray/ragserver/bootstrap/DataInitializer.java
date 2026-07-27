@@ -1,43 +1,38 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.ModelValidator;
 import com.mgaray.ragserver.common.Models.SourceCatalog;
 import com.mgaray.ragserver.common.Models.Source;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.VectorStoreSpec;
+import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.mgaray.ragserver.common.Models.chunkManifestLocation;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-import static com.mgaray.ragserver.common.Models.s3VectorStoreManifestLocation;
-import static com.mgaray.ragserver.common.Models.sourceRecordTextLocation;
-import static com.mgaray.ragserver.common.Models.inMemoryVectorStoreExportLocation;
 
 public class DataInitializer {
 
-    private final ModelValidator modelValidator = new ModelValidator();
     private final IDatastore sourceDatastore;
-    private final IDatastore outDatastore;
+    private final IDatastore ingestionDatastore;
 
-    public DataInitializer(IDatastore sourceDatastore, IDatastore outDatastore) {
+    public DataInitializer(IDatastore sourceDatastore, IDatastore ingestionDatastore) {
         this.sourceDatastore = sourceDatastore;
-        this.outDatastore = outDatastore;
+        this.ingestionDatastore = ingestionDatastore;
     }
 
-    public List<String> create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
+    public IngestionManifest create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
         List<SourceRecord> sourceRecords = new ArrayList<>();
         for (Source source : sourceCatalog.sources()) {
             String sourceRecordId = source.id();
             String inputTextLocation = source.location();
             String textLocation = sourceRecordTextLocation(ingestManifestId, sourceRecordId);
             String chunkManifestLocation = chunkManifestLocation(ingestManifestId, sourceRecordId);
-            if (!outDatastore.exists(textLocation)) { // copy source text if not already done so
-                outDatastore.writeString(textLocation, sourceDatastore.readString(inputTextLocation));
+            if (!ingestionDatastore.exists(textLocation)) { // copy source text if not already done so
+                ingestionDatastore.writeString(textLocation, sourceDatastore.readString(inputTextLocation));
             }
             SourceRecord sourceRecord = new SourceRecord(
                     sourceRecordId,
@@ -48,13 +43,40 @@ public class DataInitializer {
                     chunkManifestLocation);
             sourceRecords.add(sourceRecord);
         }
+        SourceRecordsDocument sourceRecordsDocument = new SourceRecordsDocument(sourceRecords);
+        String sourceRecordsLocation = sourceRecordsDocumentLocation(ingestManifestId);
+        if (!ingestionDatastore.exists(sourceRecordsLocation)) {
+            ingestionDatastore.writeObject(sourceRecordsLocation, sourceRecordsDocument);
+        }
+
         VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
                                                               s3VectorStoreManifestLocation(ingestManifestId));
         IngestionManifest ingestionManifest =
-                new IngestionManifest(ingestManifestId, runDefinition, sourceRecords, vectorStoreSpec);
+                new IngestionManifest(ingestManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
         String ingestManifestLocation = ingestManifestLocation(ingestManifestId);
-        outDatastore.writeObject(ingestManifestLocation, ingestionManifest);
-        return modelValidator.validate(ingestionManifest);
+        ingestionDatastore.writeObject(ingestManifestLocation, ingestionManifest);
+        return ingestionManifest;
+    }
+
+
+    private static String sourceRecordsDocumentLocation(String sourceManifestId) {
+        return sourceManifestId + "/sourceRecordsDocument.json";
+    }
+
+    private static String sourceRecordTextLocation(String sourceManifestId, String sourceRecordId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/sourceRecord.txt";
+    }
+
+    private static String chunkManifestLocation(String sourceManifestId, String sourceRecordId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunkManifest.json";
+    }
+
+    private static String inMemoryVectorStoreExportLocation(String sourceManifestId) {
+        return sourceManifestId + "/vectorStore.json.gz";
+    }
+
+    private static String s3VectorStoreManifestLocation(String sourceManifestId) {
+        return sourceManifestId + "/s3VectorStore.json";
     }
 
 }

@@ -7,19 +7,20 @@ import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.common.AwsServicesDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
-//import com.mgaray.ragserver.common.Models;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.S3Utils;
-import com.mgaray.ragserver.rag.QueryHandler;
-import com.mgaray.ragserver.server.ServerModels.Request;
-import com.mgaray.ragserver.server.ServerModels.Response;
+import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.Models.ChatModelType;
+import com.mgaray.ragserver.common.Models.VectorQueryConfig;
+import com.mgaray.ragserver.common.Models.Request;
+import com.mgaray.ragserver.common.Models.Response;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
@@ -30,31 +31,39 @@ import static com.mgaray.ragserver.awsresources.Datastore.Mode.S3;
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-import static com.mgaray.ragserver.rag.QueryHandler.createChatModel;
+import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 
-public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+public class LambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
-    private final WebappHandler webappHandler;
+    private final QueryHandler queryHandler;
 
-    public JavaLambdaServer() {
+    public LambdaServer() {
         String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
                 System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
         String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(
                 System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
         String chatModelTypeString = System.getenv("CHAT_MODEL_TYPE");
-        String chunksToProvideString = System.getenv("CHUNKS_TO_PROVIDE");
+        String vectorQueryConfigJson = System.getenv("VECTOR_QUERY_CONFIG");
         String ingestionManifestBucket = System.getenv("INGESTION_MANIFEST_BUCKET");
         String vectorStoreBucket = System.getenv("VECTOR_STORE_BUCKET");
         String ingestionManifestId = System.getenv("INGESTION_MANIFEST_ID");
 
-        int chunksToProvide = Integer.valueOf(chunksToProvideString);
+        VectorQueryConfig vectorQueryConfig = JsonUtils.toObject(vectorQueryConfigJson, VectorQueryConfig.class);
+        ChatModelType chatModelType = ChatModelType.valueOf(chatModelTypeString);
 
-        WebappConfig webappConfig = new WebappConfig(OPEN_AI_GPT_4O_MINI, chunksToProvide, openAiKey, symmetricSigningKey);
-        IDatastore ingestionDatastore = new Datastore(S3, ingestionManifestBucket);
+        System.out.println("vectorQueryConfig: " + JsonUtils.toJson(vectorQueryConfig));
+
+        WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiKey, symmetricSigningKey);
+        IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
-        QueryHandler queryHandler = new QueryHandler(webappConfig, ingestionDatastore, vectorStore, ingestionManifestId);
-        this.webappHandler = new WebappHandler(queryHandler);
+
+        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
+
+        this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
+//        this.webappHandler = new WebappHandler(queryHandler);
 
 //public QueryHandler(WebappConfig webappConfig,
 //                IDatastore datastore,
@@ -63,22 +72,22 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         System.out.println( //"openAiKey: " + openAiKey + "," +
                             //"symmetricSigningKey: " + symmetricSigningKey + ", " +
                             "chatModelTypeString: " + chatModelTypeString + ", " +
-                            "chunksToProvideString: " + chunksToProvideString + ", " +
+                            "vectorQueryConfigJson: " + vectorQueryConfigJson + ", " +
                             "ingestionManifestBucket: " + ingestionManifestBucket + ", " +
                             "vectorStoreBucket: " + vectorStoreBucket + ", " +
                             "ingestionManifestId: " + ingestionManifestId);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
-        byte[] ingestionManifestBytes = S3Utils.readBytes(ingestionManifestBucket, ingestionManifestLocation);
-        String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
-        IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);
+//        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+//        byte[] ingestionManifestBytes = S3Utils.readBytes(ingestionManifestBucket, ingestionManifestLocation);
+//        String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
+//        IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);
         System.out.println(JsonUtils.toJson(ingestionManifest));
         EmbeddingModel embeddingModel = createEmbeddingModel(ingestionManifest.runDefinition().embeddingSpec(), openAiKey);
 
         float[] chunkEmbedding = embeddingModel.embed("embed this piece of text").content().vector();
         System.out.println("chunkEmbedding: " + chunkEmbedding);
 
-        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, 20, openAiKey, symmetricSigningKey));
+        ChatModel chatModel = createChatModel(new WebappConfig(OPEN_AI_GPT_4O_MINI, vectorQueryConfig, openAiKey, symmetricSigningKey));
         String chatResult = chatModel.chat("What is vitamin D used for");
         System.out.println("chatResult: " + chatResult);
     }
@@ -88,14 +97,14 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         System.out.println(JsonUtils.toJson(input));
 
         String method = extractMethod(input);        //POST OR GET
-        System.out.println("method=" + method);
-        //todo path=?
+        String path = extractPath(input);
+        System.out.println("method=" + method + ", path=" + path);
         String responseString = null;
         if ("GET".equals(method)) {
-            responseString = this.webappHandler.handleGet("/");
+            responseString = this.handleGet(path);
             return proxyResponseHtml(200, responseString);
         } else if ("POST".equals(method)) {
-            responseString = this.webappHandler.handlePost("/", extractBody(input));
+            responseString = this.handlePost(path, extractBody(input));
             return proxyResponseJson(200, responseString);
         } else {
             Request request = extractRequest(input);
@@ -108,6 +117,24 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
         }
     }
 
+    public String handlePost(String path, String body) {
+        System.out.println("Post: " + path + ", " + body);
+        Request request = JsonUtils.toObject(body, Request.class);
+        Response response = queryHandler.query(request);
+        String responseJson = JsonUtils.toJson(response);
+        System.out.println("Response: " + responseJson);
+        return responseJson;
+    }
+
+    public String handleGet(String path) {
+        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+            byte[] bytes = inputStream.readAllBytes();
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /** Handles REST API (v1: "httpMethod") and HTTP API v2 / Function URL ("requestContext.http.method"). */
     private static String extractMethod(Map<String, Object> input) {
         String method = (String) input.get("httpMethod");
@@ -115,6 +142,21 @@ public class JavaLambdaServer implements RequestHandler<Map<String, Object>, Map
             method = JsonUtils.getNestedField(input, "requestContext", "http", "method");
         }
         return method;
+    }
+
+    /**
+     * Handles REST API (v1: "path") and HTTP API v2 / Function URL ("rawPath"). Falls back to "/"
+     * so handlers always get a usable path; the query string is deliberately excluded.
+     */
+    private static String extractPath(Map<String, Object> input) {
+        String path = (String) input.get("path");
+        if (path == null) {
+            path = (String) input.get("rawPath");
+        }
+        if (path == null) {
+            path = JsonUtils.getNestedField(input, "requestContext", "http", "path");
+        }
+        return (path != null && !path.isBlank()) ? path : "/";
     }
 
     /**

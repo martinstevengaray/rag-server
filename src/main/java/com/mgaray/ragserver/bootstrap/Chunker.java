@@ -6,13 +6,11 @@ import com.mgaray.ragserver.common.Models.ChunkingSpec;
 import com.mgaray.ragserver.common.Models.SourceRecord;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.ChunkManifest;
+import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.mgaray.ragserver.common.Models.chunkTextLocation;
-import static com.mgaray.ragserver.common.Models.embeddingLocation;
 
 public class Chunker {
 
@@ -22,9 +20,9 @@ public class Chunker {
         this.dataStore = dataStore;
     }
 
-    public void chunk(IngestionManifest ingestionManifest) {
+    public void chunk(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         ChunkingSpec chunkingSpec = ingestionManifest.runDefinition().chunkingSpec();
-        for (SourceRecord sourceRecord : ingestionManifest.sourceRecords()) {
+        for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             if (!dataStore.exists(chunkManifestLocation)) {
                 List<Chunk> chunks = chunk(ingestionManifest.id(), sourceRecord, chunkingSpec);
@@ -71,6 +69,14 @@ public class Chunker {
             }
         }
         return chunks;
+    }
+
+    private static String chunkTextLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/chunks/" + chunkId + ".txt";
+    }
+
+    private static String embeddingLocation(String sourceManifestId, String sourceRecordId, String chunkId) {
+        return sourceManifestId + "/sourceRecords/" + sourceRecordId + "/embeddings/" + chunkId + ".bin";
     }
 
 }

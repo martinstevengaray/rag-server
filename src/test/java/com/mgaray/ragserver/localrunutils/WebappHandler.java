@@ -1,14 +1,14 @@
-package com.mgaray.ragserver.server;
+package com.mgaray.ragserver.localrunutils;
 
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.rag.QueryHandler;
-import com.mgaray.ragserver.server.ServerModels.Request;
-import com.mgaray.ragserver.server.ServerModels.Response;
+import com.mgaray.ragserver.common.Models.Request;
+import com.mgaray.ragserver.common.Models.Response;
+import com.mgaray.ragserver.server.QueryHandler;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-public class WebappHandler implements JavaCoreServer.IListener {
+public class WebappHandler implements LocalServer.IListener {
 
     private final QueryHandler queryHandler;
 

@@ -14,9 +14,13 @@ public interface IVectorStore<T extends IVectorRecord >  {
 
     List<VectorMatch<T>> get(float[] searchVector, int topK);
 
+    T get(String id);
+
     void initialize(EmbeddingSpec embeddingSpec);
 
-    void complete(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
+    boolean resultsExist(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
+
+    void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec);
 
     boolean exists(T t);
 
