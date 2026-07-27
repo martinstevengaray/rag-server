@@ -1,7 +1,5 @@
 package com.mgaray.ragserver.common;
 
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
@@ -18,7 +16,7 @@ public class EncryptionDelegate {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final SecretKey secretKey;
+    private final SecretKey secretKey; // openssl rand -base64 32
 
     public EncryptionDelegate(String symmetricSigningKey) {
          this.secretKey = new SecretKeySpec(Base64.getDecoder().decode(symmetricSigningKey), "AES");
