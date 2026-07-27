@@ -22,7 +22,7 @@ public class BootstrapperMain {
 
     public static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
     public static final int numberOfEmbeddingThreads = 10;
-    public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.BGE_SMALL_EN_V15_QUANTIZED; //OPEN_AI_TEXT_EMBEDDING_3_SMALL;
+    public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL;
     public static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
     public static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
 
