@@ -16,16 +16,16 @@ public class Bootstrapper {
     private final BootstrapperConfig bootstrapperConfig;
     private final IDatastore sourceDatastore;
     private final IDatastore ingestionDatastore;
-    private final IVectorStore<Chunk> vectorStore;
+    private final IVectorStore<Chunk>[] vectorStores;
 
     public Bootstrapper(BootstrapperConfig bootstrapperConfig,
                         IDatastore sourceDatastore,
                         IDatastore ingestionDatastore,
-                        IVectorStore<Chunk> vectorStore) {
+                        IVectorStore<Chunk>... vectorStores) {
         this.bootstrapperConfig = bootstrapperConfig;
         this.sourceDatastore = sourceDatastore;
         this.ingestionDatastore = ingestionDatastore;
-        this.vectorStore = vectorStore;
+        this.vectorStores = vectorStores;
     }
 
     public void bootstrap(String sourceCatalogLocation,
@@ -59,9 +59,11 @@ public class Bootstrapper {
 
         // VectorStoreLoader
         System.out.println("VectorStoreLoader");
-        vectorStore.initialize(runDefinition.embeddingSpec());
-        VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, vectorStore);
-        vectorStoreLoader.load(ingestionManifest, sourceRecordsDocument);
+        for (IVectorStore<Chunk> vectorStore : vectorStores) {
+            vectorStore.initialize(runDefinition.embeddingSpec());
+            VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, vectorStore);
+            vectorStoreLoader.load(ingestionManifest, sourceRecordsDocument);
+        }
 
         // Complete
         System.out.println(ingestionManifestId + " complete");

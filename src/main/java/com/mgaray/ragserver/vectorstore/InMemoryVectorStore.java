@@ -67,6 +67,12 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     }
 
     @Override
+    public boolean resultsExist(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+        String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
+        return datastore.exists(inMemoryVectorStoreExportLocation);
+    }
+
+    @Override
     public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
         datastore.write(inMemoryVectorStoreExportLocation, GzipUtils.compress(store.serializeToJson()));

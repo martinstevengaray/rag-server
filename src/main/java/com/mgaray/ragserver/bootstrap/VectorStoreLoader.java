@@ -19,6 +19,9 @@ public class VectorStoreLoader {
     }
 
     public void load(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
+        if (vectorStore.resultsExist(datastore, ingestionManifest.vectorStoreSpec())) {
+            return;
+        }
         for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
             ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);

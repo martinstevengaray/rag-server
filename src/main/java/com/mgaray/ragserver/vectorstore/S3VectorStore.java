@@ -117,6 +117,12 @@ public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
     }
 
     @Override
+    public boolean resultsExist(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
+        String s3VectorStoreManifestLocation = vectorStoreSpec.s3VectorStoreManifestLocation();
+        return datastore.exists(s3VectorStoreManifestLocation);
+    }
+
+    @Override
     public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String s3VectorStoreManifestLocation = vectorStoreSpec.s3VectorStoreManifestLocation();
         S3VectorStoreManifest s3VectorStoreManifest = new S3VectorStoreManifest(bucket, ingestionManifestId);

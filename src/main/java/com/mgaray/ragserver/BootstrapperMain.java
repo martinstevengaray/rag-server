@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-public class BootstapperMain {
+public class BootstrapperMain {
 
     private static final String localSourceRoot = "/Users/turtlemccully/projects/rag-server/local/sources";
     private static final String localIngestionRoot = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
@@ -27,8 +27,8 @@ public class BootstapperMain {
     private static final String s3IngestionBucket = "rag-server-ingestion";
     private static final String s3VectorStoreBucket = "rag-server-vector";
 
-    private static final String portlandIngestManifestId = "portland-city-code";
-    private static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
+    public static final String portlandIngestManifestId = "portland-city-code";
+    public static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
 
 
 //    private static final String sourceBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
