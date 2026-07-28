@@ -50,6 +50,21 @@ public class QueryHandler {
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
 
+    //to support unit tests
+    QueryHandler(WebappConfig webappConfig,
+                 IDatastore datastore,
+                 IVectorStore<Chunk> vectorStore,
+                 EmbeddingModel embeddingModel,
+                 ChatModel chatModel,
+                 EncryptionDelegate encryptionDelegate) {
+        this.webappConfig = webappConfig;
+        this.datastore = datastore;
+        this.vectorStore = vectorStore;
+        this.embeddingModel = embeddingModel;
+        this.chatModel = chatModel;
+        this.encryptionDelegate = encryptionDelegate;
+    }
+
     public static ChatModel createChatModel(WebappConfig config) {
         String chatModelName = switch(config.chatModelType()) {
             case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";

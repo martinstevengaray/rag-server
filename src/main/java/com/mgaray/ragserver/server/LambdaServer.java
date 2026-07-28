@@ -50,6 +50,11 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
     }
 
+    //to support unit tests
+    LambdaServer(QueryHandler queryHandler) {
+        this.queryHandler = queryHandler;
+    }
+
     @Override
     public Map<String, Object> handleRequest(Map<String, Object> input, Context context) {
         ILogger logger = new Logger(context);
