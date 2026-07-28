@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public interface IDatastore {
 
-    //primary operations that need to be overwritten per datastore technology
+    //primary operations that need to be overwritten per datastore
     byte[] read(String storageLocation);
     void write(String storageLocation, byte[] bytes);
     boolean exists(String storageLocation);
@@ -32,6 +32,10 @@ public interface IDatastore {
     default String readGzipString(String storageLocation) {
         return new String(GzipUtils.decompress(read(storageLocation)), StandardCharsets.UTF_8);
     }
+    default <T> T readGzipObject(String storageLocation, Class<T> clazz) {
+        String json = new String(GzipUtils.decompress(read(storageLocation)), StandardCharsets.UTF_8);
+        return JsonUtils.toObject(json, clazz);
+    }
 
     //convenience write methods
     default void writeObject(String storageLocation, Object object) {
@@ -48,6 +52,9 @@ public interface IDatastore {
     }
     default void writeGzipString(String storageLocation, String content) {
         write(storageLocation, GzipUtils.compress(content.getBytes(StandardCharsets.UTF_8)));
+    }
+    default void writeGzipObject(String storageLocation, Object object) {
+        write(storageLocation, GzipUtils.compress(JsonUtils.toJson(object).getBytes(StandardCharsets.UTF_8)));
     }
 
     //convenience methods specific to models
