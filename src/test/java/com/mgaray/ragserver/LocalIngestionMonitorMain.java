@@ -1,5 +1,7 @@
 package com.mgaray.ragserver;
 
+import com.mgaray.ragserver.logger.ILogger;
+import com.mgaray.ragserver.logger.Logger;
 import com.mgaray.ragserver.storage.data.TieredDatastore;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
@@ -21,6 +23,7 @@ public class LocalIngestionMonitorMain {
     private static final String localSourceRoot = "local/sources";
 
     public static void main(String[] args) {
+        ILogger logger = new Logger();
         ChunkingSpec chunkingSpec = IngestionMain.chunkingSpec;
         int numberOfEmbeddingThreads = IngestionMain.numberOfEmbeddingThreads;
         EmbeddingModelType embeddingModelType = IngestionMain.embeddingModelType;
@@ -35,7 +38,7 @@ public class LocalIngestionMonitorMain {
 
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
-        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
+        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L, logger);
         ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
         ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
         IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreDisk);
@@ -44,7 +47,7 @@ public class LocalIngestionMonitorMain {
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
                 new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStore);
-        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition);
+        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition, logger);
 
     }
 

@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.localrunutils;
 
+import com.mgaray.ragserver.logger.Logger;
 import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.Request;
 import com.mgaray.ragserver.Models.Response;
@@ -11,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 public class WebappHandler implements LocalServer.IListener {
 
     private final QueryHandler queryHandler;
+    private final Logger logger = new Logger();
 
     public WebappHandler(QueryHandler queryHandler) {
         this.queryHandler = queryHandler;
@@ -18,11 +20,11 @@ public class WebappHandler implements LocalServer.IListener {
 
     @Override
     public String handlePost(String path, String body) {
-        System.out.println("Post: " + path + ", " + body);
+        logger.log("Post: " + path + ", " + body);
         Request request = JsonUtils.toObject(body, Request.class);
-        Response response = queryHandler.query(request);
+        Response response = queryHandler.query(request, logger);
         String responseJson = JsonUtils.toJson(response);
-        System.out.println("Response: " + responseJson);
+        logger.log("Response: " + responseJson);
         return responseJson;
     }
 

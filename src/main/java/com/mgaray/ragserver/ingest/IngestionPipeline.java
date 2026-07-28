@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.ingest;
 
 import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.logger.ILogger;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.RunDefinition;
@@ -30,7 +31,8 @@ public class IngestionPipeline {
 
     public void run(String sourceCatalogLocation,
                     String ingestionManifestId,
-                    RunDefinition runDefinition) {
+                    RunDefinition runDefinition,
+                    ILogger logger) {
         // Start
         long tick = System.currentTimeMillis();
 
@@ -38,30 +40,29 @@ public class IngestionPipeline {
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
         List<String> errors = SourceCatalogValidator.validate(sourceCatalog);
         if (!errors.isEmpty()) {
-            System.out.println("source catalog errors with ingestionManifestId: " + ingestionManifestId +
-                    ", errors: " + errors);
+            logger.error("Source catalog '" + sourceCatalogLocation + "' errors: " + errors);
             return;
         }
 
         // ManifestBuilder
-        System.out.println("ManifestBuilder");
+        logger.log("ManifestBuilder");
         ManifestBuilder manifestBuilder = new ManifestBuilder(sourceDatastore, ingestionDatastore);
         IngestionManifest ingestionManifest = manifestBuilder.create(sourceCatalog, ingestionManifestId, runDefinition);
         SourceRecordsDocument sourceRecordsDocument = ingestionDatastore.readObject
                 (ingestionManifest.sourceRecordsDocumentLocation(), SourceRecordsDocument.class);
 
         // Chunker
-        System.out.println("Chunker");
+        logger.log("Chunker");
         Chunker chunker = new Chunker(ingestionDatastore);
         chunker.chunk(ingestionManifest, sourceRecordsDocument);
 
         // Embedder
-        System.out.println("Embedder");
+        logger.log("Embedder");
         Embedder embedder = new Embedder(ingestionDatastore, ingestionConfig);
         embedder.embed(ingestionManifest, sourceRecordsDocument);
 
         // VectorStoreLoader
-        System.out.println("VectorStoreLoader");
+        logger.log("VectorStoreLoader");
         for (IVectorStore<Chunk> vectorStore : vectorStores) {
             vectorStore.initialize(runDefinition.embeddingSpec());
             VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, vectorStore);
@@ -70,7 +71,7 @@ public class IngestionPipeline {
 
         // Finish
         long elapsedTime = System.currentTimeMillis() - tick;
-        System.out.println(ingestionManifestId + " complete in " + elapsedTime / 60000L + " minutes");
+        logger.log(ingestionManifestId + " complete in " + elapsedTime / 60000L + " minutes");
     }
 
 }

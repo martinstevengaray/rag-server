@@ -1,6 +1,8 @@
 package com.mgaray.ragserver;
 
 import com.mgaray.ragserver.ingest.IngestionPipeline;
+import com.mgaray.ragserver.logger.ILogger;
+import com.mgaray.ragserver.logger.Logger;
 import com.mgaray.ragserver.storage.data.TieredDatastore;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
@@ -34,6 +36,7 @@ public class IngestionMain {
     public static final String oregonSourceCatalogLocation = "oregon-state-code/sourceCatalog.json";
 
     public static void main(String[] args) {
+        ILogger logger = new Logger();
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         IngestionConfig config = new IngestionConfig(numberOfEmbeddingThreads, openAiApiKey);
         IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
@@ -45,7 +48,7 @@ public class IngestionMain {
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
                 new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
-        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition);
+        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition, logger);
     }
 }
 /*

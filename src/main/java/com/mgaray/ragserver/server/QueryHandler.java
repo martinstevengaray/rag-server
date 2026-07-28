@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.server;
 
 import com.mgaray.ragserver.crypto.EncryptionDelegate;
+import com.mgaray.ragserver.logger.ILogger;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.ingest.Embedder;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
@@ -62,16 +63,16 @@ public class QueryHandler {
                 .build();
     }
 
-    public Response query(Request request) {
+    public Response query(Request request, ILogger logger) {
         SessionState sessionState = getSessionState(request);
         String userPrompt = request.userPrompt();
-        List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState);
+        List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState, logger);
         Map<String, Chunk> lookup = new HashMap<>();
         List<PromptDataSource> promptDataSources = promptDataSources(chunksForPrompt, lookup);
         String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
-        System.out.println("prompt: " + prompt);
+        logger.log("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
-        System.out.println("chatModelResponseJson: " + chatModelResponseJson);
+        logger.log("chatModelResponseJson: " + chatModelResponseJson);
         List<String> sourceUrls = null;
         String chatResponse = null;
         try {
@@ -82,7 +83,7 @@ public class QueryHandler {
             List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
             sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
         } catch (Exception e) {
-            System.out.println("Exception in query: " + e.getMessage());
+            logger.error("Exception in query", e);
             sourceUrls = List.of();
             chatResponse = "Unable to parse response.";
         }
@@ -93,7 +94,7 @@ public class QueryHandler {
         return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
-    private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState) {
+    private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
         VectorQueryConfig vectorQueryConfig = webappConfig.vectorQueryConfig();
         //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         List<VectorMatch<Chunk>> vectorMatches = new ArrayList<>();
@@ -118,7 +119,7 @@ public class QueryHandler {
                             return new ArrayList<>(chunksForPrompt.values());
                         }
                     } else {
-                        System.out.println("Chunk could not be found for id = " + chunkId);
+                        logger.error("Chunk could not be found for id = " + chunkId);
                     }
                 }
             }

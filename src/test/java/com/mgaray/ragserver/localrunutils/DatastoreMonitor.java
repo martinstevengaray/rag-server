@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.localrunutils;
 
+import com.mgaray.ragserver.logger.ILogger;
 import com.mgaray.ragserver.storage.data.IDatastore;
 
 import java.util.Map;
@@ -15,10 +16,10 @@ public class DatastoreMonitor {
     private final String title;
     private Map<String, Counters> modeToCounters;
 
-    public DatastoreMonitor(String title, long periodMs) {
+    public DatastoreMonitor(String title, long periodMs, ILogger logger) {
         this.title = title;
         this.modeToCounters = new ConcurrentHashMap<>();
-        start(periodMs);
+        start(periodMs, logger);
     }
 
     public IDatastore add(IDatastore iDatastore) {
@@ -26,10 +27,10 @@ public class DatastoreMonitor {
         return new MonitoredDatastore(iDatastore, iDatastore.getClass().getSimpleName());
     }
 
-    private void start(long periodMs) {
+    private void start(long periodMs, ILogger logger) {
         Thread thread = new Thread(() -> {
             while(true) {
-                System.out.println(getCounterSummary(null));
+                logger.log(getCounterSummary(null));
                 try {
                     Thread.sleep(periodMs);
                 } catch (Exception e) {
@@ -38,7 +39,7 @@ public class DatastoreMonitor {
             }
         });
         thread.setDaemon(true); //thread should not keep jvm alive
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> System.out.println(getCounterSummary("final"))));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> logger.log(getCounterSummary("final"))));
         thread.start();
     }
 
