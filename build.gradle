@@ -42,6 +42,14 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j-open-ai:1.17.2'
     implementation 'dev.langchain4j:langchain4j-embeddings-bge-small-en-v15-q:1.17.2-beta27'
 //    implementation 'com.openai:openai-java:4.43.0'
+
+    testImplementation platform('org.junit:junit-bom:6.1.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }
 
 // Local ONNX embeddings (the BGE model jar + onnxruntime + DJL tokenizers, ~135MB
