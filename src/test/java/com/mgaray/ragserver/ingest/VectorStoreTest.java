@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.ingest;
 
+import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
@@ -15,15 +16,22 @@ import java.util.List;
 
 public class VectorStoreTest {
 
-    private static final String localIngestionRoot = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
+    private static final String localIngestionRoot = "local/s3bucket";
     private static final String portlandSourceManifestId = "portland-city-code";
 
     public static void main(String[] args) {
         IDatastore datastore = new LocalDiskDatastore(localIngestionRoot);
-        IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId, Chunk.class);
+
+        Models.IngestionManifest ingestionManifest = datastore.readIngestionManifest(portlandSourceManifestId);
+        String inMemoryVectorStoreExportLocation =
+                ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
+        EmbeddingModelType embeddingModelType = ingestionManifest.runDefinition().embeddingSpec().embeddingModelType();
+
+        IVectorStore<Chunk> vectorStore =
+                InMemoryVectorStore.load(datastore, inMemoryVectorStoreExportLocation, Chunk.class);
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(
-                new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);
+                new EmbeddingSpec(embeddingModelType), openAiApiKey);
         String searchQuery = "street parking";
         float[] searchVector = embeddingModel.embed(searchQuery).content().vector();
         List<VectorMatch<Chunk>> vectorMatches = vectorStore.get(searchVector, 5);
