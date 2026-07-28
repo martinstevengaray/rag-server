@@ -47,7 +47,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validate(sourceCatalog);
     }
 
     //ors001.txt - ors838.txt (recall: 627 exist in total)
@@ -74,7 +74,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validate(sourceCatalog);
     }
 
     public List<String> sourceFolderForNabAndWebc(String sourceCatalogId) {
@@ -96,7 +96,7 @@ public class SourceTransformer {
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
         outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
-        return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
+        return SourceCatalogValidator.validate(sourceCatalog);
     }
 
     private static String sourceCatalogLocation(String sourceCatalogId) {

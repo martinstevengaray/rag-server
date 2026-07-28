@@ -1,6 +1,5 @@
 package com.mgaray.ragserver.ingest;
 
-import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
@@ -27,7 +26,7 @@ import java.util.concurrent.Future;
 public class Embedder {
 
     private final IDatastore datastore;
-    private final Models.IngestionConfig ingestionConfig;
+    private final IngestionConfig ingestionConfig;
     private final ExecutorService executor;
 
     public Embedder(IDatastore datastore, IngestionConfig ingestionConfig) {

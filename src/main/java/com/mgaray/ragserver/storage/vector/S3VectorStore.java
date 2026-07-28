@@ -30,7 +30,7 @@ import java.util.List;
 
 public class S3VectorStore<T extends IVectorRecord> implements IVectorStore<T> {
 
-    private final String DOCUMENT_PAYLOAD_KEY = "json";
+    private static final String DOCUMENT_PAYLOAD_KEY = "json";
 
     private final String bucket;
     private final String ingestionManifestId;

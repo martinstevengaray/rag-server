@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class SourceCatalogValidator {
 
-    public static List<String> validateSourceCatalog(Models.SourceCatalog sourceCatalog) {
+    public static List<String> validate(Models.SourceCatalog sourceCatalog) {
         List<String> errors = new ArrayList<>();
         Set<String> ids = new HashSet<>();;
         Set<String> sourceUrls = new HashSet<>();

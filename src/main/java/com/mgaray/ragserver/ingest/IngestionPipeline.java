@@ -36,7 +36,7 @@ public class IngestionPipeline {
 
         // SourceCatalogValidator
         SourceCatalog sourceCatalog = sourceDatastore.readObject(sourceCatalogLocation, SourceCatalog.class);
-        List<String> errors = SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
+        List<String> errors = SourceCatalogValidator.validate(sourceCatalog);
         if (!errors.isEmpty()) {
             System.out.println("source catalog errors with ingestionManifestId: " + ingestionManifestId +
                     ", errors: " + errors);
