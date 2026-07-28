@@ -37,7 +37,7 @@ public class Embedder {
 
     public void embed(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, ingestionConfig.openAiApiKey());
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, ingestionConfig.openAiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {
@@ -67,7 +67,7 @@ public class Embedder {
         }
     }
 
-    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec, String openApiKey) {
+    public static EmbeddingModel createEmbeddingModel(EmbeddingSpec embeddingSpec, String openAiKey) {
         return switch (embeddingSpec.embeddingModelType()) {
             case DUMMY -> {
                 final float[] embedding;
@@ -85,11 +85,11 @@ public class Embedder {
             }
             case BGE_SMALL_EN_V15_QUANTIZED -> new BgeSmallEnV15QuantizedEmbeddingModel();
             case OPEN_AI_TEXT_EMBEDDING_3_SMALL -> OpenAiEmbeddingModel.builder()
-                    .apiKey(openApiKey)
+                    .apiKey(openAiKey)
                     .modelName("text-embedding-3-small")
                     .build();
             case OPEN_AI_TEXT_EMBEDDING_3_LARGE -> OpenAiEmbeddingModel.builder()
-                    .apiKey(openApiKey)
+                    .apiKey(openAiKey)
                     .modelName("text-embedding-3-large")
                     .build();
         };

@@ -44,7 +44,7 @@ public class QueryHandler {
         this.webappConfig = webappConfig;
         this.datastore = datastore;
         this.vectorStore = vectorStore;
-        this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openAiApiKey());
+        this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openAiKey());
         this.chatModel = createChatModel(webappConfig);
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
@@ -56,7 +56,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
         };
         return OpenAiChatModel.builder()
-                .apiKey(config.openAiApiKey())
+                .apiKey(config.openAiKey())
                 .modelName(chatModelName)
                 //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
                 .build();
