@@ -13,23 +13,16 @@ import java.util.Base64;
 
 public class EncryptionDelegate {
 
-    //private static final int KEY_SIZE_BITS = 256;
     private static final int IV_SIZE_BYTES = 12;
     private static final int AUTH_TAG_SIZE_BITS = 128;
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final SecretKey secretKey; // openssl rand -base64 32
+    private final SecretKey secretKey; // openssl rand -base64 32  (32-byte/256-bit key size)
 
     public EncryptionDelegate(String symmetricSigningKey) {
          this.secretKey = new SecretKeySpec(Base64.getDecoder().decode(symmetricSigningKey), "AES");
     }
-
-//    public static SecretKey generateKey() throws GeneralSecurityException {
-//        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-//        keyGenerator.init(KEY_SIZE_BITS);
-//        return keyGenerator.generateKey();
-//    }
 
     public String encrypt(String plaintext) {
         try {

@@ -44,8 +44,6 @@ public class QueryHandler {
         this.webappConfig = webappConfig;
         this.datastore = datastore;
         this.vectorStore = vectorStore;
-//        String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
-//        IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
         this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openApiKey());
         this.chatModel = createChatModel(webappConfig);
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());

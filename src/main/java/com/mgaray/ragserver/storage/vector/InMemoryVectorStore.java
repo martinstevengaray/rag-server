@@ -99,5 +99,4 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
         return vectorStore;
     }
 
-
 }
