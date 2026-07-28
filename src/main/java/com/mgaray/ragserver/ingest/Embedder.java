@@ -37,7 +37,7 @@ public class Embedder {
 
     public void embed(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, ingestionConfig.openApiKey());
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, ingestionConfig.openAiApiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {

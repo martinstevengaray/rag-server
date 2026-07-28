@@ -75,11 +75,11 @@ public class Models {
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
     public record IngestionConfig(int numberOfEmbeddingThreads,
-                                  String openApiKey) {}
+                                  String openAiApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
                                VectorQueryConfig vectorQueryConfig,
-                               String openApiKey,
+                               String openAiApiKey,
                                String symmetricSigningKey) {}
 
     public record VectorQueryConfig(int conversationChunkCount,
