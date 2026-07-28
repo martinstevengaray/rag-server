@@ -1,9 +1,9 @@
-package com.mgaray.ragserver.bootstrap;
+package com.mgaray.ragserver.ingest;
 
+import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.RunDefinition;
-import com.mgaray.ragserver.Models.BootstrapperConfig;
 import com.mgaray.ragserver.Models.SourceCatalog;
 import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.Models.SourceRecordsDocument;
@@ -11,26 +11,26 @@ import com.mgaray.ragserver.storage.vector.IVectorStore;
 
 import java.util.List;
 
-public class Bootstrapper {
+public class IngestionPipeline {
 
-    private final BootstrapperConfig bootstrapperConfig;
+    private final Models.IngestionConfig ingestionConfig;
     private final IDatastore sourceDatastore;
     private final IDatastore ingestionDatastore;
     private final IVectorStore<Chunk>[] vectorStores;
 
-    public Bootstrapper(BootstrapperConfig bootstrapperConfig,
-                        IDatastore sourceDatastore,
-                        IDatastore ingestionDatastore,
-                        IVectorStore<Chunk>... vectorStores) {
-        this.bootstrapperConfig = bootstrapperConfig;
+    public IngestionPipeline(Models.IngestionConfig ingestionConfig,
+                             IDatastore sourceDatastore,
+                             IDatastore ingestionDatastore,
+                             IVectorStore<Chunk>... vectorStores) {
+        this.ingestionConfig = ingestionConfig;
         this.sourceDatastore = sourceDatastore;
         this.ingestionDatastore = ingestionDatastore;
         this.vectorStores = vectorStores;
     }
 
-    public void bootstrap(String sourceCatalogLocation,
-                          String ingestionManifestId,
-                          RunDefinition runDefinition) {
+    public void run(String sourceCatalogLocation,
+                    String ingestionManifestId,
+                    RunDefinition runDefinition) {
         // Start
         long tick = System.currentTimeMillis();
 
@@ -57,7 +57,7 @@ public class Bootstrapper {
 
         // Embedder
         System.out.println("Embedder");
-        Embedder embedder = new Embedder(ingestionDatastore, bootstrapperConfig);
+        Embedder embedder = new Embedder(ingestionDatastore, ingestionConfig);
         embedder.embed(ingestionManifest, sourceRecordsDocument);
 
         // VectorStoreLoader

@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.storage.vector;
 
 import com.mgaray.ragserver.storage.data.IDatastore;
-import com.mgaray.ragserver.bootstrap.Embedder;
+import com.mgaray.ragserver.ingest.Embedder;
 import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.Models.VectorMatch;

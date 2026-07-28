@@ -1,13 +1,13 @@
 package com.mgaray.ragserver;
 
+import com.mgaray.ragserver.ingest.IngestionPipeline;
 import com.mgaray.ragserver.storage.data.TieredDatastore;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.storage.data.S3Datastore;
-import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
-import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.IngestionConfig;
 import com.mgaray.ragserver.Models.RunDefinition;
 import com.mgaray.ragserver.Models.ChunkingSpec;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
@@ -16,13 +16,13 @@ import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.storage.vector.S3VectorStore;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 
-public class BootstrapperMain {
+public class IngestionMain {
 
     public static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
     public static final int numberOfEmbeddingThreads = 10;
     public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_LARGE;
-    public static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
-    public static final String sourceCatalogLocation = BootstrapperMain.portlandSourceCatalogLocation;
+    public static final String ingestManifestId = IngestionMain.portlandIngestManifestId;
+    public static final String sourceCatalogLocation = IngestionMain.portlandSourceCatalogLocation;
 
     public static final String localIngestionRoot = "local/s3bucket";
     public static final String s3SourceBucket = "rag-server-source";
@@ -35,7 +35,7 @@ public class BootstrapperMain {
 
     public static void main(String[] args) {
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
-        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+        IngestionConfig config = new IngestionConfig(numberOfEmbeddingThreads, openAiApiKey);
         IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
@@ -43,9 +43,9 @@ public class BootstrapperMain {
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
-        Bootstrapper bootstrapper =
-                new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
-        bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
+        IngestionPipeline ingestionPipeline =
+                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
+        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
 }
 /*
@@ -97,7 +97,7 @@ portland-city-code complete in 26 minutes
 //        int numberOfEmbeddingThreads = 10;
 //        String openAiApiKey = readKeyFromConfig(
 //                "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
-//        BootstrapperConfig bootstrapperConfig = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+//        IngestionConfig bootstrapperConfig = new IngestionConfig(numberOfEmbeddingThreads, openAiApiKey);
 //
 //        IDatastore sourceDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localSourceRoot);
 //        IDatastore sourceDatastoreS3 = new Datastore(Datastore.Mode.S3, s3SourceBucket);
@@ -122,11 +122,11 @@ portland-city-code complete in 26 minutes
 //                new ChunkingSpec(500, 0.5f),
 //                new EmbeddingSpec(embeddingModelType));
 //        { //in memory vector store
-//            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreDisk, ingestionDatastoreWithCacheDisk, vectorStoreMemory);
+//            IngestionPipeline bootstrapper = new IngestionPipeline(bootstrapperConfig, sourceDatastoreDisk, ingestionDatastoreWithCacheDisk, vectorStoreMemory);
 //            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
 //        }
 ////        { //s3 vector store
-////            Bootstrapper bootstrapper = new Bootstrapper(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
+////            IngestionPipeline bootstrapper = new IngestionPipeline(bootstrapperConfig, sourceDatastoreS3, ingestionDatastoreWithCacheS3, vectorStoreS3);
 ////            bootstrapper.bootstrap(portlandSourceCatalogLocation, portlandIngestManifestId, runDefinition);
 ////        }
 //    }

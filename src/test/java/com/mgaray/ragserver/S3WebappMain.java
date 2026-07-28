@@ -19,12 +19,12 @@ import com.mgaray.ragserver.storage.vector.S3VectorStore;
 
 public class S3WebappMain {
 
-    private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = IngestionMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
-        String s3Bucket = BootstrapperMain.s3IngestionBucket;
-        String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;
+        String s3Bucket = IngestionMain.s3IngestionBucket;
+        String s3VectorStoreBucket = IngestionMain.s3VectorStoreBucket;
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 

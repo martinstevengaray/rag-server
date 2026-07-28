@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.bootstrap;
+package com.mgaray.ragserver.ingest;
 
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.SourceCatalog;

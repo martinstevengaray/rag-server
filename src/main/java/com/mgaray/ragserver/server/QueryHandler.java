@@ -2,7 +2,7 @@ package com.mgaray.ragserver.server;
 
 import com.mgaray.ragserver.crypto.EncryptionDelegate;
 import com.mgaray.ragserver.storage.data.IDatastore;
-import com.mgaray.ragserver.bootstrap.Embedder;
+import com.mgaray.ragserver.ingest.Embedder;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.Chunk;

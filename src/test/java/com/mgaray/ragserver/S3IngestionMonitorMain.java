@@ -1,14 +1,13 @@
 package com.mgaray.ragserver;
 
+import com.mgaray.ragserver.ingest.IngestionPipeline;
 import com.mgaray.ragserver.storage.data.TieredDatastore;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.storage.data.S3Datastore;
-import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.Models.ChunkingSpec;
 import com.mgaray.ragserver.Models.EmbeddingModelType;
-import com.mgaray.ragserver.Models.BootstrapperConfig;
 import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.Models.RunDefinition;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
@@ -18,21 +17,21 @@ import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 import com.mgaray.ragserver.storage.vector.S3VectorStore;
 
-public class S3BootstrapperMonitorMain {
+public class S3IngestionMonitorMain {
 
     public static void main(String[] args) {
-        ChunkingSpec chunkingSpec = BootstrapperMain.chunkingSpec;
-        int numberOfEmbeddingThreads = BootstrapperMain.numberOfEmbeddingThreads;
-        EmbeddingModelType embeddingModelType = BootstrapperMain.embeddingModelType;
-        String ingestManifestId = BootstrapperMain.ingestManifestId;
-        String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
-        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-        String s3SourceBucket = BootstrapperMain.s3SourceBucket;
-        String s3IngestionBucket = BootstrapperMain.s3IngestionBucket;;
-        String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;;
+        ChunkingSpec chunkingSpec = IngestionMain.chunkingSpec;
+        int numberOfEmbeddingThreads = IngestionMain.numberOfEmbeddingThreads;
+        EmbeddingModelType embeddingModelType = IngestionMain.embeddingModelType;
+        String ingestManifestId = IngestionMain.ingestManifestId;
+        String sourceCatalogLocation = IngestionMain.sourceCatalogLocation;
+        String localIngestionRoot = IngestionMain.localIngestionRoot;
+        String s3SourceBucket = IngestionMain.s3SourceBucket;
+        String s3IngestionBucket = IngestionMain.s3IngestionBucket;;
+        String s3VectorStoreBucket = IngestionMain.s3VectorStoreBucket;;
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
 
-        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+        Models.IngestionConfig config = new Models.IngestionConfig(numberOfEmbeddingThreads, openAiApiKey);
 
         IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
 
@@ -49,9 +48,9 @@ public class S3BootstrapperMonitorMain {
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
-        Bootstrapper bootstrapper =
-                new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
-        bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
+        IngestionPipeline ingestionPipeline =
+                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
+        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
 
 }

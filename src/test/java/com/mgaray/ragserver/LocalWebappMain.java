@@ -19,11 +19,11 @@ import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 
 public class LocalWebappMain {
 
-    private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = IngestionMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
-        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
+        String localIngestionRoot = IngestionMain.localIngestionRoot;
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 

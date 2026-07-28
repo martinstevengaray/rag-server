@@ -74,8 +74,8 @@ public class Models {
 
     //-----Execution Parameters-----------------------------------------------------------------------------------------
 
-    public record BootstrapperConfig(int numberOfEmbeddingThreads,
-                                     String openApiKey) {}
+    public record IngestionConfig(int numberOfEmbeddingThreads,
+                                  String openApiKey) {}
 
     public record WebappConfig(ChatModelType chatModelType,
                                VectorQueryConfig vectorQueryConfig,

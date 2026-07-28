@@ -1,12 +1,13 @@
-package com.mgaray.ragserver.bootstrap;
+package com.mgaray.ragserver.ingest;
 
+import com.mgaray.ragserver.Models;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.Models.SourceRecord;
 import com.mgaray.ragserver.Models.ChunkManifest;
 import com.mgaray.ragserver.Models.Chunk;
-import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.IngestionConfig;
 import com.mgaray.ragserver.Models.SourceRecordsDocument;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
@@ -26,18 +27,18 @@ import java.util.concurrent.Future;
 public class Embedder {
 
     private final IDatastore dataStore;
-    private final BootstrapperConfig bootstrapperConfig;
+    private final Models.IngestionConfig ingestionConfig;
     private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore, BootstrapperConfig bootstrapperConfig) {
+    public Embedder(IDatastore dataStore, IngestionConfig ingestionConfig) {
         this.dataStore = dataStore;
-        this.bootstrapperConfig = bootstrapperConfig;
-        this.executor = Executors.newFixedThreadPool(bootstrapperConfig.numberOfEmbeddingThreads());
+        this.ingestionConfig = ingestionConfig;
+        this.executor = Executors.newFixedThreadPool(ingestionConfig.numberOfEmbeddingThreads());
     }
 
     public void embed(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         final EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
-        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, bootstrapperConfig.openApiKey());
+        final EmbeddingModel embeddingModel = createEmbeddingModel(embeddingSpec, ingestionConfig.openApiKey());
         try {
             List<Future<?>> futures = new ArrayList<>();
             for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {

@@ -4,32 +4,32 @@ import com.mgaray.ragserver.storage.data.TieredDatastore;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
-import com.mgaray.ragserver.bootstrap.Bootstrapper;
+import com.mgaray.ragserver.ingest.IngestionPipeline;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
-import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.IngestionConfig;
 import com.mgaray.ragserver.Models.RunDefinition;
 import com.mgaray.ragserver.Models.ChunkingSpec;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.Models.EmbeddingModelType;
 import com.mgaray.ragserver.Models.Chunk;
 
-public class LocalBootstrapperMonitorMain {
+public class LocalIngestionMonitorMain {
 
     private static final String localSourceRoot = "local/sources";
 
     public static void main(String[] args) {
-        ChunkingSpec chunkingSpec = BootstrapperMain.chunkingSpec;
-        int numberOfEmbeddingThreads = BootstrapperMain.numberOfEmbeddingThreads;
-        EmbeddingModelType embeddingModelType = BootstrapperMain.embeddingModelType;
-        String ingestManifestId = BootstrapperMain.ingestManifestId;
-        String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
-        String localIngestionRoot = BootstrapperMain.localIngestionRoot;
+        ChunkingSpec chunkingSpec = IngestionMain.chunkingSpec;
+        int numberOfEmbeddingThreads = IngestionMain.numberOfEmbeddingThreads;
+        EmbeddingModelType embeddingModelType = IngestionMain.embeddingModelType;
+        String ingestManifestId = IngestionMain.ingestManifestId;
+        String sourceCatalogLocation = IngestionMain.sourceCatalogLocation;
+        String localIngestionRoot = IngestionMain.localIngestionRoot;
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
 
-        BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
+        Models.IngestionConfig config = new IngestionConfig(numberOfEmbeddingThreads, openAiApiKey);
 
         IDatastore sourceDatastore = new LocalDiskDatastore(localSourceRoot);
 
@@ -42,8 +42,8 @@ public class LocalBootstrapperMonitorMain {
 
         IVectorStore<Chunk> vectorStore = new InMemoryVectorStore<>(Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
-        Bootstrapper bootstrapper = new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStore);
-        bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
+        IngestionPipeline ingestionPipeline = new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStore);
+        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
 
     }
 
