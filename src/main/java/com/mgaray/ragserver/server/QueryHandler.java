@@ -100,8 +100,8 @@ public class QueryHandler {
             chunksForPrompt.put(chunk.id(), chunk);
         }
         int max = vectorQueryConfig.conversationPreviouslyUsedChunkMaxCount();
-        for (PromptExchange promptExchange : sessionState.promptExchanges) {
-            for (String chunkId : promptExchange.chunkIdsUsed) {
+        for (PromptExchange promptExchange : sessionState.promptExchanges()) {
+            for (String chunkId : promptExchange.chunkIdsUsed()) {
                 if (!chunksForPrompt.containsKey(chunkId)) {
                     Chunk chunk = vectorStore.get(chunkId);
                     if (chunk != null) {  //incase a hallucination makes it into sessionState
@@ -189,16 +189,16 @@ public class QueryHandler {
         }
         for (PromptExchange promptExchange : promptExchanges) {
             prompt.append("\nPROMPT:\n");
-            prompt.append("     " + promptExchange.prompt);
+            prompt.append("     " + promptExchange.prompt());
             prompt.append("\nRESPONSE:\n");
-            prompt.append("     " + promptExchange.response);
+            prompt.append("     " + promptExchange.response());
         }
         prompt.append("\nPROMPT:\n");
         prompt.append("     " + userPrompt);
         return prompt.toString();
     }
 
-    private final String promptPrefix = """
+    private static final String promptPrefix = """
 Use the following data sources only to continue the conversation.
 If the source data does not include data to answer the prompt, say so.
 Include the ids of the data sources you used to form your response.
@@ -206,18 +206,6 @@ Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 
 """;
-
-//    private final String promptContinued = """
-//
-//DATA SOURCES:
-//{"id" : "32123", "text : "data chunk of text" }
-//{"id" : "32123", "text" : "data chunk of text" }
-//{"id" : "32123", "text" : "data chunk of text" }
-//
-//PROMPT:
-//RESPONSE:
-//PROMPT:
-//            """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed, String response) {}
 

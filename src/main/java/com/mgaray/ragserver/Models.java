@@ -49,7 +49,7 @@ public class Models {
                         int index,
                         String textLocation,
                         String embeddingLocation)  implements IVectorRecord {
-        public String id() { return sourceRecord.id + ":" + index; }
+        public String id() { return sourceRecord.id() + ":" + index; }
     }
 
     public record ChunkingSpec(int wordCount,
