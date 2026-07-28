@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.localrunutils;
+package com.mgaray.ragserver.localserver;
 
 import com.mgaray.ragserver.logger.Logger;
 import com.mgaray.ragserver.util.JsonUtils;

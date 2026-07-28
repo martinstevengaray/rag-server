@@ -8,7 +8,7 @@ import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.ingest.IngestionPipeline;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
-import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
+import com.mgaray.ragserver.datastoremonitor.DatastoreMonitor;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 import com.mgaray.ragserver.Models.IngestionConfig;

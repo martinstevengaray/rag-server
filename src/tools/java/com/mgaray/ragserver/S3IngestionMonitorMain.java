@@ -14,7 +14,7 @@ import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.Models.RunDefinition;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
-import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
+import com.mgaray.ragserver.datastoremonitor.DatastoreMonitor;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 import com.mgaray.ragserver.storage.vector.S3VectorStore;
