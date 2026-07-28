@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.bootstrap.SourceCatalogValidator;
-import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.Source;
 import com.mgaray.ragserver.Models.SourceCatalog;
 

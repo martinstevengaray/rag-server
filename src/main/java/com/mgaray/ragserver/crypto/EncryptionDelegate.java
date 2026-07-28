@@ -1,4 +1,6 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.crypto;
+
+import com.mgaray.ragserver.util.GzipUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;

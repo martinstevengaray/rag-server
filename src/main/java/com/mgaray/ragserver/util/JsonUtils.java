@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

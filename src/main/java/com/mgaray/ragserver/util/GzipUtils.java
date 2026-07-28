@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

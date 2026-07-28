@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.storage.data;
 
-import com.mgaray.ragserver.common.GzipUtils;
-import com.mgaray.ragserver.common.JsonUtils;
+import com.mgaray.ragserver.util.GzipUtils;
+import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.IngestionManifest;
 
 import java.nio.ByteBuffer;
