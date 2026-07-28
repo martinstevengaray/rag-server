@@ -43,6 +43,9 @@ dependencies {
     implementation 'dev.langchain4j:langchain4j-embeddings-bge-small-en-v15-q:1.17.2-beta27'
 //    implementation 'com.openai:openai-java:4.43.0'
 
+    // HTML parsing for the corpus downloader tools; tools-only, so it stays out of the Lambda zip.
+    toolsImplementation 'org.jsoup:jsoup:1.21.2'
+
     testImplementation platform('org.junit:junit-bom:6.1.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
