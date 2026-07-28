@@ -19,7 +19,7 @@ import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 
 public class LocalWebappMain {
 
-    private static final String ingestionManifestId = IngestionMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
@@ -33,13 +33,16 @@ public class LocalWebappMain {
 
         IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);;
 
-        String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
+        String inMemoryVectorStoreExportLocation =
+                ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
         IVectorStore<Chunk> vectorStoreMemory =
                 InMemoryVectorStore.load(datastoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
 
-        VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
+        VectorQueryConfig vectorQueryConfig =
+                new VectorQueryConfig(10, 10, 10);
 
-        WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
+        WebappConfig webappConfig =
+                new WebappConfig(chatModelType, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
 
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStoreMemory, embeddingSpec);

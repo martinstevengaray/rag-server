@@ -21,16 +21,16 @@ public class IngestionMain {
     public static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
     public static final int numberOfEmbeddingThreads = 10;
     public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_LARGE;
-    public static final String ingestManifestId = IngestionMain.portlandIngestManifestId;
+    public static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
     public static final String sourceCatalogLocation = IngestionMain.portlandSourceCatalogLocation;
 
     public static final String localIngestionRoot = "local/s3bucket";
     public static final String s3SourceBucket = "rag-server-source";
     public static final String s3IngestionBucket = "rag-server-ingestion";
     public static final String s3VectorStoreBucket = "rag-server-vector";
-    public static final String portlandIngestManifestId = "portland-city-code";
+    public static final String portlandIngestionManifestId = "portland-city-code";
     public static final String portlandSourceCatalogLocation = "portland-city-code/sourceCatalog.json";
-    public static final String oregonIngestManifestId = "oregon-state-code";
+    public static final String oregonIngestionManifestId = "oregon-state-code";
     public static final String oregonSourceCatalogLocation = "oregon-state-code/sourceCatalog.json";
 
     public static void main(String[] args) {
@@ -41,11 +41,11 @@ public class IngestionMain {
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
         IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreS3);
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
                 new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
-        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
+        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition);
     }
 }
 /*

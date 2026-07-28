@@ -74,7 +74,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
                             "vectorStoreBucket: " + vectorStoreBucket + ", " +
                             "ingestionManifestId: " + ingestionManifestId);
 
-//        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+//        String ingestionManifestLocation = ingestionManifestLocation(ingestionManifestId);
 //        byte[] ingestionManifestBytes = S3Utils.readBytes(ingestionManifestBucket, ingestionManifestLocation);
 //        String ingestionManifestString  = new String(ingestionManifestBytes, StandardCharsets.UTF_8);
 //        IngestionManifest ingestionManifest = JsonUtils.toObject(ingestionManifestString, IngestionManifest.class);

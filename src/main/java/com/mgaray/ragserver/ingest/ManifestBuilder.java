@@ -22,13 +22,15 @@ public class ManifestBuilder {
         this.ingestionDatastore = ingestionDatastore;
     }
 
-    public IngestionManifest create(SourceCatalog sourceCatalog, String ingestManifestId, RunDefinition runDefinition) {
+    public IngestionManifest create(SourceCatalog sourceCatalog,
+                                    String ingestionManifestId,
+                                    RunDefinition runDefinition) {
         List<SourceRecord> sourceRecords = new ArrayList<>();
         for (Source source : sourceCatalog.sources()) {
             String sourceRecordId = source.id();
             String inputTextLocation = source.location();
-            String textLocation = sourceRecordTextLocation(ingestManifestId, sourceRecordId);
-            String chunkManifestLocation = chunkManifestLocation(ingestManifestId, sourceRecordId);
+            String textLocation = sourceRecordTextLocation(ingestionManifestId, sourceRecordId);
+            String chunkManifestLocation = chunkManifestLocation(ingestionManifestId, sourceRecordId);
             if (!ingestionDatastore.exists(textLocation)) { // copy source text if not already done so
                 ingestionDatastore.writeString(textLocation, sourceDatastore.readString(inputTextLocation));
             }
@@ -42,15 +44,15 @@ public class ManifestBuilder {
             sourceRecords.add(sourceRecord);
         }
         SourceRecordsDocument sourceRecordsDocument = new SourceRecordsDocument(sourceRecords);
-        String sourceRecordsLocation = sourceRecordsDocumentLocation(ingestManifestId);
+        String sourceRecordsLocation = sourceRecordsDocumentLocation(ingestionManifestId);
         if (!ingestionDatastore.exists(sourceRecordsLocation)) {
             ingestionDatastore.writeObject(sourceRecordsLocation, sourceRecordsDocument);
         }
 
-        VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestManifestId),
-                                                              s3VectorStoreManifestLocation(ingestManifestId));
+        VectorStoreSpec vectorStoreSpec = new VectorStoreSpec(inMemoryVectorStoreExportLocation(ingestionManifestId),
+                                                              s3VectorStoreManifestLocation(ingestionManifestId));
         IngestionManifest ingestionManifest =
-                new IngestionManifest(ingestManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
+                new IngestionManifest(ingestionManifestId, runDefinition, sourceRecordsLocation, vectorStoreSpec);
         ingestionDatastore.writeIngestionManifest(ingestionManifest);
         return ingestionManifest;
     }

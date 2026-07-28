@@ -19,7 +19,7 @@ import com.mgaray.ragserver.storage.vector.S3VectorStore;
 
 public class S3WebappMain {
 
-    private static final String ingestionManifestId = IngestionMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
@@ -36,9 +36,11 @@ public class S3WebappMain {
 
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
 
-        VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
+        VectorQueryConfig vectorQueryConfig =
+                new VectorQueryConfig(10, 10, 10);
 
-        WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
+        WebappConfig webappConfig =
+                new WebappConfig(chatModelType, vectorQueryConfig, openAiApiKey, symmetricSigningKey);
 
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         QueryHandler queryHandler = new QueryHandler(webappConfig, datastore, vectorStoreS3, embeddingSpec);

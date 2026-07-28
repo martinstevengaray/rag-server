@@ -24,7 +24,7 @@ public class LocalIngestionMonitorMain {
         ChunkingSpec chunkingSpec = IngestionMain.chunkingSpec;
         int numberOfEmbeddingThreads = IngestionMain.numberOfEmbeddingThreads;
         EmbeddingModelType embeddingModelType = IngestionMain.embeddingModelType;
-        String ingestManifestId = IngestionMain.ingestManifestId;
+        String ingestionManifestId = IngestionMain.ingestionManifestId;
         String sourceCatalogLocation = IngestionMain.sourceCatalogLocation;
         String localIngestionRoot = IngestionMain.localIngestionRoot;
         String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
@@ -42,8 +42,9 @@ public class LocalIngestionMonitorMain {
 
         IVectorStore<Chunk> vectorStore = new InMemoryVectorStore<>(Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
-        IngestionPipeline ingestionPipeline = new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStore);
-        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
+        IngestionPipeline ingestionPipeline =
+                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStore);
+        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition);
 
     }
 

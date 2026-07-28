@@ -59,14 +59,14 @@ public interface IDatastore {
 
     //convenience methods specific to models
     default IngestionManifest readIngestionManifest(String ingestionManifestId) {
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+        String ingestionManifestLocation = ingestionManifestLocation(ingestionManifestId);
         return readObject(ingestionManifestLocation, IngestionManifest.class);
     }
     default void writeIngestionManifest(IngestionManifest ingestionManifest) {
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifest.id());
+        String ingestionManifestLocation = ingestionManifestLocation(ingestionManifest.id());
         writeObject(ingestionManifestLocation, ingestionManifest);
     }
-    private static String ingestManifestLocation(String ingestionManifestId) {
+    private static String ingestionManifestLocation(String ingestionManifestId) {
         return ingestionManifestId + "/ingestionManifest.json";
     }
 

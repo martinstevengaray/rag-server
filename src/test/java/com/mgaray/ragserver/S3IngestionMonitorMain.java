@@ -23,7 +23,7 @@ public class S3IngestionMonitorMain {
         ChunkingSpec chunkingSpec = IngestionMain.chunkingSpec;
         int numberOfEmbeddingThreads = IngestionMain.numberOfEmbeddingThreads;
         EmbeddingModelType embeddingModelType = IngestionMain.embeddingModelType;
-        String ingestManifestId = IngestionMain.ingestManifestId;
+        String ingestionManifestId = IngestionMain.ingestionManifestId;
         String sourceCatalogLocation = IngestionMain.sourceCatalogLocation;
         String localIngestionRoot = IngestionMain.localIngestionRoot;
         String s3SourceBucket = IngestionMain.s3SourceBucket;
@@ -46,11 +46,11 @@ public class S3IngestionMonitorMain {
                 new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreDisk, ingestionDatastoreS3);
 
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
-        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
+        IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
                 new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
-        ingestionPipeline.run(sourceCatalogLocation, ingestManifestId, runDefinition);
+        ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition);
     }
 
 }
