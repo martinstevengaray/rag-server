@@ -67,8 +67,8 @@ public class QueryHandler {
         String userPrompt = request.userPrompt();
         List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState);
         Map<String, Chunk> lookup = new HashMap<>();
-        List<DataSource> dataSourcesForPrompt = lossyTransform(chunksForPrompt, lookup);
-        String prompt = createPrompt(dataSourcesForPrompt, sessionState.promptExchanges(), userPrompt);
+        List<PromptDataSource> promptDataSources = promptDataSources(chunksForPrompt, lookup);
+        String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
         System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         System.out.println("chatModelResponseJson: " + chatModelResponseJson);
@@ -143,15 +143,16 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
-        List<DataSource> dataSources = new ArrayList<>();
+    private List<PromptDataSource> promptDataSources(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
+        List<PromptDataSource> promptDataSources = new ArrayList<>();
         for (Chunk chunk : chunksForPrompt) {
-            String id = UUID.randomUUID().toString(); //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+            //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+            String id = UUID.randomUUID().toString();
             String chunkText = datastore.readString(chunk.textLocation());
-            dataSources.add(new DataSource(id, chunkText));
+            promptDataSources.add(new PromptDataSource(id, chunkText));
             lookup.put(id, chunk);
         }
-        return dataSources;
+        return promptDataSources;
     }
 
     private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
@@ -180,12 +181,14 @@ public class QueryHandler {
         return new ArrayList<>(sources);
     }
 
-    private String createPrompt(List<DataSource> dataSources, List<PromptExchange> promptExchanges, String userPrompt) {
+    private String createPrompt(List<PromptDataSource> promptDataSources,
+                                List<PromptExchange> promptExchanges,
+                                String userPrompt) {
         StringBuilder prompt = new StringBuilder();
         prompt.append(promptPrefix);
         prompt.append("DATA SOURCES:\n");
-        for (DataSource dataSource : dataSources) {
-            prompt.append(JsonUtils.toJson(dataSource) + "\n");
+        for (PromptDataSource promptDataSource : promptDataSources) {
+            prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
         }
         for (PromptExchange promptExchange : promptExchanges) {
             prompt.append("\nPROMPT:\n");
@@ -207,13 +210,17 @@ Always respond in the following json format, without a prefix or suffix:
 
 """;
 
-    private record ChatModelResponse(List<String> dataSourcesUsed, String response) {}
+    private record ChatModelResponse(List<String> dataSourcesUsed,
+                                     String response) {}
 
     private record SessionState(List<PromptExchange> promptExchanges) {}
 
-    private record PromptExchange(String prompt, String response, List<String> chunkIdsAvailable, List<String> chunkIdsUsed) {}
+    private record PromptExchange(String prompt,
+                                  String response,
+                                  List<String> chunkIdsAvailable,
+                                  List<String> chunkIdsUsed) {}
 
-    private record DataSource(String id, String text) {} //used in prompt todo rename?
+    private record PromptDataSource(String id, String text) {}
 
 
 }
