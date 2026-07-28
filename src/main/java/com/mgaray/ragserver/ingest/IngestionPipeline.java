@@ -43,10 +43,10 @@ public class IngestionPipeline {
             return;
         }
 
-        // DataInitializer
-        System.out.println("DataInitializer");
-        DataInitializer dataInitializer = new DataInitializer(sourceDatastore, ingestionDatastore);
-        IngestionManifest ingestionManifest = dataInitializer.create(sourceCatalog, ingestionManifestId, runDefinition);
+        // ManifestBuilder
+        System.out.println("ManifestBuilder");
+        ManifestBuilder manifestBuilder = new ManifestBuilder(sourceDatastore, ingestionDatastore);
+        IngestionManifest ingestionManifest = manifestBuilder.create(sourceCatalog, ingestionManifestId, runDefinition);
         SourceRecordsDocument sourceRecordsDocument = ingestionDatastore.readObject
                 (ingestionManifest.sourceRecordsDocumentLocation(), SourceRecordsDocument.class);
 

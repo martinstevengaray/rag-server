@@ -12,12 +12,12 @@ import com.mgaray.ragserver.Models.SourceRecordsDocument;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataInitializer {
+public class ManifestBuilder {
 
     private final IDatastore sourceDatastore;
     private final IDatastore ingestionDatastore;
 
-    public DataInitializer(IDatastore sourceDatastore, IDatastore ingestionDatastore) {
+    public ManifestBuilder(IDatastore sourceDatastore, IDatastore ingestionDatastore) {
         this.sourceDatastore = sourceDatastore;
         this.ingestionDatastore = ingestionDatastore;
     }
