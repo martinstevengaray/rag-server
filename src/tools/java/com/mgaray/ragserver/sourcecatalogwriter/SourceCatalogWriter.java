@@ -12,12 +12,12 @@ import com.mgaray.ragserver.Models.SourceCatalog;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-public class SourceTransformer {
+public class SourceCatalogWriter {
 
     private final IDatastore inputDatastore;
     private final IDatastore outputDatastore;
 
-    public SourceTransformer(IDatastore inputDatastore, IDatastore outputDatastore) {
+    public SourceCatalogWriter(IDatastore inputDatastore, IDatastore outputDatastore) {
         this.inputDatastore = inputDatastore;
         this.outputDatastore = outputDatastore;
     }

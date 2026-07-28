@@ -5,7 +5,7 @@ import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 
 import java.util.List;
 
-public class SourceTransformerMain {
+public class SourceCatalogWriterMain {
 
     public static void main(String[] args) {
         String outputBucket = "/Users/turtlemccully/projects/rag-server/local/sources";
@@ -13,22 +13,22 @@ public class SourceTransformerMain {
         //IDatastore outputDatastore = new S3Datastore("rag-server-source");
         String sourceCatalogId = null;
         String inputBucket = null;
-        SourceTransformer sourceTransformer = null;
+        SourceCatalogWriter sourceCatalogWriter = null;
         IDatastore inputDatastore = null;
         List<String> errors = null;
 
         sourceCatalogId = "portland-city-code";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/portland_city_code/downloads-clean";
         inputDatastore = new LocalDiskDatastore(inputBucket);
-        sourceTransformer = new SourceTransformer(inputDatastore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForPortland(sourceCatalogId);
+        sourceCatalogWriter = new SourceCatalogWriter(inputDatastore, outputDatastore);
+        errors = sourceCatalogWriter.sourceFolderForPortland(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
 
         sourceCatalogId = "oregon-state-code";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/oregon-state-code/downloads-clean";
         inputDatastore = new LocalDiskDatastore(inputBucket);
-        sourceTransformer = new SourceTransformer(inputDatastore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForOregon(sourceCatalogId);
+        sourceCatalogWriter = new SourceCatalogWriter(inputDatastore, outputDatastore);
+        errors = sourceCatalogWriter.sourceFolderForOregon(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
 
         if (true) return;
@@ -36,15 +36,15 @@ public class SourceTransformerMain {
         sourceCatalogId = "web-catholic-bible";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/web-catholic-bible/downloads-clean";
         inputDatastore = new LocalDiskDatastore(inputBucket);
-        sourceTransformer = new SourceTransformer(inputDatastore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceCatalogId);
+        sourceCatalogWriter = new SourceCatalogWriter(inputDatastore, outputDatastore);
+        errors = sourceCatalogWriter.sourceFolderForNabAndWebc(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
 
         sourceCatalogId = "new-american-bible";
         inputBucket = "/Users/turtlemccully/projects//rag-content-corpus-download/src/new-american-bible/downloads-clean";
         inputDatastore = new LocalDiskDatastore(inputBucket);
-        sourceTransformer = new SourceTransformer(inputDatastore, outputDatastore);
-        errors = sourceTransformer.sourceFolderForNabAndWebc(sourceCatalogId);
+        sourceCatalogWriter = new SourceCatalogWriter(inputDatastore, outputDatastore);
+        errors = sourceCatalogWriter.sourceFolderForNabAndWebc(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
     }
 
