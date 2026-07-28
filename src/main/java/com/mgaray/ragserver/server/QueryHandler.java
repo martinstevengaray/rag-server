@@ -1,17 +1,18 @@
 package com.mgaray.ragserver.server;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.bootstrap.Embedder;
-import com.mgaray.ragserver.common.EncryptionDelegate;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.common.Models.Request;
-import com.mgaray.ragserver.common.Models.Response;
+import com.mgaray.ragserver.crypto.EncryptionDelegate;
+import com.mgaray.ragserver.logger.ILogger;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.ingest.Embedder;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
+import com.mgaray.ragserver.util.JsonUtils;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.WebappConfig;
+import com.mgaray.ragserver.Models.VectorMatch;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.VectorQueryConfig;
+import com.mgaray.ragserver.Models.Request;
+import com.mgaray.ragserver.Models.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;
@@ -44,9 +45,7 @@ public class QueryHandler {
         this.webappConfig = webappConfig;
         this.datastore = datastore;
         this.vectorStore = vectorStore;
-//        String sourceManifestLocation = ingestManifestLocation(sourceManifestId);
-//        IngestionManifest ingestionManifest = datastore.readObject(sourceManifestLocation, IngestionManifest.class);
-        this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openApiKey());
+        this.embeddingModel = Embedder.createEmbeddingModel(embeddingSpec, webappConfig.openAiKey());
         this.chatModel = createChatModel(webappConfig);
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
@@ -58,28 +57,36 @@ public class QueryHandler {
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
         };
         return OpenAiChatModel.builder()
-                .apiKey(config.openApiKey())
+                .apiKey(config.openAiKey())
                 .modelName(chatModelName)
                 //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
                 .build();
     }
 
-    public Response query(Request request) {
+    public Response query(Request request, ILogger logger) {
         SessionState sessionState = getSessionState(request);
         String userPrompt = request.userPrompt();
-        List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState);
+        List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState, logger);
         Map<String, Chunk> lookup = new HashMap<>();
-        List<DataSource> dataSourcesForPrompt = lossyTransform(chunksForPrompt, lookup);
-        String prompt = createPrompt(dataSourcesForPrompt, sessionState.promptExchanges(), userPrompt);
-        System.out.println("prompt: " + prompt);
+        List<PromptDataSource> promptDataSources = promptDataSources(chunksForPrompt, lookup);
+        String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
+        logger.log("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
-        System.out.println("chatModelResponseJson: " + chatModelResponseJson);
-        ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
-        List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
-        List<String> sourceUrls = sourceUrls(chatModelResponse, lookup);
-        String chatResponse = chatModelResponse.response();
-        List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+        logger.log("chatModelResponseJson: " + chatModelResponseJson);
+        List<String> sourceUrls = null;
+        String chatResponse = null;
+        try {
+            ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
+            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
+            sourceUrls = sourceUrls(chatModelResponse, lookup);
+            chatResponse = chatModelResponse.response();
+            List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
+            sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+        } catch (Exception e) {
+            logger.error("Exception in query", e);
+            sourceUrls = List.of();
+            chatResponse = "Unable to parse response.";
+        }
         String sessionStateJson = JsonUtils.toJson(sessionState);
         if (encryptSessionState) {
             sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
@@ -87,7 +94,7 @@ public class QueryHandler {
         return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 
-    private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState) {
+    private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
         VectorQueryConfig vectorQueryConfig = webappConfig.vectorQueryConfig();
         //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         List<VectorMatch<Chunk>> vectorMatches = new ArrayList<>();
@@ -102,8 +109,8 @@ public class QueryHandler {
             chunksForPrompt.put(chunk.id(), chunk);
         }
         int max = vectorQueryConfig.conversationPreviouslyUsedChunkMaxCount();
-        for (PromptExchange promptExchange : sessionState.promptExchanges) {
-            for (String chunkId : promptExchange.chunkIdsUsed) {
+        for (PromptExchange promptExchange : sessionState.promptExchanges()) {
+            for (String chunkId : promptExchange.chunkIdsUsed()) {
                 if (!chunksForPrompt.containsKey(chunkId)) {
                     Chunk chunk = vectorStore.get(chunkId);
                     if (chunk != null) {  //incase a hallucination makes it into sessionState
@@ -112,7 +119,7 @@ public class QueryHandler {
                             return new ArrayList<>(chunksForPrompt.values());
                         }
                     } else {
-                        System.out.println("Chunk could not be found for id = " + chunkId);
+                        logger.error("Chunk could not be found for id = " + chunkId);
                     }
                 }
             }
@@ -145,15 +152,16 @@ public class QueryHandler {
         return stringBuilder.toString();
     }
 
-    private List<DataSource> lossyTransform(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
-        List<DataSource> dataSources = new ArrayList<>();
+    private List<PromptDataSource> promptDataSources(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
+        List<PromptDataSource> promptDataSources = new ArrayList<>();
         for (Chunk chunk : chunksForPrompt) {
-            String id = UUID.randomUUID().toString(); //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+            //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+            String id = UUID.randomUUID().toString();
             String chunkText = datastore.readString(chunk.textLocation());
-            dataSources.add(new DataSource(id, chunkText));
+            promptDataSources.add(new PromptDataSource(id, chunkText));
             lookup.put(id, chunk);
         }
-        return dataSources;
+        return promptDataSources;
     }
 
     private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
@@ -182,25 +190,27 @@ public class QueryHandler {
         return new ArrayList<>(sources);
     }
 
-    private String createPrompt(List<DataSource> dataSources, List<PromptExchange> promptExchanges, String userPrompt) {
+    private String createPrompt(List<PromptDataSource> promptDataSources,
+                                List<PromptExchange> promptExchanges,
+                                String userPrompt) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append(promptPrefix);
+        prompt.append(PROMPT_PREFIX);
         prompt.append("DATA SOURCES:\n");
-        for (DataSource dataSource : dataSources) {
-            prompt.append(JsonUtils.toJson(dataSource) + "\n");
+        for (PromptDataSource promptDataSource : promptDataSources) {
+            prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
         }
         for (PromptExchange promptExchange : promptExchanges) {
             prompt.append("\nPROMPT:\n");
-            prompt.append("     " + promptExchange.prompt);
+            prompt.append("     " + promptExchange.prompt());
             prompt.append("\nRESPONSE:\n");
-            prompt.append("     " + promptExchange.response);
+            prompt.append("     " + promptExchange.response());
         }
         prompt.append("\nPROMPT:\n");
         prompt.append("     " + userPrompt);
         return prompt.toString();
     }
 
-    private final String promptPrefix = """
+    private static final String PROMPT_PREFIX = """
 Use the following data sources only to continue the conversation.
 If the source data does not include data to answer the prompt, say so.
 Include the ids of the data sources you used to form your response.
@@ -209,25 +219,17 @@ Always respond in the following json format, without a prefix or suffix:
 
 """;
 
-//    private final String promptContinued = """
-//
-//DATA SOURCES:
-//{"id" : "32123", "text : "data chunk of text" }
-//{"id" : "32123", "text" : "data chunk of text" }
-//{"id" : "32123", "text" : "data chunk of text" }
-//
-//PROMPT:
-//RESPONSE:
-//PROMPT:
-//            """;
-
-    private record ChatModelResponse(List<String> dataSourcesUsed, String response) {}
+    private record ChatModelResponse(List<String> dataSourcesUsed,
+                                     String response) {}
 
     private record SessionState(List<PromptExchange> promptExchanges) {}
 
-    private record PromptExchange(String prompt, String response, List<String> chunkIdsAvailable, List<String> chunkIdsUsed) {}
+    private record PromptExchange(String prompt,
+                                  String response,
+                                  List<String> chunkIdsAvailable,
+                                  List<String> chunkIdsUsed) {}
 
-    private record DataSource(String id, String text) {} //used in prompt todo rename?
+    private record PromptDataSource(String id, String text) {}
 
 
 }

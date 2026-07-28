@@ -15,6 +15,18 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    tools {
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+configurations {
+    toolsImplementation.extendsFrom implementation
+    toolsRuntimeOnly.extendsFrom runtimeOnly
+}
+
 dependencies {
     implementation 'com.amazonaws:aws-lambda-java-core:1.2.3'
     implementation platform('software.amazon.awssdk:bom:2.33.13')
