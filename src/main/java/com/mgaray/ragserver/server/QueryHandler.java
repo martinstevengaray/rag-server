@@ -72,12 +72,20 @@ public class QueryHandler {
         System.out.println("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
         System.out.println("chatModelResponseJson: " + chatModelResponseJson);
-        ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class); //todo exception handling
-        List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
-        List<String> sourceUrls = sourceUrls(chatModelResponse, lookup);
-        String chatResponse = chatModelResponse.response();
-        List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
-        sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+        List<String> sourceUrls = null;
+        String chatResponse = null;
+        try {
+            ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
+            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
+            sourceUrls = sourceUrls(chatModelResponse, lookup);
+            chatResponse = chatModelResponse.response();
+            List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
+            sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+        } catch (Exception e) {
+            System.out.println("Exception in query: " + e.getMessage());
+            sourceUrls = List.of();
+            chatResponse = "Unable to parse response.";
+        }
         String sessionStateJson = JsonUtils.toJson(sessionState);
         if (encryptSessionState) {
             sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
