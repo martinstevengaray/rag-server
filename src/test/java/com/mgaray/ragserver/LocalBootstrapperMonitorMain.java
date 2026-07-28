@@ -1,9 +1,9 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.storage.blob.TieredDatastore;
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.InMemoryDatastore;
-import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.storage.data.TieredDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.InMemoryDatastore;
+import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;

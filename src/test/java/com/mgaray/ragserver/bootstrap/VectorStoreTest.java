@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.Models.EmbeddingModelType;
 import com.mgaray.ragserver.Models.Chunk;

@@ -3,8 +3,8 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.S3Datastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.S3Datastore;
 import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.Models.IngestionManifest;

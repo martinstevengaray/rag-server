@@ -1,9 +1,9 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.storage.blob.TieredDatastore;
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.InMemoryDatastore;
-import com.mgaray.ragserver.storage.blob.S3Datastore;
+import com.mgaray.ragserver.storage.data.TieredDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.InMemoryDatastore;
+import com.mgaray.ragserver.storage.data.S3Datastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.Models.VectorQueryConfig;

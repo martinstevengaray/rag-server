@@ -3,7 +3,7 @@ package com.mgaray.ragserver.sourcecataloogwriter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.bootstrap.SourceCatalogValidator;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.Models.Source;

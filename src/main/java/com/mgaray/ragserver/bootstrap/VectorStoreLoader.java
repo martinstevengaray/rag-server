@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.SourceRecord;
 import com.mgaray.ragserver.Models.ChunkManifest;

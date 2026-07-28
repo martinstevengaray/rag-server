@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.localrunutils;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

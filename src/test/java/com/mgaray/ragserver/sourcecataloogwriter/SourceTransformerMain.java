@@ -1,7 +1,7 @@
 package com.mgaray.ragserver.sourcecataloogwriter;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 
 import java.util.List;
 

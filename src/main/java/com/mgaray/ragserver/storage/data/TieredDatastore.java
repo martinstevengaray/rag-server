@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.storage.blob;
+package com.mgaray.ragserver.storage.data;
 
 public class TieredDatastore implements IDatastore {
 

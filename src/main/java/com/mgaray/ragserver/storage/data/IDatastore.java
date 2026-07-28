@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.storage.blob;
+package com.mgaray.ragserver.storage.data;
 
 import com.mgaray.ragserver.common.GzipUtils;
 import com.mgaray.ragserver.common.JsonUtils;

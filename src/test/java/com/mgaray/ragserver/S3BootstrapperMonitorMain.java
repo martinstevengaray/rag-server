@@ -1,10 +1,10 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.storage.blob.TieredDatastore;
-import com.mgaray.ragserver.storage.blob.IDatastore;
-import com.mgaray.ragserver.storage.blob.InMemoryDatastore;
-import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
-import com.mgaray.ragserver.storage.blob.S3Datastore;
+import com.mgaray.ragserver.storage.data.TieredDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
+import com.mgaray.ragserver.storage.data.InMemoryDatastore;
+import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
+import com.mgaray.ragserver.storage.data.S3Datastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.Models.ChunkingSpec;
 import com.mgaray.ragserver.Models.EmbeddingModelType;

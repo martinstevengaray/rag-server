@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.storage.vector;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.Models.VectorMatch;
 import com.mgaray.ragserver.Models.IVectorRecord;
 import com.mgaray.ragserver.Models.VectorStoreSpec;

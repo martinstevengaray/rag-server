@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.server;
 
-import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.common.EncryptionDelegate;
 import com.mgaray.ragserver.storage.vector.IVectorStore;

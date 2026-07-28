@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.storage.blob;
+package com.mgaray.ragserver.storage.data;
 
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.sync.RequestBody;

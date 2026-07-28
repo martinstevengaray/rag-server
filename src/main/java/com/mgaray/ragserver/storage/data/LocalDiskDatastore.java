@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.storage.blob;
+package com.mgaray.ragserver.storage.data;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

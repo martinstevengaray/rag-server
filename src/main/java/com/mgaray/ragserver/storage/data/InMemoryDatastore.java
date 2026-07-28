@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.storage.blob;
+package com.mgaray.ragserver.storage.data;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
