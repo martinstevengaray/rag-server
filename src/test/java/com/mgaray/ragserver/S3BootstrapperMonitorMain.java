@@ -12,6 +12,7 @@ import com.mgaray.ragserver.common.Models.BootstrapperConfig;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.RunDefinition;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
@@ -29,7 +30,7 @@ public class S3BootstrapperMonitorMain {
         String s3SourceBucket = BootstrapperMain.s3SourceBucket;
         String s3IngestionBucket = BootstrapperMain.s3IngestionBucket;;
         String s3VectorStoreBucket = BootstrapperMain.s3VectorStoreBucket;;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
 
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 

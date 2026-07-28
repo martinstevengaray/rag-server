@@ -13,6 +13,7 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     @Override
     public void writeResults(IDatastore datastore, VectorStoreSpec vectorStoreSpec) {
         String inMemoryVectorStoreExportLocation = vectorStoreSpec.inMemoryVectorStoreExportLocation();
-        datastore.write(inMemoryVectorStoreExportLocation, GzipUtils.compress(store.serializeToJson()));
+        datastore.writeGzipString(inMemoryVectorStoreExportLocation, store.serializeToJson());
     }
 
     @Override
@@ -88,8 +89,7 @@ public class InMemoryVectorStore<T extends IVectorRecord> implements IVectorStor
     public static<T extends IVectorRecord> InMemoryVectorStore<T> load(IDatastore datastore,
                                                                        String inMemoryVectorStoreExportLocation,
                                                                        Class<T> clazz) {
-        byte[] vectorStoreJsonGzBytes = datastore.read(inMemoryVectorStoreExportLocation);
-        String vectorStoreJson = GzipUtils.decompress(vectorStoreJsonGzBytes);
+        String vectorStoreJson = datastore.readGzipString(inMemoryVectorStoreExportLocation);
         InMemoryEmbeddingStore<TextSegment> store = InMemoryEmbeddingStore.fromJson(vectorStoreJson);
         InMemoryVectorStore<T> vectorStore = new InMemoryVectorStore<>(store, clazz);
         //loop through contents from vectorStoreJson to load idToT lookup map

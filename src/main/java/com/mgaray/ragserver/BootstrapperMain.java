@@ -16,10 +16,6 @@ import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
 import com.mgaray.ragserver.common.SsmDelegate;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-
 public class BootstrapperMain {
 
     public static final ChunkingSpec chunkingSpec = new ChunkingSpec(500, 0.5f);
@@ -52,6 +48,15 @@ public class BootstrapperMain {
         bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
 }
+/*
+
+portland-city-code complete in 26 minutes
+
+ */
+
+
+
+
 
 //    public static String readConfig(String configFilename, String key) {
 //        try {

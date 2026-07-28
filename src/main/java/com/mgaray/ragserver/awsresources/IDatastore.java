@@ -1,5 +1,6 @@
 package com.mgaray.ragserver.awsresources;
 
+import com.mgaray.ragserver.common.GzipUtils;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 
@@ -25,6 +26,12 @@ public interface IDatastore {
     default float[] readFloatArray(String storageLocation) {
         return toFloatArray(read(storageLocation));
     }
+    default byte[] readGzip(String storageLocation) {
+        return GzipUtils.decompress(read(storageLocation));
+    }
+    default String readGzipString(String storageLocation) {
+        return new String(GzipUtils.decompress(read(storageLocation)), StandardCharsets.UTF_8);
+    }
 
     //convenience write methods
     default void writeObject(String storageLocation, Object object) {
@@ -35,6 +42,12 @@ public interface IDatastore {
     }
     default void writeFloatArray(String storageLocation, float[] embedding) {
         write(storageLocation, toBytes(embedding));
+    }
+    default void writeGzip(String storageLocation, byte[] bytes) {
+        write(storageLocation, GzipUtils.compress(bytes));
+    }
+    default void writeGzipString(String storageLocation, String content) {
+        write(storageLocation, GzipUtils.compress(content.getBytes(StandardCharsets.UTF_8)));
     }
 
     //convenience methods specific to models

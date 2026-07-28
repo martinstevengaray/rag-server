@@ -5,6 +5,7 @@ import com.mgaray.ragserver.awsresources.IDatastore;
 import com.mgaray.ragserver.awsresources.InMemoryDatastore;
 import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
@@ -15,7 +16,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 
-public class LocalBootstrapperMain {
+public class LocalBootstrapperMonitorMain {
 
     private static final String localSourceRoot = "local/sources";
 
@@ -26,7 +27,7 @@ public class LocalBootstrapperMain {
         String ingestManifestId = BootstrapperMain.ingestManifestId;
         String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
         String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
 
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
