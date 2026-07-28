@@ -22,7 +22,7 @@ public class TieredDatastore implements IDatastore {
 
     @Override
     public void write(String storageLocation, byte[] bytes) {
-        for (int i=datastores.length-1; i>=0; i--) { //backfill to the least volatile first
+        for (int i=datastores.length-1; i>=0; i--) { //fill least-volatile first
             datastores[i].write(storageLocation, bytes);
         }
     }
@@ -33,7 +33,7 @@ public class TieredDatastore implements IDatastore {
             byte[] bytes = datastores[datastoreIndex].read(storageLocation);
             if (bytes != null) {
                 for (int missedIndex = datastoreIndex - 1; missedIndex >= 0; missedIndex--) {
-                    datastores[missedIndex].write(storageLocation, bytes); //backfill to the least volatile first
+                    datastores[missedIndex].write(storageLocation, bytes); //backfill least-volatile first
                 }
                 return bytes;
             }
