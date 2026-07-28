@@ -111,7 +111,6 @@ public class QueryHandler {
 
     private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
         VectorQueryConfig vectorQueryConfig = webappConfig.vectorQueryConfig();
-        //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         List<VectorMatch<Chunk>> vectorMatches = new ArrayList<>();
         String conversationVectorStoreQuery = createConversationVectorStoreQuery(sessionState, userPrompt);
         float[] conversationQueryVector = embeddingModel.embed(conversationVectorStoreQuery).content().vector();
@@ -169,8 +168,7 @@ public class QueryHandler {
 
     private List<PromptDataSource> promptDataSources(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
         List<PromptDataSource> promptDataSources = new ArrayList<>();
-        for (Chunk chunk : chunksForPrompt) {
-            //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+        for (Chunk chunk : chunksForPrompt) { //prefer random to chunk.id() to prevent hallucinating sources
             String id = UUID.randomUUID().toString();
             String chunkText = datastore.readString(chunk.textLocation());
             promptDataSources.add(new PromptDataSource(id, chunkText));
