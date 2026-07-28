@@ -1,13 +1,13 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.SourceRecord;
-import com.mgaray.ragserver.common.Models.ChunkManifest;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.BootstrapperConfig;
-import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.SourceRecord;
+import com.mgaray.ragserver.Models.ChunkManifest;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.SourceRecordsDocument;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;

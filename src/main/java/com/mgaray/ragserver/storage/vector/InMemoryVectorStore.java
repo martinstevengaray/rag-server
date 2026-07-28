@@ -1,19 +1,17 @@
-package com.mgaray.ragserver.vectorstore;
+package com.mgaray.ragserver.storage.vector;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.GzipUtils;
+import com.mgaray.ragserver.storage.blob.IDatastore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.VectorStoreSpec;
-import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.Models.IVectorRecord;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.VectorStoreSpec;
+import com.mgaray.ragserver.Models.VectorMatch;
+import com.mgaray.ragserver.Models.IVectorRecord;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

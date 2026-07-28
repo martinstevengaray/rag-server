@@ -1,8 +1,8 @@
-package com.mgaray.ragserver.awsresources;
+package com.mgaray.ragserver.storage.blob;
 
 import com.mgaray.ragserver.common.GzipUtils;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.IngestionManifest;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

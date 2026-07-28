@@ -1,22 +1,22 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.TieredDatastore;
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.awsresources.InMemoryDatastore;
-import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
-import com.mgaray.ragserver.awsresources.S3Datastore;
+import com.mgaray.ragserver.storage.blob.TieredDatastore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.blob.InMemoryDatastore;
+import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.storage.blob.S3Datastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
-import com.mgaray.ragserver.common.Models.ChunkingSpec;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
-import com.mgaray.ragserver.common.Models.BootstrapperConfig;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.RunDefinition;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.SsmDelegate;
+import com.mgaray.ragserver.Models.ChunkingSpec;
+import com.mgaray.ragserver.Models.EmbeddingModelType;
+import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.RunDefinition;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
-import com.mgaray.ragserver.vectorstore.S3VectorStore;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
+import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
+import com.mgaray.ragserver.storage.vector.S3VectorStore;
 
 public class S3BootstrapperMonitorMain {
 

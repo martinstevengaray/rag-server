@@ -1,15 +1,14 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.BootstrapperMain;
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.EmbeddingModelType;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.SsmDelegate;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.EmbeddingModelType;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.VectorMatch;
+import com.mgaray.ragserver.storage.parameter.SsmDelegate;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
+import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;

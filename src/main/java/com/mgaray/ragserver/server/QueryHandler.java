@@ -1,17 +1,17 @@
 package com.mgaray.ragserver.server;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.common.EncryptionDelegate;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.common.Models.Request;
-import com.mgaray.ragserver.common.Models.Response;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.WebappConfig;
+import com.mgaray.ragserver.Models.VectorMatch;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.VectorQueryConfig;
+import com.mgaray.ragserver.Models.Request;
+import com.mgaray.ragserver.Models.Response;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.chat.ChatModel;

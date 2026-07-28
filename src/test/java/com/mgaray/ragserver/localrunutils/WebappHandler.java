@@ -1,8 +1,8 @@
 package com.mgaray.ragserver.localrunutils;
 
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.Request;
-import com.mgaray.ragserver.common.Models.Response;
+import com.mgaray.ragserver.Models.Request;
+import com.mgaray.ragserver.Models.Response;
 import com.mgaray.ragserver.server.QueryHandler;
 
 import java.io.InputStream;

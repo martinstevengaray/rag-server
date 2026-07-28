@@ -1,6 +1,6 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.common.Models;
+import com.mgaray.ragserver.Models;
 
 import java.util.ArrayList;
 import java.util.HashSet;

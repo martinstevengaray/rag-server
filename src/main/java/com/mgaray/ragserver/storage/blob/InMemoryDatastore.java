@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.awsresources;
+package com.mgaray.ragserver.storage.blob;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

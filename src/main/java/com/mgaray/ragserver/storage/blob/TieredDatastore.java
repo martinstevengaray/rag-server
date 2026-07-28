@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.awsresources;
+package com.mgaray.ragserver.storage.blob;
 
 public class TieredDatastore implements IDatastore {
 

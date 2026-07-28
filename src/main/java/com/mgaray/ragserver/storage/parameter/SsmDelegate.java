@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.common;
+package com.mgaray.ragserver.storage.parameter;
 
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.services.ssm.SsmClient;

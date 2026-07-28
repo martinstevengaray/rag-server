@@ -3,20 +3,20 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.awsresources.S3Datastore;
-import com.mgaray.ragserver.common.SsmDelegate;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.blob.S3Datastore;
+import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.ChatModelType;
-import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.common.Models.Request;
-import com.mgaray.ragserver.common.Models.Response;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.S3VectorStore;
+import com.mgaray.ragserver.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.WebappConfig;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.ChatModelType;
+import com.mgaray.ragserver.Models.VectorQueryConfig;
+import com.mgaray.ragserver.Models.Request;
+import com.mgaray.ragserver.Models.Response;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
+import com.mgaray.ragserver.storage.vector.S3VectorStore;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
-import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
+import static com.mgaray.ragserver.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
 import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 

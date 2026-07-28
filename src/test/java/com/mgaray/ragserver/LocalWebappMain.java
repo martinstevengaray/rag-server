@@ -1,21 +1,21 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.TieredDatastore;
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.awsresources.InMemoryDatastore;
-import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.VectorQueryConfig;
-import com.mgaray.ragserver.common.Models.WebappConfig;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.ChatModelType;
-import com.mgaray.ragserver.common.SsmDelegate;
+import com.mgaray.ragserver.storage.blob.TieredDatastore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.storage.blob.InMemoryDatastore;
+import com.mgaray.ragserver.storage.blob.LocalDiskDatastore;
+import com.mgaray.ragserver.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.VectorQueryConfig;
+import com.mgaray.ragserver.Models.WebappConfig;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.ChatModelType;
+import com.mgaray.ragserver.storage.parameter.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.LocalServer;
 import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
+import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 
 public class LocalWebappMain {
 

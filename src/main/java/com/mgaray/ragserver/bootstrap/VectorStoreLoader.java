@@ -1,12 +1,12 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.SourceRecord;
-import com.mgaray.ragserver.common.Models.ChunkManifest;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.SourceRecord;
+import com.mgaray.ragserver.Models.ChunkManifest;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.SourceRecordsDocument;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
 
 public class VectorStoreLoader {
 

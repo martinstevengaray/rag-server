@@ -1,12 +1,12 @@
-package com.mgaray.ragserver.vectorstore;
+package com.mgaray.ragserver.storage.vector;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
 import com.mgaray.ragserver.bootstrap.Embedder;
 import com.mgaray.ragserver.common.JsonUtils;
-import com.mgaray.ragserver.common.Models.EmbeddingSpec;
-import com.mgaray.ragserver.common.Models.VectorMatch;
-import com.mgaray.ragserver.common.Models.IVectorRecord;
-import com.mgaray.ragserver.common.Models.S3VectorStoreManifest;
+import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.VectorMatch;
+import com.mgaray.ragserver.Models.IVectorRecord;
+import com.mgaray.ragserver.Models.S3VectorStoreManifest;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.services.s3vectors.S3VectorsClient;
@@ -23,7 +23,7 @@ import software.amazon.awssdk.services.s3vectors.model.QueryOutputVector;
 import software.amazon.awssdk.services.s3vectors.model.QueryVectorsRequest;
 import software.amazon.awssdk.services.s3vectors.model.QueryVectorsResponse;
 import software.amazon.awssdk.services.s3vectors.model.VectorData;
-import com.mgaray.ragserver.common.Models.VectorStoreSpec;
+import com.mgaray.ragserver.Models.VectorStoreSpec;
 
 import java.util.ArrayList;
 import java.util.List;

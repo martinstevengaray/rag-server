@@ -1,13 +1,13 @@
 package com.mgaray.ragserver.bootstrap;
 
-import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.Models.IngestionManifest;
-import com.mgaray.ragserver.common.Models.RunDefinition;
-import com.mgaray.ragserver.common.Models.BootstrapperConfig;
-import com.mgaray.ragserver.common.Models.SourceCatalog;
-import com.mgaray.ragserver.common.Models.Chunk;
-import com.mgaray.ragserver.common.Models.SourceRecordsDocument;
-import com.mgaray.ragserver.vectorstore.IVectorStore;
+import com.mgaray.ragserver.storage.blob.IDatastore;
+import com.mgaray.ragserver.Models.IngestionManifest;
+import com.mgaray.ragserver.Models.RunDefinition;
+import com.mgaray.ragserver.Models.BootstrapperConfig;
+import com.mgaray.ragserver.Models.SourceCatalog;
+import com.mgaray.ragserver.Models.Chunk;
+import com.mgaray.ragserver.Models.SourceRecordsDocument;
+import com.mgaray.ragserver.storage.vector.IVectorStore;
 
 import java.util.List;
 
