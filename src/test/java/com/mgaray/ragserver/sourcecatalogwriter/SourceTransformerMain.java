@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.sourcecataloogwriter;
+package com.mgaray.ragserver.sourcecatalogwriter;
 
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;

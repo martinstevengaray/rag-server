@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.sourcecataloogwriter;
+package com.mgaray.ragserver.sourcecatalogwriter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MappingIterator;
