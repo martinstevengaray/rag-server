@@ -10,6 +10,7 @@ import com.mgaray.ragserver.Models.Chunk;
 import com.mgaray.ragserver.Models.SourceRecordsDocument;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
 
+import java.time.Duration;
 import java.util.List;
 
 public class IngestionPipeline {
@@ -71,7 +72,12 @@ public class IngestionPipeline {
 
         // Finish
         long elapsedTime = System.currentTimeMillis() - tick;
-        logger.log(ingestionManifestId + " complete in " + elapsedTime / 60000L + " minutes");
+        logger.log(ingestionManifestId + " complete in " + formatElapsedTime(elapsedTime));
+    }
+
+    private static String formatElapsedTime(long elapsedMillis) {
+        Duration duration = Duration.ofMillis(elapsedMillis);
+        return String.format("%02d:%02d:%02d", duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
     }
 
 }
