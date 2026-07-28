@@ -18,15 +18,8 @@ public class DatastoreMonitor {
     public DatastoreMonitor(String title, long periodMs) {
         this.title = title;
         this.modeToCounters = new ConcurrentHashMap<>();
-//        this.modeToCounters.put(Datastore.Mode.IN_MEMORY, new Counters());
-//        this.modeToCounters.put(Datastore.Mode.LOCAL_DISK, new Counters());
-//        this.modeToCounters.put(Datastore.Mode.S3, new Counters());
         start(periodMs);
     }
-
-//    public IDatastore add(IDatastore iDatastore, Datastore.Mode type) {
-//        return new MonitoredDatastore(iDatastore, type);
-//    }
 
     public IDatastore add(IDatastore iDatastore) {
         modeToCounters.putIfAbsent(iDatastore.getClass().getSimpleName(), new Counters());
