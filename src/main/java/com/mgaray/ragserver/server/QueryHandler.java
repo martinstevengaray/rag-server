@@ -185,7 +185,7 @@ public class QueryHandler {
                                 List<PromptExchange> promptExchanges,
                                 String userPrompt) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append(promptPrefix);
+        prompt.append(PROMPT_PREFIX);
         prompt.append("DATA SOURCES:\n");
         for (PromptDataSource promptDataSource : promptDataSources) {
             prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
@@ -201,7 +201,7 @@ public class QueryHandler {
         return prompt.toString();
     }
 
-    private static final String promptPrefix = """
+    private static final String PROMPT_PREFIX = """
 Use the following data sources only to continue the conversation.
 If the source data does not include data to answer the prompt, say so.
 Include the ids of the data sources you used to form your response.
