@@ -1,6 +1,7 @@
-package com.mgaray.ragserver.ingest;
+package com.mgaray.ragserver.localpipeline;
 
 import com.mgaray.ragserver.Models;
+import com.mgaray.ragserver.ingest.Embedder;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
@@ -14,7 +15,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import java.util.List;
 
-public class VectorStoreTest {
+public class VectorStoreInvoker {
 
     private static final String localIngestionRoot = "local/s3bucket";
     private static final String portlandSourceManifestId = "portland-city-code";

@@ -1,5 +1,6 @@
-package com.mgaray.ragserver.ingest;
+package com.mgaray.ragserver.localpipeline;
 
+import com.mgaray.ragserver.ingest.Chunker;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.Models.SourceRecord;
@@ -14,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ChunkerTest {
+public class ChunkerInvoker {
 
     private static final String chunkText = """
             y of a county or a treatment provider may establish fees that individuals participating in a treatment court program may be required to pay for treatment and other services provided as part of the treatment court program.
@@ -29,8 +30,8 @@ public class ChunkerTest {
     public static void main(String[] args) {
         IDatastore datastore = new InMemoryDatastore();
         List<SourceRecord> sourceRecords = new ArrayList<>();
-        String sourceManifestId = "ChunkerTest";
-        String sourceRecordId = "ChunkerTest-sourceRecord";
+        String sourceManifestId = "ChunkerInvoker";
+        String sourceRecordId = "ChunkerInvoker-sourceRecord";
         String sourceLocationTextLocation = "test_sourceLocationTextLocation";;
         datastore.writeString(sourceLocationTextLocation, chunkText);
         String chunkManifestLocation = "test_chunkManifestLocation";
