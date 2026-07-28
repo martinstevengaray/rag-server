@@ -14,20 +14,20 @@ import java.util.List;
 
 public class Chunker {
 
-    private final IDatastore dataStore;
+    private final IDatastore datastore;
 
-    public Chunker(IDatastore dataStore) {
-        this.dataStore = dataStore;
+    public Chunker(IDatastore datastore) {
+        this.datastore = datastore;
     }
 
     public void chunk(IngestionManifest ingestionManifest, SourceRecordsDocument sourceRecordsDocument) {
         ChunkingSpec chunkingSpec = ingestionManifest.runDefinition().chunkingSpec();
         for (SourceRecord sourceRecord : sourceRecordsDocument.sourceRecords()) {
             String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-            if (!dataStore.exists(chunkManifestLocation)) {
+            if (!datastore.exists(chunkManifestLocation)) {
                 List<Chunk> chunks = chunk(ingestionManifest.id(), sourceRecord, chunkingSpec);
                 ChunkManifest chunkManifest = new ChunkManifest(chunks);
-                dataStore.writeObject(chunkManifestLocation, chunkManifest);
+                datastore.writeObject(chunkManifestLocation, chunkManifest);
             }
         }
     }
@@ -35,7 +35,7 @@ public class Chunker {
     private List<Chunk> chunk(String sourceManifestId,
                                      SourceRecord sourceRecord,
                                      ChunkingSpec chunkingSpec) {
-        String originalText = dataStore.readString(sourceRecord.textLocation());
+        String originalText = datastore.readString(sourceRecord.textLocation());
         List<String> chunkedText = chunk(originalText, chunkingSpec);
         List<Chunk> chunks = new ArrayList<>();
         int digitCount = (int)Math.ceil(Math.log10(chunkedText.size() + 1));
@@ -43,8 +43,8 @@ public class Chunker {
             String chunkId = String.format("%0" + digitCount + "d", chunkIndex);
             String chunkText = chunkedText.get(chunkIndex);
             String chuckTextLocation = chunkTextLocation(sourceManifestId, sourceRecord.id(), chunkId);
-            if (!dataStore.exists(chuckTextLocation)) {
-                dataStore.writeString(chuckTextLocation, chunkText);
+            if (!datastore.exists(chuckTextLocation)) {
+                datastore.writeString(chuckTextLocation, chunkText);
             }
             String embeddingLocation = embeddingLocation(sourceManifestId, sourceRecord.id(), chunkId);
             chunks.add(new Chunk(sourceRecord, chunkIndex, chuckTextLocation, embeddingLocation));

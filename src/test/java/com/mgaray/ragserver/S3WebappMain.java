@@ -29,8 +29,8 @@ public class S3WebappMain {
         String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 
         IDatastore datastoreMemory = new InMemoryDatastore();
-        IDatastore dataStoreS3 = new S3Datastore(s3Bucket);
-        IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreS3);
+        IDatastore datastoreS3 = new S3Datastore(s3Bucket);
+        IDatastore datastore = new TieredDatastore(datastoreMemory, datastoreS3);
 
         IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);
 

@@ -28,14 +28,14 @@ public class LocalWebappMain {
         String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 
         IDatastore datastoreMemory = new InMemoryDatastore();
-        IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);
-        IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreDisk);
+        IDatastore datastoreDisk = new LocalDiskDatastore(localIngestionRoot);
+        IDatastore datastore = new TieredDatastore(datastoreMemory, datastoreDisk);
 
         IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);;
 
         String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
         IVectorStore<Chunk> vectorStoreMemory =
-                InMemoryVectorStore.load(dataStoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
+                InMemoryVectorStore.load(datastoreDisk, inMemoryVectorStoreExportLocation, Chunk.class);
 
         VectorQueryConfig vectorQueryConfig = new VectorQueryConfig(10, 10, 10);
 

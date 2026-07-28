@@ -26,12 +26,12 @@ import java.util.concurrent.Future;
 
 public class Embedder {
 
-    private final IDatastore dataStore;
+    private final IDatastore datastore;
     private final Models.IngestionConfig ingestionConfig;
     private final ExecutorService executor;
 
-    public Embedder(IDatastore dataStore, IngestionConfig ingestionConfig) {
-        this.dataStore = dataStore;
+    public Embedder(IDatastore datastore, IngestionConfig ingestionConfig) {
+        this.datastore = datastore;
         this.ingestionConfig = ingestionConfig;
         this.executor = Executors.newFixedThreadPool(ingestionConfig.numberOfEmbeddingThreads());
     }
@@ -56,14 +56,14 @@ public class Embedder {
 
     private void embed(SourceRecord sourceRecord, EmbeddingModel embeddingModel) {
         String chunkManifestLocation = sourceRecord.chunkManifestLocation();
-        ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+        ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
         for (Chunk chunk : chunkManifest.chunks()) {
             String embeddingLocation = chunk.embeddingLocation();
-            if (!dataStore.exists(embeddingLocation)) {
+            if (!datastore.exists(embeddingLocation)) {
                 String chunkTextLocation = chunk.textLocation();
-                String chunkText = dataStore.readString(chunkTextLocation);
+                String chunkText = datastore.readString(chunkTextLocation);
                 float[] chunkEmbedding = embeddingModel.embed(chunkText).content().vector();
-                dataStore.writeFloatArray(embeddingLocation, chunkEmbedding);
+                datastore.writeFloatArray(embeddingLocation, chunkEmbedding);
             }
         }
     }

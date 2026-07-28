@@ -27,12 +27,12 @@ public class ChunkerTest {
           """;
 
     public static void main(String[] args) {
-        IDatastore dataStore = new InMemoryDatastore();
+        IDatastore datastore = new InMemoryDatastore();
         List<SourceRecord> sourceRecords = new ArrayList<>();
         String sourceManifestId = "ChunkerTest";
         String sourceRecordId = "ChunkerTest-sourceRecord";
         String sourceLocationTextLocation = "test_sourceLocationTextLocation";;
-        dataStore.writeString(sourceLocationTextLocation, chunkText);
+        datastore.writeString(sourceLocationTextLocation, chunkText);
         String chunkManifestLocation = "test_chunkManifestLocation";
         SourceRecord sourceRecord = new SourceRecord(
                 sourceRecordId,
@@ -48,12 +48,12 @@ public class ChunkerTest {
         IngestionManifest ingestionManifest =
                 new IngestionManifest(sourceManifestId, runDefinition, null, null);
 
-        Chunker chunker = new Chunker(dataStore);
+        Chunker chunker = new Chunker(datastore);
         chunker.chunk(ingestionManifest, sourceRecordsDocument);
 
-        ChunkManifest chunkManifest = dataStore.readObject(chunkManifestLocation, ChunkManifest.class);
+        ChunkManifest chunkManifest = datastore.readObject(chunkManifestLocation, ChunkManifest.class);
         for (Chunk chunk : chunkManifest.chunks()) {
-            String text = dataStore.readString(chunk.textLocation());
+            String text = datastore.readString(chunk.textLocation());
             System.out.println(text);
         }
     }

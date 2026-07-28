@@ -14,12 +14,12 @@ import java.util.*;
 
 public class SourceTransformer {
 
-    private final IDatastore inputDataStore;
-    private final IDatastore outputDataStore;
+    private final IDatastore inputDatastore;
+    private final IDatastore outputDatastore;
 
-    public SourceTransformer(IDatastore inputDataStore, IDatastore outputDataStore) {
-        this.inputDataStore = inputDataStore;
-        this.outputDataStore = outputDataStore;
+    public SourceTransformer(IDatastore inputDatastore, IDatastore outputDatastore) {
+        this.inputDatastore = inputDatastore;
+        this.outputDatastore = outputDatastore;
     }
 
     //title-01.json - title-35.json  &&  title-01.txt - title-35.txt   (recall: 08 does not exit)
@@ -29,11 +29,11 @@ public class SourceTransformer {
             String inputSourceRecordId = String.format("%02d", recordNumber);
             String inputRecordLocation =  "/title-" + inputSourceRecordId + ".json";
             String inputTextLocation = "/title-" + inputSourceRecordId + ".txt";
-            if (inputDataStore.exists(inputRecordLocation) && inputDataStore.exists(inputTextLocation)) {
-                String text = inputDataStore.readString(inputTextLocation);
+            if (inputDatastore.exists(inputRecordLocation) && inputDatastore.exists(inputTextLocation)) {
+                String text = inputDatastore.readString(inputTextLocation);
                 String sourceId = "title" + inputSourceRecordId;
                 String textLocation = originalSourceTextLocation(sourceCatalogId, inputSourceRecordId);
-                outputDataStore.writeString(textLocation, text);
+                outputDatastore.writeString(textLocation, text);
                 Map<String, Object> record = readJson(inputRecordLocation);
                 Source source = new Source(
                         sourceId,
@@ -46,7 +46,7 @@ public class SourceTransformer {
         }
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
-        outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
+        outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
         return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
@@ -59,10 +59,10 @@ public class SourceTransformer {
             if (inputSourceRecordId.length() == 1) { inputSourceRecordId = "00" + inputSourceRecordId; }
             else if (inputSourceRecordId.length() == 2) { inputSourceRecordId = "0" + inputSourceRecordId; }
             String inputTextLocation = "/text/ors" + inputSourceRecordId + ".txt";
-            String text = inputDataStore.readString(inputTextLocation);
+            String text = inputDatastore.readString(inputTextLocation);
             String sourceRecordId = "ors" + inputSourceRecordId;
             String textLocation  = originalSourceTextLocation(sourceCatalogId, sourceRecordId);
-            outputDataStore.writeString(textLocation, text);
+            outputDatastore.writeString(textLocation, text);
             Source source = new Source(
                     sourceRecordId,
                     record.get("source_url").toString(),
@@ -73,7 +73,7 @@ public class SourceTransformer {
         }
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
-        outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
+        outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
         return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
@@ -84,7 +84,7 @@ public class SourceTransformer {
             String sourceRecordId = record.get("id").toString();
             String text = record.get("text").toString();
             String textLocation = originalSourceTextLocation(sourceCatalogId, sourceRecordId);
-            outputDataStore.writeString(textLocation, text);
+            outputDatastore.writeString(textLocation, text);
             Source source = new Source(
                     sourceRecordId,
                     record.get("source_url").toString(),
@@ -95,7 +95,7 @@ public class SourceTransformer {
         }
         SourceCatalog sourceCatalog = new SourceCatalog(sourceCatalogId, sources);
         String sourceCatalogLocation = sourceCatalogLocation(sourceCatalogId);
-        outputDataStore.writeObject(sourceCatalogLocation, sourceCatalog);
+        outputDatastore.writeObject(sourceCatalogLocation, sourceCatalog);
         return SourceCatalogValidator.validateSourceCatalog(sourceCatalog);
     }
 
@@ -108,11 +108,11 @@ public class SourceTransformer {
     }
 
     private Map<String, Object> readJson(String storageLocation) {
-        String json = new String(inputDataStore.read(storageLocation), StandardCharsets.UTF_8);
+        String json = new String(inputDatastore.read(storageLocation), StandardCharsets.UTF_8);
         return JsonUtils.parse(json);
     }
     private List<Map<String, Object>> readJsonl(String storageLocation) {
-        String json = new String(inputDataStore.read(storageLocation), StandardCharsets.UTF_8);
+        String json = new String(inputDatastore.read(storageLocation), StandardCharsets.UTF_8);
         return parseJsonl(json);
     }
 
