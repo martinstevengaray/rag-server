@@ -20,7 +20,6 @@ public class Models {
     public record IngestionManifest(String id,
                                     RunDefinition runDefinition,
                                     String sourceRecordsDocumentLocation,
-//                                    List<SourceRecord> sourceRecords,
                                     VectorStoreSpec vectorStoreSpec) {}
 
     public record SourceRecordsDocument(List<SourceRecord> sourceRecords) {}
@@ -93,13 +92,23 @@ public class Models {
 
 
 
-
-
-    public static String ingestManifestLocation(String sourceManifestId) {
-        return sourceManifestId + "/sourceManifest.json";
-    }
-
 }
+
+//    public static String ingestManifestLocation(String ingestionManifestId) {
+//        return ingestionManifestId + "/ingestionManifest.json";
+//    }
+////
+//    public static IngestionManifest readIngestionManifest(IDatastore datastore, String ingestionManifestId) {
+//        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
+//        return datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+//    }
+//
+//    public static void writeIngestionManifest(IDatastore datastore, IngestionManifest ingestionManifest) {
+//        String ingestionManifestLocation = ingestManifestLocation(ingestionManifest.id());
+//        datastore.writeObject(ingestionManifestLocation, ingestionManifest);
+//    }
+
+
 
 
 /*

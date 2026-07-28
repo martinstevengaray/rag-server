@@ -1,6 +1,5 @@
 package com.mgaray.ragserver.localrunutils;
 
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
 
 import java.util.Map;
@@ -14,19 +13,24 @@ public class DatastoreMonitor {
     }
 
     private final String title;
-    private Map<Datastore.Mode, Counters> modeToCounters;
+    private Map<String, Counters> modeToCounters;
 
     public DatastoreMonitor(String title, long periodMs) {
         this.title = title;
         this.modeToCounters = new ConcurrentHashMap<>();
-        this.modeToCounters.put(Datastore.Mode.IN_MEMORY, new Counters());
-        this.modeToCounters.put(Datastore.Mode.LOCAL_DISK, new Counters());
-        this.modeToCounters.put(Datastore.Mode.S3, new Counters());
+//        this.modeToCounters.put(Datastore.Mode.IN_MEMORY, new Counters());
+//        this.modeToCounters.put(Datastore.Mode.LOCAL_DISK, new Counters());
+//        this.modeToCounters.put(Datastore.Mode.S3, new Counters());
         start(periodMs);
     }
 
-    public IDatastore add(IDatastore iDatastore, Datastore.Mode type) {
-        return new MonitoredDatastore(iDatastore, type);
+//    public IDatastore add(IDatastore iDatastore, Datastore.Mode type) {
+//        return new MonitoredDatastore(iDatastore, type);
+//    }
+
+    public IDatastore add(IDatastore iDatastore) {
+        modeToCounters.putIfAbsent(iDatastore.getClass().getSimpleName(), new Counters());
+        return new MonitoredDatastore(iDatastore, iDatastore.getClass().getSimpleName());
     }
 
     private void start(long periodMs) {
@@ -52,8 +56,8 @@ public class DatastoreMonitor {
         } else {
             stringBuilder.append("----- " + title + " ----- (" + qualifier + ") \n");
         }
-        for (Map.Entry<Datastore.Mode, Counters> entry : modeToCounters.entrySet()) {
-            Datastore.Mode mode = entry.getKey();
+        for (Map.Entry<String, Counters> entry : modeToCounters.entrySet()) {
+            String mode = entry.getKey();
             Counters counters = entry.getValue();
             stringBuilder.append(mode + ": " + counters.read() + "r, " + counters.write() + "w, " + counters.exists() + "e\n");
         }
@@ -62,9 +66,9 @@ public class DatastoreMonitor {
 
     private class MonitoredDatastore implements IDatastore {
         private final IDatastore delegate;
-        private final Datastore.Mode mode;
+        private final String mode;
 
-        public MonitoredDatastore(IDatastore delegate, Datastore.Mode mode) {
+        public MonitoredDatastore(IDatastore delegate,String mode) {
             this.delegate = delegate;
             this.mode = mode;
         }

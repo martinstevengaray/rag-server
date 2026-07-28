@@ -1,38 +1,37 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorQueryConfig;
 import com.mgaray.ragserver.common.Models.WebappConfig;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.ChatModelType;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.LocalServer;
 import com.mgaray.ragserver.localrunutils.WebappHandler;
 import com.mgaray.ragserver.server.QueryHandler;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
-
 public class LocalWebappMain {
 
-    private static final String ingestManifestId = BootstrapperMain.portlandIngestManifestId;
+    private static final String ingestionManifestId = BootstrapperMain.portlandIngestManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
 
     public static void main(String[] args) throws Exception {
         String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
-        String symmetricSigningKey = BootstrapperMain.readConfig("local/config.sh", "SYMMETRIC_SIGNING_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
+        String symmetricSigningKey = SsmDelegate.getParameterFromLocalConfig("SYMMETRIC_SIGNING_KEY");
 
-        IDatastore datastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore dataStoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
-        IDatastore datastore = new DatastoreCache(datastoreMemory, dataStoreDisk);
+        IDatastore datastoreMemory = new InMemoryDatastore();
+        IDatastore dataStoreDisk = new LocalDiskDatastore(localIngestionRoot);
+        IDatastore datastore = new TieredDatastore(datastoreMemory, dataStoreDisk);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);;
 
         String inMemoryVectorStoreExportLocation = ingestionManifest.vectorStoreSpec().inMemoryVectorStoreExportLocation();
         IVectorStore<Chunk> vectorStoreMemory =

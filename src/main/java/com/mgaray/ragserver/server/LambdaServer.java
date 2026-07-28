@@ -3,9 +3,9 @@ package com.mgaray.ragserver.server;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
-import com.mgaray.ragserver.common.AwsServicesDelegate;
+import com.mgaray.ragserver.awsresources.S3Datastore;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.common.JsonUtils;
 import com.mgaray.ragserver.common.Models.IngestionManifest;
 import com.mgaray.ragserver.common.Models.WebappConfig;
@@ -27,10 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.mgaray.ragserver.awsresources.Datastore.Mode.S3;
 import static com.mgaray.ragserver.bootstrap.Embedder.createEmbeddingModel;
 import static com.mgaray.ragserver.common.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
-import static com.mgaray.ragserver.common.Models.ingestManifestLocation;
 import static com.mgaray.ragserver.server.QueryHandler.createChatModel;
 
 
@@ -39,10 +37,10 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
     private final QueryHandler queryHandler;
 
     public LambdaServer() {
-        String openAiKey = AwsServicesDelegate.fetchSmmParameterValue(
-                System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
-        String symmetricSigningKey = AwsServicesDelegate.fetchSmmParameterValue(
-                System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
+        SsmDelegate ssmDelegate = new SsmDelegate();
+        String openAiKey = ssmDelegate.getParameter(System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
+        String symmetricSigningKey =
+                ssmDelegate.getParameter(System.getenv("SYMMETRIC_SIGNING_KEY_SSM_PARAMETER_KEY"));
         String chatModelTypeString = System.getenv("CHAT_MODEL_TYPE");
         String vectorQueryConfigJson = System.getenv("VECTOR_QUERY_CONFIG");
         String ingestionManifestBucket = System.getenv("INGESTION_MANIFEST_BUCKET");
@@ -55,11 +53,10 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         System.out.println("vectorQueryConfig: " + JsonUtils.toJson(vectorQueryConfig));
 
         WebappConfig webappConfig = new WebappConfig(chatModelType, vectorQueryConfig, openAiKey, symmetricSigningKey);
-        IDatastore datastore = new Datastore(S3, ingestionManifestBucket);
+        IDatastore datastore = new S3Datastore(ingestionManifestBucket);
         IVectorStore<Chunk> vectorStore = new S3VectorStore<>(vectorStoreBucket, ingestionManifestId, Chunk.class);
 
-        String ingestionManifestLocation = ingestManifestLocation(ingestionManifestId);
-        IngestionManifest ingestionManifest = datastore.readObject(ingestionManifestLocation, IngestionManifest.class);
+        IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
 
         this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);

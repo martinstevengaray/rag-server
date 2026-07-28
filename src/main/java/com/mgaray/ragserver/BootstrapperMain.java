@@ -1,8 +1,9 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.S3Datastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
@@ -13,10 +14,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.vectorstore.S3VectorStore;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
+import com.mgaray.ragserver.common.SsmDelegate;
 
 public class BootstrapperMain {
 
@@ -36,12 +34,12 @@ public class BootstrapperMain {
     public static final String oregonSourceCatalogLocation = "oregon-state-code/sourceCatalog.json";
 
     public static void main(String[] args) {
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.S3, s3SourceBucket);
-        IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore ingestionDatastoreS3 = new Datastore(Datastore.Mode.S3, s3IngestionBucket);
-        IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreS3);
+        IDatastore sourceDatastore = new S3Datastore(s3SourceBucket);
+        IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
+        IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
+        IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreS3);
         IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
@@ -49,23 +47,32 @@ public class BootstrapperMain {
                 new Bootstrapper(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
         bootstrapper.bootstrap(sourceCatalogLocation, ingestManifestId, runDefinition);
     }
-
-    public static String readConfig(String configFilename, String key) {
-        try {
-            List<String> lines = Files.readAllLines(Path.of(configFilename));
-            for (String line : lines) {
-                String prefix = "export " + key + "=";
-                if (line.startsWith(prefix)) {
-                    return line.substring(prefix.length()).split("\"")[1];
-                }
-            }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        throw new IllegalArgumentException(key +" not found in " + configFilename);
-    }
-
 }
+/*
+
+portland-city-code complete in 26 minutes
+
+ */
+
+
+
+
+
+//    public static String readConfig(String configFilename, String key) {
+//        try {
+//            List<String> lines = Files.readAllLines(Path.of(configFilename));
+//            for (String line : lines) {
+//                String prefix = "export " + key + "=";
+//                if (line.startsWith(prefix)) {
+//                    return line.substring(prefix.length()).split("\"")[1];
+//                }
+//            }
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        throw new IllegalArgumentException(key +" not found in " + configFilename);
+//    }
+
 
 
 //    private static final String localSourceRoot = "/Users/turtlemccully/projects/rag-server/local/sources";

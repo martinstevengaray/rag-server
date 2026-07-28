@@ -1,9 +1,11 @@
 package com.mgaray.ragserver;
 
-import com.mgaray.ragserver.awsresources.Datastore;
-import com.mgaray.ragserver.awsresources.DatastoreCache;
+import com.mgaray.ragserver.awsresources.TieredDatastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.InMemoryDatastore;
+import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.bootstrap.Bootstrapper;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.localrunutils.DatastoreMonitor;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
@@ -14,7 +16,7 @@ import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 
-public class LocalBootstrapperMain {
+public class LocalBootstrapperMonitorMain {
 
     private static final String localSourceRoot = "local/sources";
 
@@ -25,18 +27,18 @@ public class LocalBootstrapperMain {
         String ingestManifestId = BootstrapperMain.ingestManifestId;
         String sourceCatalogLocation = BootstrapperMain.sourceCatalogLocation;
         String localIngestionRoot = BootstrapperMain.localIngestionRoot;
-        String openAiApiKey = BootstrapperMain.readConfig("local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
 
         BootstrapperConfig config = new BootstrapperConfig(numberOfEmbeddingThreads, openAiApiKey);
 
-        IDatastore sourceDatastore = new Datastore(Datastore.Mode.LOCAL_DISK, localSourceRoot);
+        IDatastore sourceDatastore = new LocalDiskDatastore(localSourceRoot);
 
-        IDatastore ingestionDatastoreMemory = new Datastore(Datastore.Mode.IN_MEMORY, null);
-        IDatastore ingestionDatastoreDisk = new Datastore(Datastore.Mode.LOCAL_DISK, localIngestionRoot);
+        IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
+        IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L);
-        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory, Datastore.Mode.IN_MEMORY);
-        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk, Datastore.Mode.LOCAL_DISK);
-        IDatastore ingestionDatastore = new DatastoreCache(ingestionDatastoreMemory, ingestionDatastoreDisk);
+        ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
+        ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
+        IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreDisk);
 
         IVectorStore<Chunk> vectorStore = new InMemoryVectorStore<>(Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));

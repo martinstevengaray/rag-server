@@ -1,12 +1,11 @@
 package com.mgaray.ragserver.common;
 
-import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -18,7 +17,7 @@ public class EncryptionDelegate {
 
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
-    private final SecretKey secretKey;
+    private final SecretKey secretKey; // openssl rand -base64 32
 
     public EncryptionDelegate(String symmetricSigningKey) {
          this.secretKey = new SecretKeySpec(Base64.getDecoder().decode(symmetricSigningKey), "AES");
@@ -32,7 +31,7 @@ public class EncryptionDelegate {
 
     public String encrypt(String plaintext) {
         try {
-            byte[] compressed = GzipUtils.compress(plaintext);
+            byte[] compressed = GzipUtils.compress(plaintext.getBytes(StandardCharsets.UTF_8));
             byte[] iv = new byte[IV_SIZE_BYTES];
             SECURE_RANDOM.nextBytes(iv);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -64,7 +63,7 @@ public class EncryptionDelegate {
             GCMParameterSpec parameterSpec = new GCMParameterSpec(AUTH_TAG_SIZE_BITS, iv);
             cipher.init(Cipher.DECRYPT_MODE, secretKey, parameterSpec);
             byte[] compressed = cipher.doFinal(ciphertext);
-            return GzipUtils.decompress(compressed);
+            return new String(GzipUtils.decompress(compressed), StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

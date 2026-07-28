@@ -1,12 +1,13 @@
 package com.mgaray.ragserver.bootstrap;
 
 import com.mgaray.ragserver.BootstrapperMain;
-import com.mgaray.ragserver.awsresources.Datastore;
 import com.mgaray.ragserver.awsresources.IDatastore;
+import com.mgaray.ragserver.awsresources.LocalDiskDatastore;
 import com.mgaray.ragserver.common.Models.EmbeddingSpec;
 import com.mgaray.ragserver.common.Models.EmbeddingModelType;
 import com.mgaray.ragserver.common.Models.Chunk;
 import com.mgaray.ragserver.common.Models.VectorMatch;
+import com.mgaray.ragserver.common.SsmDelegate;
 import com.mgaray.ragserver.vectorstore.IVectorStore;
 import com.mgaray.ragserver.vectorstore.InMemoryVectorStore;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -15,14 +16,13 @@ import java.util.List;
 
 public class VectorStoreTest {
 
-    private static final String bucket = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
+    private static final String localIngestionRoot = "/Users/turtlemccully/projects/rag-server/local/s3bucket";
     private static final String portlandSourceManifestId = "portland-city-code";
 
     public static void main(String[] args) {
-        IDatastore datastore = new Datastore(Datastore.Mode.LOCAL_DISK, bucket);
+        IDatastore datastore = new LocalDiskDatastore(localIngestionRoot);
         IVectorStore<Chunk> vectorStore = InMemoryVectorStore.load(datastore, portlandSourceManifestId, Chunk.class);
-        String openAiApiKey = BootstrapperMain.readConfig(
-                "/Users/turtlemccully/projects/rag-server/local/config.sh", "OPEN_AI_API_KEY");
+        String openAiApiKey = SsmDelegate.getParameterFromLocalConfig("OPEN_AI_API_KEY");
         EmbeddingModel embeddingModel = Embedder.createEmbeddingModel(
                 new EmbeddingSpec(EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_SMALL), openAiApiKey);
         String searchQuery = "street parking";
