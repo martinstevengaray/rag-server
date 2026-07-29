@@ -3,6 +3,7 @@ package com.mgaray.ragserver.sourcecatalogdownloader.bible;
 import com.mgaray.ragserver.Models.Source;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Comment;
 import org.jsoup.nodes.Document;
@@ -103,7 +104,7 @@ public class NewAmericanBibleDownloaderMain {
         }
     }
 
-    private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
+    private final com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader downloader = new com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
     public NewAmericanBibleDownloaderMain(IDatastore outputDatastore) {
@@ -142,7 +143,7 @@ public class NewAmericanBibleDownloaderMain {
                 continue;
             }
 
-            String retrievedAt = CorpusDownloader.retrievedAtNow();
+            String retrievedAt = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.retrievedAtNow();
             Chapter chapter = parseChapter(Jsoup.parse(html, pageUrl));
 
             // Book introductions and front matter are not chapters and are not carried into the
@@ -153,7 +154,7 @@ public class NewAmericanBibleDownloaderMain {
             }
 
             String sourceId = "nab-" + slugify(chapter.book()) + "-" + chapter.chapter();
-            String textLocation = CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
+            String textLocation = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
             outputDatastore.writeString(textLocation, chapter.text());
             sources.add(new Source(
                     sourceId, pageUrl, retrievedAt, chapter.book() + " " + chapter.chapter(), textLocation));
@@ -165,7 +166,7 @@ public class NewAmericanBibleDownloaderMain {
 
         System.out.println("Downloaded " + sources.size() + " chapters, skipped " + skipped
                 + " non-chapter pages");
-        return CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
+        return com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
     }
 
     /** Chapter and introduction page urls linked from the archive index, in index order. */
@@ -202,103 +203,47 @@ public class NewAmericanBibleDownloaderMain {
 
     private record Chapter(String book, int chapter, String text) {}
 
-    /**
-     * A page paragraph in two forms. Detection has to read the citation numbers, output has to be
-     * rid of them, so both are carried side by side rather than derived from one another.
-     */
-    private record Block(String detect, String prose) {}
-
     /** Returns the chapter this page holds, or null when it is an introduction or front matter. */
     private static Chapter parseChapter(Document document) {
-        List<Block> blocks = toBlocks(document);
-        String book = findBook(blocks);
-        Integer chapter = findChapter(blocks, book);
+        List<String> lines = toLines(document);
+        String book = findBook(lines);
+        Integer chapter = findChapter(lines, book);
         if (book == null || chapter == null) {
             return null;
         }
 
-        List<Block> scripture = findScriptureSegment(blocks);
+        List<String> scripture = findScriptureSegment(lines);
         if (scripture == null) {
             return null;
         }
 
-        List<String> prose = new ArrayList<>();
-        for (Block block : removeLeadingHeadings(scripture, book, chapter)) {
-            //the standalone verse-number paragraphs have no prose left once their digits are gone
-            if (!block.prose().isEmpty()) {
-                prose.add(block.prose());
-            }
-        }
-
-        String text = CorpusDownloader.strip(String.join("\n", prose));
+        List<String> body = removeLeadingHeadings(scripture, book, chapter);
+        String text = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.strip(String.join("\n", body));
         if (text.isEmpty()) {
             return null;
         }
         return new Chapter(book, chapter, text);
     }
 
-    private static final Pattern NUMBER_ONLY = Pattern.compile("\\d{1,3}");
-
-    /**
-     * Fences an inline citation marker so the two forms can be built from one pass. A plain
-     * deletion would not do: chapter detection recognises scripture by finding a run of ascending
-     * verse numbers, and on many pages those numbers exist only as inline superscripts, so removing
-     * them early makes the page unrecognisable and drops it from the catalog altogether.
-     */
-    private static final String MARKER = "\u0001";
-    private static final Pattern FENCED_MARKER =
-            Pattern.compile(MARKER + "[^" + MARKER + "]*" + MARKER);
-    private static final Pattern MARKER_FENCE = Pattern.compile(MARKER);
-
-    /** A verse number opening a paragraph, recognised by the line break that follows it. */
-    private static final Pattern LEADING_VERSE_NUMBER = Pattern.compile("[ \\t]*(\\d{1,3})[ \\t]*\\r?\\n");
-
-    /** Page text as paragraphs, with horizontal rules preserved as {@value #RULE} markers. */
-    private static List<Block> toBlocks(Document document) {
+    /** Page text as normalized lines, with horizontal rules preserved as {@value #RULE} markers. */
+    private static List<String> toLines(Document document) {
         document.select("script, style, noscript, svg").forEach(Node::remove);
-        //every citation marker in this archive is a superscript: verse references and footnotes alike
-        for (Element superscript : document.select("sup")) {
-            superscript.replaceWith(
-                    new TextNode(" " + MARKER + superscript.text().trim() + MARKER + " "));
-        }
-        // Some verses put their number inside the text paragraph rather than in one of its own,
-        // separated by a line break. That break is what distinguishes a marker from prose such as
-        // "40 days", so the number is fenced here while the break is still there to see.
-        for (Element paragraph : document.select("p")) {
-            for (Node child : paragraph.childNodes()) {
-                if (!(child instanceof TextNode textNode)) {
-                    continue;
-                }
-                String raw = textNode.getWholeText();
-                Matcher leading = LEADING_VERSE_NUMBER.matcher(raw);
-                if (leading.lookingAt()) {
-                    textNode.text(MARKER + leading.group(1) + MARKER + " " + raw.substring(leading.end()));
-                }
-                break;   //only the paragraph's first text run can carry its marker
-            }
-        }
-        document.select("hr").forEach(rule -> rule.replaceWith(new Element("p").text(RULE)));
+        document.select("hr").forEach(rule -> rule.replaceWith(new TextNode("\n" + RULE + "\n")));
 
-        List<Block> blocks = new ArrayList<>();
-        for (String block : CorpusDownloader.blockTexts(
-                document.body() != null ? document.body() : document)) {
-            String detect = CorpusDownloader.normalizeWhitespace(
-                    MARKER_FENCE.matcher(block).replaceAll(" "));
-            String prose = CorpusDownloader.normalizeWhitespace(
-                    FENCED_MARKER.matcher(block).replaceAll(" "));
-            //a paragraph holding only a verse number contributes nothing to the prose
-            if (NUMBER_ONLY.matcher(prose).matches()) {
-                prose = "";
+        List<String> lines = new ArrayList<>();
+        for (String raw : com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.textNodes(document, "\n").split("\n", -1)) {
+            String line = CorpusDownloader.normalizeLine(raw);
+            if (!line.isEmpty()) {
+                lines.add(line);
             }
-            blocks.add(new Block(detect, prose));
         }
-        return blocks;
+        return lines;
     }
 
-    private static String findBook(List<Block> blocks) {
+    private static String findBook(List<String> lines) {
         //header lines are more reliable than book references inside the notes
-        for (Block block : blocks.subList(0, Math.min(40, blocks.size()))) {
-            String book = canonicalBook(block.detect());
+        for (String line : lines.subList(0, Math.min(40, lines.size()))) {
+            String book = canonicalBook(line);
             if (book != null) {
                 return book;
             }
@@ -311,27 +256,27 @@ public class NewAmericanBibleDownloaderMain {
         return book == null ? null : BOOK_ALIASES.getOrDefault(book, book);
     }
 
-    private static Integer findChapter(List<Block> blocks, String book) {
-        for (Block block : blocks.subList(0, Math.min(60, blocks.size()))) {
-            Matcher chapter = CHAPTER_LABEL.matcher(block.detect());
+    private static Integer findChapter(List<String> lines, String book) {
+        for (String line : lines.subList(0, Math.min(60, lines.size()))) {
+            Matcher chapter = CHAPTER_LABEL.matcher(line);
             if (chapter.matches()) {
                 return Integer.parseInt(chapter.group(1));
             }
-            Matcher psalm = PSALM_LABEL.matcher(block.detect());
+            Matcher psalm = PSALM_LABEL.matcher(line);
             if (psalm.matches()) {
                 return Integer.parseInt(psalm.group(1));
             }
         }
         //single chapter letters carry no "Chapter 1" heading
-        if (book != null && SINGLE_CHAPTER_BOOKS.contains(book) && startsAtVerseOne(blocks)) {
+        if (book != null && SINGLE_CHAPTER_BOOKS.contains(book) && startsAtVerseOne(lines)) {
             return 1;
         }
         return null;
     }
 
-    private static boolean startsAtVerseOne(List<Block> blocks) {
-        for (Block block : blocks) {
-            Matcher matcher = VERSE_LINE.matcher(block.detect());
+    private static boolean startsAtVerseOne(List<String> lines) {
+        for (String line : lines) {
+            Matcher matcher = VERSE_LINE.matcher(line);
             if (matcher.matches() && Integer.parseInt(matcher.group(1)) == 1) {
                 return true;
             }
@@ -340,20 +285,20 @@ public class NewAmericanBibleDownloaderMain {
     }
 
     /** The first rule-delimited segment that reads as scripture rather than navigation or notes. */
-    private static List<Block> findScriptureSegment(List<Block> blocks) {
+    private static List<String> findScriptureSegment(List<String> lines) {
         int start = 0;
-        for (int index = 0; index < blocks.size(); index++) {
-            if (blocks.get(index).detect().toLowerCase(Locale.ROOT).contains("links to concordance")) {
+        for (int index = 0; index < lines.size(); index++) {
+            if (lines.get(index).toLowerCase(Locale.ROOT).contains("links to concordance")) {
                 start = index + 1;
                 break;
             }
         }
 
-        for (List<Block> segment : splitOnRules(blocks.subList(start, blocks.size()))) {
-            List<Block> cleaned = new ArrayList<>();
-            for (Block block : segment) {
-                if (!NAVIGATION_PHRASES.contains(block.detect().toLowerCase(Locale.ROOT))) {
-                    cleaned.add(block);
+        for (List<String> segment : splitOnRules(lines.subList(start, lines.size()))) {
+            List<String> cleaned = new ArrayList<>();
+            for (String line : segment) {
+                if (!NAVIGATION_PHRASES.contains(line.toLowerCase(Locale.ROOT))) {
+                    cleaned.add(line);
                 }
             }
             if (cleaned.isEmpty() || isNavigation(cleaned)) {
@@ -366,18 +311,18 @@ public class NewAmericanBibleDownloaderMain {
         return null;
     }
 
-    private static List<List<Block>> splitOnRules(List<Block> blocks) {
-        List<List<Block>> segments = new ArrayList<>();
-        List<Block> current = new ArrayList<>();
-        for (Block block : blocks) {
-            if (block.detect().equals(RULE)) {
+    private static List<List<String>> splitOnRules(List<String> lines) {
+        List<List<String>> segments = new ArrayList<>();
+        List<String> current = new ArrayList<>();
+        for (String line : lines) {
+            if (line.equals(RULE)) {
                 if (!current.isEmpty()) {
                     segments.add(current);
                     current = new ArrayList<>();
                 }
                 continue;
             }
-            current.add(block);
+            current.add(line);
         }
         if (!current.isEmpty()) {
             segments.add(current);
@@ -385,27 +330,23 @@ public class NewAmericanBibleDownloaderMain {
         return segments;
     }
 
-    private static boolean isNavigation(List<Block> segment) {
-        StringBuilder joined = new StringBuilder();
-        for (Block block : segment) {
-            joined.append(block.detect()).append(' ');
-        }
-        String text = joined.toString().trim().toLowerCase(Locale.ROOT);
-        if (text.contains("copyright \u00a9 libreria editrice vaticana")) {
+    private static boolean isNavigation(List<String> segment) {
+        String joined = String.join(" ", segment).toLowerCase(Locale.ROOT);
+        if (joined.contains("copyright © libreria editrice vaticana")) {
             return true;
         }
-        if (segment.size() <= 8 && text.contains("previous") && text.contains("next")) {
+        if (segment.size() <= 8 && joined.contains("previous") && joined.contains("next")) {
             return true;
         }
-        return text.equals("help");
+        return joined.equals("help");
     }
 
     /** A chapter opens at verse 1 and then counts upward in small steps. */
-    private static boolean looksLikeScripture(List<Block> segment) {
+    private static boolean looksLikeScripture(List<String> segment) {
         int last = 0;
         int found = 0;
-        for (Block block : segment) {
-            Matcher matcher = VERSE_LINE.matcher(block.detect());
+        for (String line : segment) {
+            Matcher matcher = VERSE_LINE.matcher(line);
             if (!matcher.matches()) {
                 continue;
             }
@@ -425,10 +366,10 @@ public class NewAmericanBibleDownloaderMain {
         return found > 0 && segment.size() >= 4;
     }
 
-    private static List<Block> removeLeadingHeadings(List<Block> blocks, String book, int chapter) {
-        List<Block> result = new ArrayList<>(blocks);
+    private static List<String> removeLeadingHeadings(List<String> lines, String book, int chapter) {
+        List<String> result = new ArrayList<>(lines);
         while (!result.isEmpty()) {
-            String line = result.get(0).detect();
+            String line = result.get(0);
             String lowered = line.toLowerCase(Locale.ROOT);
             boolean isHeading = book.equals(canonicalBook(line))
                     || CHAPTER_LABEL.matcher(line).matches()

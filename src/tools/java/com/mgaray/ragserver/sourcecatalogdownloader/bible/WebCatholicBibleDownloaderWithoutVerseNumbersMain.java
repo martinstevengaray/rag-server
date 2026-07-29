@@ -1,14 +1,12 @@
-package com.mgaray.ragserver.sourcecatalogdownloader;
+package com.mgaray.ragserver.sourcecatalogdownloader.bible;
 
 import com.mgaray.ragserver.Models.Source;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.data.LocalDiskDatastore;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
-import org.jsoup.nodes.TextNode;
 
 import java.net.URI;
 import java.time.Duration;
@@ -41,7 +39,7 @@ import java.util.regex.Pattern;
  *   {sourceCatalogId}/sourceCatalog.json
  *   {sourceCatalogId}/sources/webc-{book}-{chapter}.txt
  */
-public class WebCatholicBibleDownloaderMain {
+public class WebCatholicBibleDownloaderWithoutVerseNumbersMain {
 
     private static final String INDEX_URL = "https://ebible.org/eng-web-c/index.htm";
 
@@ -56,11 +54,8 @@ public class WebCatholicBibleDownloaderMain {
             Pattern.compile("([0-9A-Z]{3})(\\d{1,3})\\.htm", Pattern.CASE_INSENSITIVE);
     private static final Pattern BOOK_FILE =
             Pattern.compile("([0-9A-Z]{3})\\.htm", Pattern.CASE_INSENSITIVE);
-    private static final Pattern VERSE_MARKER = Pattern.compile("@V(\\d+)@");
-    private static final Pattern VERSE_SPAN_ID = Pattern.compile("V(\\d+)");
     private static final Pattern MAIN_TITLE_CLASS = Pattern.compile("mt\\d?");
     private static final Pattern CHAPTER_LABEL_CLASS = Pattern.compile("chapterlabel|^c$");
-    private static final Pattern LEADING_DIGITS = Pattern.compile("\\s*(\\d+)");
     private static final Pattern NON_SLUG = Pattern.compile("[^a-z0-9]+");
 
     /** Classes eBible.org uses for material that is not scripture text. */
@@ -111,7 +106,7 @@ public class WebCatholicBibleDownloaderMain {
     private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
-    public WebCatholicBibleDownloaderMain(IDatastore outputDatastore) {
+    public WebCatholicBibleDownloaderWithoutVerseNumbersMain(IDatastore outputDatastore) {
         this.outputDatastore = outputDatastore;
     }
 
@@ -121,7 +116,7 @@ public class WebCatholicBibleDownloaderMain {
         //IDatastore outputDatastore = new S3Datastore("rag-server-source");
 
         String sourceCatalogId = "web-catholic-bible";
-        List<String> errors = new WebCatholicBibleDownloaderMain(outputDatastore)
+        List<String> errors = new WebCatholicBibleDownloaderWithoutVerseNumbersMain(outputDatastore)
                 .downloadSourceFolderForWebc(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
     }
@@ -300,43 +295,12 @@ public class WebCatholicBibleDownloaderMain {
             }
         }
 
-        // Verses are marked as <span class="verse" id="V1">1</span>. Replace each with a sentinel,
-        // then split the flattened text on those sentinels.
-        for (Element span : main.select("span.verse")) {
-            Matcher byId = VERSE_SPAN_ID.matcher(span.id());
-            Matcher byText = LEADING_DIGITS.matcher(span.text());
-            if (byId.matches()) {
-                span.replaceWith(new TextNode(" @V" + byId.group(1) + "@ "));
-            } else if (byText.lookingAt()) {
-                span.replaceWith(new TextNode(" @V" + byText.group(1) + "@ "));
-            } else {
-                span.remove();
-            }
-        }
+        //verse numbers are <span class="verse">, the only remaining citation markers on the page
+        main.select("span.verse").forEach(Node::remove);
 
-        String rawText = CorpusDownloader.textNodes(main, " ");
-        List<String> verses = new ArrayList<>();
-        Matcher marker = VERSE_MARKER.matcher(rawText);
-        int cursor = 0;
-        Integer pendingNumber = null;
-        while (marker.find()) {
-            if (pendingNumber != null) {
-                String verseText = normalize(rawText.substring(cursor, marker.start()));
-                if (!verseText.isEmpty()) {
-                    verses.add(pendingNumber + " " + verseText);
-                }
-            }
-            pendingNumber = Integer.parseInt(marker.group(1));
-            cursor = marker.end();
-        }
-        if (pendingNumber != null) {
-            String verseText = normalize(rawText.substring(cursor));
-            if (!verseText.isEmpty()) {
-                verses.add(pendingNumber + " " + verseText);
-            }
-        }
-
-        String text = verses.isEmpty() ? normalize(rawText) : String.join("\n", verses);
+        // div.p groups several verses into a real paragraph and div.q/div.q2 carry poetry lines, so
+        // reading block by block gives prose and keeps the psalms' line breaks.
+        String text = String.join("\n", CorpusDownloader.blockTexts(main));
         if (text.isEmpty()) {
             return null;
         }
@@ -344,17 +308,6 @@ public class WebCatholicBibleDownloaderMain {
         return new Chapter(bookCode, book, chapterFromName, text);
     }
 
-    /** Collapses horizontal whitespace per line, drops blank lines, and joins with newlines. */
-    private static String normalize(String value) {
-        List<String> lines = new ArrayList<>();
-        for (String raw : value.split("\n", -1)) {
-            String line = CorpusDownloader.normalizeLine(raw);
-            if (!line.isEmpty()) {
-                lines.add(line);
-            }
-        }
-        return String.join("\n", lines);
-    }
 
     private static String slugify(String value) {
         String slug = NON_SLUG.matcher(value.toLowerCase(Locale.ROOT)).replaceAll("-");
