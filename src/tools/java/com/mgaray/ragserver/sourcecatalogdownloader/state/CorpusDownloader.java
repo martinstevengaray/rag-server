@@ -1,4 +1,4 @@
-package com.mgaray.ragserver.sourcecatalogdownloader;
+package com.mgaray.ragserver.sourcecatalogdownloader.state;
 
 import com.mgaray.ragserver.Models.Source;
 import com.mgaray.ragserver.Models.SourceCatalog;

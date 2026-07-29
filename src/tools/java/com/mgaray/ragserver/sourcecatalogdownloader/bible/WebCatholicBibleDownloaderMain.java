@@ -108,7 +108,7 @@ public class WebCatholicBibleDownloaderMain {
 
     private static final List<String> BOOK_ORDER = List.copyOf(BOOK_CODES.keySet());
 
-    private final com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader downloader = new com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader(USER_AGENT, THROTTLE);
+    private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
     public WebCatholicBibleDownloaderMain(IDatastore outputDatastore) {
@@ -156,7 +156,7 @@ public class WebCatholicBibleDownloaderMain {
             if (html == null) {
                 continue;
             }
-            String retrievedAt = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.retrievedAtNow();
+            String retrievedAt = CorpusDownloader.retrievedAtNow();
 
             for (Link found : links(html, link.url())) {
                 if (seen.add(found.url())) {
@@ -196,7 +196,7 @@ public class WebCatholicBibleDownloaderMain {
         for (Chapter chapter : chapters) {
             String key = chapter.bookCode() + ":" + chapter.chapter();
             String sourceId = "webc-" + slugify(chapter.book()) + "-" + chapter.chapter();
-            String textLocation = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
+            String textLocation = CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
             outputDatastore.writeString(textLocation, chapter.text());
             sources.add(new Source(
                     sourceId,
@@ -208,7 +208,7 @@ public class WebCatholicBibleDownloaderMain {
 
         System.out.println("Downloaded " + sources.size() + " chapters from "
                 + seen.size() + " discovered pages");
-        return com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
+        return CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
     }
 
     /** Same-directory chapter and book links on a page, in document order. */
@@ -314,7 +314,7 @@ public class WebCatholicBibleDownloaderMain {
             }
         }
 
-        String rawText = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.textNodes(main, " ");
+        String rawText = CorpusDownloader.textNodes(main, " ");
         List<String> verses = new ArrayList<>();
         Matcher marker = VERSE_MARKER.matcher(rawText);
         int cursor = 0;

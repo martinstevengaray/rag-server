@@ -104,7 +104,7 @@ public class NewAmericanBibleDownloaderMain {
         }
     }
 
-    private final com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader downloader = new com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader(USER_AGENT, THROTTLE);
+    private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
     public NewAmericanBibleDownloaderMain(IDatastore outputDatastore) {
@@ -143,7 +143,7 @@ public class NewAmericanBibleDownloaderMain {
                 continue;
             }
 
-            String retrievedAt = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.retrievedAtNow();
+            String retrievedAt = CorpusDownloader.retrievedAtNow();
             Chapter chapter = parseChapter(Jsoup.parse(html, pageUrl));
 
             // Book introductions and front matter are not chapters and are not carried into the
@@ -154,7 +154,7 @@ public class NewAmericanBibleDownloaderMain {
             }
 
             String sourceId = "nab-" + slugify(chapter.book()) + "-" + chapter.chapter();
-            String textLocation = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
+            String textLocation = CorpusDownloader.sourceTextLocation(sourceCatalogId, sourceId);
             outputDatastore.writeString(textLocation, chapter.text());
             sources.add(new Source(
                     sourceId, pageUrl, retrievedAt, chapter.book() + " " + chapter.chapter(), textLocation));
@@ -166,7 +166,7 @@ public class NewAmericanBibleDownloaderMain {
 
         System.out.println("Downloaded " + sources.size() + " chapters, skipped " + skipped
                 + " non-chapter pages");
-        return com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
+        return CorpusDownloader.writeCatalog(outputDatastore, sourceCatalogId, sources);
     }
 
     /** Chapter and introduction page urls linked from the archive index, in index order. */
@@ -218,7 +218,7 @@ public class NewAmericanBibleDownloaderMain {
         }
 
         List<String> body = removeLeadingHeadings(scripture, book, chapter);
-        String text = com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.strip(String.join("\n", body));
+        String text = CorpusDownloader.strip(String.join("\n", body));
         if (text.isEmpty()) {
             return null;
         }
@@ -231,7 +231,7 @@ public class NewAmericanBibleDownloaderMain {
         document.select("hr").forEach(rule -> rule.replaceWith(new TextNode("\n" + RULE + "\n")));
 
         List<String> lines = new ArrayList<>();
-        for (String raw : com.mgaray.ragserver.sourcecatalogdownloader.CorpusDownloader.textNodes(document, "\n").split("\n", -1)) {
+        for (String raw : CorpusDownloader.textNodes(document, "\n").split("\n", -1)) {
             String line = CorpusDownloader.normalizeLine(raw);
             if (!line.isEmpty()) {
                 lines.add(line);
