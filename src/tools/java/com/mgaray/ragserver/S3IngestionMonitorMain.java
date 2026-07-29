@@ -41,7 +41,7 @@ public class S3IngestionMonitorMain {
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
-        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L, logger);
+        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 60*1000L, logger);
         ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
         ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
         ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3);
