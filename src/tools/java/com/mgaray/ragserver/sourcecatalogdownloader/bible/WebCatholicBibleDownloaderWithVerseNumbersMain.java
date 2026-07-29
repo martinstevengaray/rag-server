@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
  *   {sourceCatalogId}/sourceCatalog.json
  *   {sourceCatalogId}/sources/webc-{book}-{chapter}.txt
  */
-public class WebCatholicBibleDownloaderMain {
+public class WebCatholicBibleDownloaderWithVerseNumbersMain {
 
     private static final String INDEX_URL = "https://ebible.org/eng-web-c/index.htm";
 
@@ -111,7 +111,7 @@ public class WebCatholicBibleDownloaderMain {
     private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
-    public WebCatholicBibleDownloaderMain(IDatastore outputDatastore) {
+    public WebCatholicBibleDownloaderWithVerseNumbersMain(IDatastore outputDatastore) {
         this.outputDatastore = outputDatastore;
     }
 
@@ -121,7 +121,7 @@ public class WebCatholicBibleDownloaderMain {
         //IDatastore outputDatastore = new S3Datastore("rag-server-source");
 
         String sourceCatalogId = "web-catholic-bible";
-        List<String> errors = new WebCatholicBibleDownloaderMain(outputDatastore)
+        List<String> errors = new WebCatholicBibleDownloaderWithVerseNumbersMain(outputDatastore)
                 .downloadSourceFolderForWebc(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
     }

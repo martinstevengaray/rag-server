@@ -40,7 +40,7 @@ import java.util.regex.Pattern;
  *   {sourceCatalogId}/sourceCatalog.json
  *   {sourceCatalogId}/sources/nab-{book}-{chapter}.txt
  */
-public class NewAmericanBibleDownloaderMain {
+public class NewAmericanBibleDownloaderWithVerseNumbersMain {
 
     /** Set to true only when your permission or licence covers this download and its intended use. */
     private static final boolean ACKNOWLEDGE_PERMISSION = false;
@@ -107,7 +107,7 @@ public class NewAmericanBibleDownloaderMain {
     private final CorpusDownloader downloader = new CorpusDownloader(USER_AGENT, THROTTLE);
     private final IDatastore outputDatastore;
 
-    public NewAmericanBibleDownloaderMain(IDatastore outputDatastore) {
+    public NewAmericanBibleDownloaderWithVerseNumbersMain(IDatastore outputDatastore) {
         this.outputDatastore = outputDatastore;
     }
 
@@ -124,7 +124,7 @@ public class NewAmericanBibleDownloaderMain {
         //IDatastore outputDatastore = new S3Datastore("rag-server-source");
 
         String sourceCatalogId = "new-american-bible";
-        List<String> errors = new NewAmericanBibleDownloaderMain(outputDatastore)
+        List<String> errors = new NewAmericanBibleDownloaderWithVerseNumbersMain(outputDatastore)
                 .downloadSourceFolderForNab(sourceCatalogId);
         System.out.println(sourceCatalogId + " errors: " + errors);
     }
