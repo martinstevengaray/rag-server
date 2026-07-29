@@ -88,11 +88,11 @@ public class QueryHandler {
         String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
         logger.log("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
-        chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
         logger.log("chatModelResponseJson: " + chatModelResponseJson);
         List<String> sourceUrls = null;
         String chatResponse = null;
         try {
+            chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
             ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
             List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
             sourceUrls = sourceUrls(chatModelResponse, lookup);
