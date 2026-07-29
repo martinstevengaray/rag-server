@@ -86,7 +86,8 @@ public class Models {
 
     public enum ChatModelType { OPEN_AI_GPT_4O_MINI,
                                 OPEN_AI_GPT_4O,
-                                OPEN_AI_GPT_56_SOL }
+                                OPEN_AI_GPT_56_SOL,
+                                OPEN_AI_GPT_5_NANO}
 
     public record VectorQueryConfig(int conversationChunkCount,
                                     int mostRecentPromptChunkCount,

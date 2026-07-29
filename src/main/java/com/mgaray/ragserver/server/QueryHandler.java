@@ -70,6 +70,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";
             case OPEN_AI_GPT_4O -> "gpt-4o";
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
+            case OPEN_AI_GPT_5_NANO -> "gpt-5-nano";
         };
         return OpenAiChatModel.builder()
                 .apiKey(config.openAiKey())
@@ -87,6 +88,7 @@ public class QueryHandler {
         String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
         logger.log("prompt: " + prompt);
         String chatModelResponseJson = chatModel.chat(prompt);
+        chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
         logger.log("chatModelResponseJson: " + chatModelResponseJson);
         List<String> sourceUrls = null;
         String chatResponse = null;
@@ -139,6 +141,12 @@ public class QueryHandler {
             }
         }
         return new ArrayList<>(chunksForPrompt.values());
+    }
+
+    private String extractJsonFromText(String text) {
+        int firstIndex = text.indexOf("{");
+        int lastIndex = text.lastIndexOf("}");
+        return text.substring(firstIndex, lastIndex+1);
     }
 
     private SessionState getSessionState(Request request) {

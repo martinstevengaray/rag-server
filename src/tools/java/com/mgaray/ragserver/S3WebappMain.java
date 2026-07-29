@@ -20,7 +20,7 @@ import com.mgaray.ragserver.storage.vector.S3VectorStore;
 public class S3WebappMain {
 
     private static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
-    private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_4O_MINI;
+    private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_5_NANO;
 
     public static void main(String[] args) throws Exception {
         String s3Bucket = IngestionMain.s3IngestionBucket;
