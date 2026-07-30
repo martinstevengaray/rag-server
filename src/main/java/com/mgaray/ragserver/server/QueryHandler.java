@@ -50,11 +50,27 @@ public class QueryHandler {
         this.encryptionDelegate = new EncryptionDelegate(webappConfig.symmetricSigningKey());
     }
 
+    //to support unit tests
+    QueryHandler(WebappConfig webappConfig,
+                 IDatastore datastore,
+                 IVectorStore<Chunk> vectorStore,
+                 EmbeddingModel embeddingModel,
+                 ChatModel chatModel,
+                 EncryptionDelegate encryptionDelegate) {
+        this.webappConfig = webappConfig;
+        this.datastore = datastore;
+        this.vectorStore = vectorStore;
+        this.embeddingModel = embeddingModel;
+        this.chatModel = chatModel;
+        this.encryptionDelegate = encryptionDelegate;
+    }
+
     public static ChatModel createChatModel(WebappConfig config) {
         String chatModelName = switch(config.chatModelType()) {
             case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";
             case OPEN_AI_GPT_4O -> "gpt-4o";
             case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
+            case OPEN_AI_GPT_5_NANO -> "gpt-5-nano";
         };
         return OpenAiChatModel.builder()
                 .apiKey(config.openAiKey())
@@ -76,6 +92,7 @@ public class QueryHandler {
         List<String> sourceUrls = null;
         String chatResponse = null;
         try {
+            chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
             ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
             List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
             sourceUrls = sourceUrls(chatModelResponse, lookup);
@@ -96,7 +113,6 @@ public class QueryHandler {
 
     private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
         VectorQueryConfig vectorQueryConfig = webappConfig.vectorQueryConfig();
-        //userPrompt = chatModel.chat("could you please expand on this prompt in the content of portland city codes: " + userPrompt);
         List<VectorMatch<Chunk>> vectorMatches = new ArrayList<>();
         String conversationVectorStoreQuery = createConversationVectorStoreQuery(sessionState, userPrompt);
         float[] conversationQueryVector = embeddingModel.embed(conversationVectorStoreQuery).content().vector();
@@ -127,6 +143,12 @@ public class QueryHandler {
         return new ArrayList<>(chunksForPrompt.values());
     }
 
+    private String extractJsonFromText(String text) {
+        int firstIndex = text.indexOf("{");
+        int lastIndex = text.lastIndexOf("}");
+        return text.substring(firstIndex, lastIndex+1);
+    }
+
     private SessionState getSessionState(Request request) {
         String sessionStateJson = request.sessionState();
         if (sessionStateJson == null) {
@@ -154,8 +176,7 @@ public class QueryHandler {
 
     private List<PromptDataSource> promptDataSources(List<Chunk> chunksForPrompt, Map<String, Chunk> lookup) {
         List<PromptDataSource> promptDataSources = new ArrayList<>();
-        for (Chunk chunk : chunksForPrompt) {
-            //prefer random to chunk.id() as chunk.id() can be surmised and therefore hallucinated
+        for (Chunk chunk : chunksForPrompt) { //prefer random to chunk.id() to prevent hallucinating sources
             String id = UUID.randomUUID().toString();
             String chunkText = datastore.readString(chunk.textLocation());
             promptDataSources.add(new PromptDataSource(id, chunkText));

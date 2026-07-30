@@ -41,7 +41,7 @@ public class S3IngestionMonitorMain {
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreDisk = new LocalDiskDatastore(localIngestionRoot);
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
-        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10000L, logger);
+        DatastoreMonitor datastoreMonitor = new DatastoreMonitor("ingestion store", 10*60*1000L, logger);
         ingestionDatastoreMemory = datastoreMonitor.add(ingestionDatastoreMemory);
         ingestionDatastoreDisk = datastoreMonitor.add(ingestionDatastoreDisk);
         ingestionDatastoreS3 = datastoreMonitor.add(ingestionDatastoreS3);
@@ -66,5 +66,17 @@ portland-city-code complete in 28 minutes
 S3Datastore: 0r, 6086w, 6085e
 InMemoryDatastore: 9158r, 6086w, 6085e
 LocalDiskDatastore: 0r, 6086w, 6085e
+
+
+
+oregon-state-code
+$4.69
+
+oregon-state-code complete in 05:57:39  (2 part,second part only, S3VectrStore load only)
+----- ingestion store ----- (final)
+S3Datastore: 0r, 2w, 1e
+InMemoryDatastore: 41240r, 40615w, 41241e
+LocalDiskDatastore: 40613r, 2w, 41241e
+
 
  */
