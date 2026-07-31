@@ -19,7 +19,7 @@ import com.mgaray.ragserver.storage.vector.InMemoryVectorStore;
 
 public class LocalWebappMain {
 
-    private static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
+    private static final String ingestionManifestId = IngestionMain.ingestionManifestId;
     private static final ChatModelType chatModelType = ChatModelType.OPEN_AI_GPT_5_NANO;
 
     public static void main(String[] args) throws Exception {

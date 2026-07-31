@@ -42,8 +42,7 @@ VectorStoreLoader        loads (vector, chunk) pairs into each configured vector
 ```
 
 Every stage is idempotent: it checks `exists(...)` before writing, so an interrupted run can be
-restarted and will pick up where it stopped. A full Portland City Code run takes roughly 26–28
-minutes.
+restarted and will pick up where it stopped.
 
 ### Query path
 
@@ -61,8 +60,7 @@ A `GET` returns the chat page bundled at `src/main/resources/index.html`; a `POS
 
 Conversation state lives entirely in the client — it round-trips through the `sessionState` field of
 the request and response, so the Lambda stays stateless. Optional encryption of that state is
-implemented in `EncryptionDelegate` but currently switched off
-(`QueryHandler.encryptSessionState = false`).
+implemented in `EncryptionDelegate`.
 
 ### Storage abstractions
 
@@ -104,8 +102,7 @@ src/tools/java/      developer tools; compiled separately and kept out of the La
   LocalIngestionMonitorMain / S3IngestionMonitorMain
                        ingestion runs with a DatastoreMonitor printing read/write counters
   sourcecatalogdownloader/
-                       corpus downloaders (Oregon statutes, Portland city code, two bible corpora)
-  sourcecatalogwriter/ turns already-downloaded corpora into a sourceCatalog.json
+                       corpus downloaders (oregon-state-code, portland-city-code)
   localpipeline/       small harnesses for exercising the Chunker and vector store by hand
   localserver/         a plain com.sun.net.httpserver wrapper used by the local mains
 src/test/java/       JUnit 5 tests
@@ -130,12 +127,12 @@ secrets and the deployment settings:
 ```bash
 export OPEN_AI_API_KEY="sk-..."
 export SYMMETRIC_SIGNING_KEY="..."          # openssl rand -base64 32
-export CHAT_MODEL_TYPE="OPEN_AI_GPT_4O_MINI"
+export CHAT_MODEL_TYPE="OPEN_AI_GPT_5_NANO"
 export VECTOR_QUERY_CONFIG='{"conversationChunkCount":10,"mostRecentPromptChunkCount":10,"conversationPreviouslyUsedChunkMaxCount":10}'
 export INGESTION_MANIFEST_BUCKET="rag-server-ingestion"
 export VECTOR_STORE_BUCKET="rag-server-vector"
 export INGESTION_MANIFEST_ID="oregon-state-code"
-export TERRAFORM_TFSTATE_S3_BUCKET="tfstate-<account-id>"
+export TERRAFORM_TFSTATE_S3_BUCKET="tfstate-store"
 export TERRAFORM_TFSTATE_S3_REGION="us-west-2"
 export DEPLOYMENT_REGION="us-west-2"
 export LAMBDA_FUNCTION_NAME="rag-server-lambda"
@@ -175,8 +172,7 @@ only by the downloaders) never reaches Lambda. There is no Gradle `run` task; th
 3. Open `http://localhost` (both mains bind port 80, so they need privileges or a port change).
 
 To ingest a corpus locally first, run `LocalIngestionMonitorMain`, which reads sources from
-`local/sources`, writes everything under `local/s3bucket`, and prints datastore counters every ten
-seconds. `S3IngestionMonitorMain` and `IngestionMain` do the same against S3, the latter also
+`local/sources`, writes everything under `local/s3bucket`, and prints datastore counters. `S3IngestionMonitorMain` and `IngestionMain` do the same against S3, the latter also
 loading AWS S3 Vectors.
 
 ## Getting a corpus in
@@ -205,9 +201,7 @@ Two routes produce one:
 - **Downloaders** (`src/tools/.../sourcecatalogdownloader/`) fetch a corpus and write the catalog
   layout directly. `CorpusDownloader` holds the shared plumbing — throttled HTTP with retries, text
   normalization, catalog writing — while each corpus keeps its own `...Main` because discovery and
-  HTML parsing rules differ. The bible downloaders come in with- and without-verse-number variants.
-- **`SourceCatalogWriterMain`** converts corpora that were downloaded by an earlier external
-  pipeline into the same layout.
+  HTML parsing rules differ. 
 
 `CopySourceCatalogToS3` uploads a locally built catalog and its text files to the S3 source bucket.
 
@@ -237,4 +231,4 @@ Secrets Lambda extension layer. The deployed URL is the `function_url` output.
   if that file has ever been shared or copied off the machine.
 - The function URL is unauthenticated, so anyone with the URL can spend OpenAI credits through it.
 - The S3 IAM policy grants `GetObject`/`PutObject` on `arn:aws:s3:::*/*` — every bucket in the
-  account — rather than only the three buckets this app uses.
+  account.

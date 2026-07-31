@@ -151,7 +151,7 @@ resource "aws_lambda_function" "this" {
 
   # RAG startup loads langchain4j and reads from S3, so give it headroom.
   memory_size = 1024
-  timeout     = 60
+  timeout     = 300
 
   # Serves SSM parameters to the function over localhost HTTP (with caching),
   # so the code needs no AWS SDK to read secrets.

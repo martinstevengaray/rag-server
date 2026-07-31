@@ -52,7 +52,7 @@ public class S3IngestionMonitorMain {
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
-                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
+                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreS3, vectorStoreMemory);
         ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition, logger);
     }
 

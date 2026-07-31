@@ -7,7 +7,7 @@ import com.mgaray.ragserver.Models.SourceCatalog;
 import com.mgaray.ragserver.Models.Source;
 
 
-public class CopySourceCatalogToS3 {
+public class CopySourceCatalogToS3Main {
 
     public static void main(String[] args) {
         String localSourceRoot = "local/sources_new";

@@ -5,6 +5,7 @@ import com.mgaray.ragserver.Models.ChunkManifest;
 import com.mgaray.ragserver.Models.ChunkingSpec;
 import com.mgaray.ragserver.Models.EmbeddingModelType;
 import com.mgaray.ragserver.Models.EmbeddingSpec;
+import com.mgaray.ragserver.Models.IngestionConfig;
 import com.mgaray.ragserver.Models.IngestionManifest;
 import com.mgaray.ragserver.Models.RunDefinition;
 import com.mgaray.ragserver.Models.SourceRecord;
@@ -30,6 +31,8 @@ class VectorStoreLoaderTest {
     private static final String RUN_ID = "run-1";
     private static final VectorStoreSpec VECTOR_STORE_SPEC =
             new VectorStoreSpec(RUN_ID + "/vectorStore.json.gz", RUN_ID + "/s3VectorStore.json");
+    /** One thread, so source records load in order and the assertions below can rely on it. */
+    private static final IngestionConfig SINGLE_THREADED = new IngestionConfig(1, "unused-key");
 
     /** Records what the loader asks of the store, without any embedding machinery. */
     private static class FakeVectorStore implements IVectorStore<Chunk> {
@@ -75,7 +78,7 @@ class VectorStoreLoaderTest {
 
     private final IDatastore datastore = new InMemoryDatastore();
     private final FakeVectorStore vectorStore = new FakeVectorStore();
-    private final VectorStoreLoader loader = new VectorStoreLoader(datastore, vectorStore);
+    private final VectorStoreLoader loader = new VectorStoreLoader(datastore, vectorStore, SINGLE_THREADED);
 
     private static final IngestionManifest MANIFEST = new IngestionManifest(
             RUN_ID,
