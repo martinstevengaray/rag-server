@@ -66,7 +66,8 @@ public class IngestionPipeline {
         logger.log("VectorStoreLoader");
         for (IVectorStore<Chunk> vectorStore : vectorStores) {
             vectorStore.initialize(runDefinition.embeddingSpec());
-            VectorStoreLoader vectorStoreLoader = new VectorStoreLoader(ingestionDatastore, vectorStore);
+            VectorStoreLoader vectorStoreLoader =
+                    new VectorStoreLoader(ingestionDatastore, vectorStore, ingestionConfig);
             vectorStoreLoader.load(ingestionManifest, sourceRecordsDocument);
         }
 

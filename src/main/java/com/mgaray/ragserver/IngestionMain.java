@@ -24,7 +24,7 @@ public class IngestionMain {
     public static final int numberOfEmbeddingThreads = 10;
     public static final EmbeddingModelType embeddingModelType = EmbeddingModelType.OPEN_AI_TEXT_EMBEDDING_3_LARGE;
     public static final String ingestionManifestId = IngestionMain.portlandIngestionManifestId;
-    public static final String sourceCatalogLocation = IngestionMain.portlandSourceCatalogLocation;
+    public static final String sourceCatalogLocation = ingestionManifestId + "/sourceCatalog.json";
 
     public static final String localIngestionRoot = "local/s3bucket";
     public static final String s3SourceBucket = "rag-server-source";
