@@ -237,7 +237,7 @@ If the source data does not include data to answer the prompt, say so.
 Include the ids of the data sources you used to form your response.
 Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
-
+Do not add references inline in the response, only in the dataSourcesUsed section.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
