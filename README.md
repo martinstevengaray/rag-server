@@ -102,8 +102,7 @@ src/tools/java/      developer tools; compiled separately and kept out of the La
   LocalIngestionMonitorMain / S3IngestionMonitorMain
                        ingestion runs with a DatastoreMonitor printing read/write counters
   sourcecatalogdownloader/
-                       corpus downloaders (Oregon statutes, Portland city code, two bible corpora)
-  sourcecatalogwriter/ turns already-downloaded corpora into a sourceCatalog.json
+                       corpus downloaders (oregon-state-code, portland-city-code)
   localpipeline/       small harnesses for exercising the Chunker and vector store by hand
   localserver/         a plain com.sun.net.httpserver wrapper used by the local mains
 src/test/java/       JUnit 5 tests
