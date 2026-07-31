@@ -43,11 +43,10 @@ public class IngestionMain {
         IDatastore ingestionDatastoreMemory = new InMemoryDatastore();
         IDatastore ingestionDatastoreS3 = new S3Datastore(s3IngestionBucket);
         IDatastore ingestionDatastore = new TieredDatastore(ingestionDatastoreMemory, ingestionDatastoreS3);
-        IVectorStore<Chunk> vectorStoreMemory = new InMemoryVectorStore<>(Chunk.class);
         IVectorStore<Chunk> vectorStoreS3 = new S3VectorStore<>(s3VectorStoreBucket, ingestionManifestId, Chunk.class);
         RunDefinition runDefinition = new RunDefinition(chunkingSpec, new EmbeddingSpec(embeddingModelType));
         IngestionPipeline ingestionPipeline =
-                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreMemory, vectorStoreS3);
+                new IngestionPipeline(config, sourceDatastore, ingestionDatastore, vectorStoreS3);
         ingestionPipeline.run(sourceCatalogLocation, ingestionManifestId, runDefinition, logger);
     }
 }
