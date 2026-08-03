@@ -80,14 +80,20 @@ public class QueryHandler {
     }
 
     public Response query(Request request, ILogger logger) {
+        Timer timer = new Timer(logger);
         SessionState sessionState = getSessionState(request);
         String userPrompt = request.userPrompt();
+        timer.snap("Extract state and prompt");
         List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState, logger);
+        timer.snap("Retrieve chunksForPrompt");
         Map<String, Chunk> lookup = new HashMap<>();
         List<PromptDataSource> promptDataSources = promptDataSources(chunksForPrompt, lookup);
+        timer.snap("Retrieve chunk text");
         String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
         logger.log("prompt: " + prompt);
+        timer.snap("Create raw prompt");
         String chatModelResponseJson = chatModel.chat(prompt);
+        timer.snap("Chat response.");
         logger.log("chatModelResponseJson: " + chatModelResponseJson);
         List<String> sourceUrls = null;
         String chatResponse = null;
@@ -99,6 +105,7 @@ public class QueryHandler {
             chatResponse = chatModelResponse.response();
             List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
             sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+            timer.snap("Interpret chat response.");
         } catch (Exception e) {
             logger.error("Exception in query", e);
             sourceUrls = List.of();
@@ -108,6 +115,7 @@ public class QueryHandler {
         if (encryptSessionState) {
             sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
         }
+        timer.snap("Prepare session state for response");
         return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
     }
 

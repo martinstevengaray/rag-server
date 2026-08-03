@@ -31,6 +31,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
     private final QueryHandler queryHandler;
 
     public LambdaServer() {
+        Timer timer = new Timer();
         SsmDelegate ssmDelegate = new SsmDelegate();
         String openAiKey = ssmDelegate.getParameter(System.getenv("OPEN_AI_API_KEY_SSM_PARAMETER_KEY"));
         String symmetricSigningKey =
@@ -48,6 +49,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         IngestionManifest ingestionManifest = datastore.readIngestionManifest(ingestionManifestId);
         EmbeddingSpec embeddingSpec = ingestionManifest.runDefinition().embeddingSpec();
         this.queryHandler = new QueryHandler(webappConfig, datastore, vectorStore, embeddingSpec);
+        timer.snap("LambdaServer construction");
     }
 
     //to support unit tests
