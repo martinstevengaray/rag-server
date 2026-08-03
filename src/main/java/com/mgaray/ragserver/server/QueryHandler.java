@@ -66,17 +66,27 @@ public class QueryHandler {
     }
 
     public static ChatModel createChatModel(WebappConfig config) {
-        String chatModelName = switch(config.chatModelType()) {
-            case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";
-            case OPEN_AI_GPT_4O -> "gpt-4o";
-            case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
-            case OPEN_AI_GPT_5_NANO -> "gpt-5-nano";
+        return switch(config.chatModelType()) {
+            case OPEN_AI_GPT_4O_MINI -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-4o-mini")
+                    .temperature(0.0)
+                    .build();
+            case OPEN_AI_GPT_4O -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-4o")
+                    .temperature(0.0)
+                    .build();
+            case OPEN_AI_GPT_56_SOL -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-5.6-sol")  // "gpt-5.6-sol" does not support temperature!=1, defaults to 1
+                    .build();
+            case OPEN_AI_GPT_5_NANO -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-5-nano")  // "gpt-5.6-nano" does not support temperature!=1, defaults to 1
+                    .reasoningEffort("minimal")
+                    .build();
         };
-        return OpenAiChatModel.builder()
-                .apiKey(config.openAiKey())
-                .modelName(chatModelName)
-                //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
-                .build();
     }
 
     public Response query(Request request, ILogger logger) {
@@ -198,7 +208,7 @@ public class QueryHandler {
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                chunkIds.add("hallucination:" + dataSourceKey);
+                chunkIds.add("not part of source data:" + dataSourceKey);
             } else {
                 chunkIds.add(chunk.id());
             }
