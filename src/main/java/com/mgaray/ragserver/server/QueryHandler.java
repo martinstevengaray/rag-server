@@ -221,7 +221,7 @@ public class QueryHandler {
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                sources.add("hallucination:" + dataSourceKey);
+                sources.add("not part of source data:" + dataSourceKey);
             } else {
                 sources.add(chunk.sourceRecord().sourceUrl());
             }

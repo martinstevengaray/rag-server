@@ -298,7 +298,7 @@ class QueryHandlerTest {
                 "the conversation-wide search should embed the history too");
     }
 
-    // ----- hallucination and parse failure handling --------------------------------------------
+    // ----- not part of source data and parse failure handling --------------------------------------------
 
     @Test
     void anUnparseableChatResponseFallsBackWithoutThrowing() {
@@ -333,7 +333,7 @@ class QueryHandlerTest {
         Response response = handler.query(new Request("q", null), logger);
 
         assertEquals("Ten feet.", response.chatResponse());
-        assertEquals(List.of("hallucination:invented-id"), response.sources());
+        assertEquals(List.of("not part of source data:invented-id"), response.sources());
     }
 
     @Test
@@ -344,7 +344,7 @@ class QueryHandlerTest {
 
         Response response = handler.query(new Request("q", null), logger);
 
-        assertTrue(response.sessionState().contains("hallucination:invented-id"), response.sessionState());
+        assertTrue(response.sessionState().contains("not part of source data:invented-id"), response.sessionState());
     }
 
     @Test
