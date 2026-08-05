@@ -15,17 +15,23 @@ import com.mgaray.ragserver.storage.data.InMemoryDatastore;
 import com.mgaray.ragserver.util.JsonUtils;
 import org.junit.jupiter.api.Test;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
 import static com.mgaray.ragserver.Models.ChatModelType.OPEN_AI_GPT_4O_MINI;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static com.mgaray.ragserver.server.ServerTestSupport.SIGNING_KEY;
 import static com.mgaray.ragserver.server.ServerTestSupport.chunk;
 import static com.mgaray.ragserver.server.ServerTestSupport.dataSourceIdsIn;
+import static com.mgaray.ragserver.server.ServerTestSupport.decryptedSessionState;
+import static com.mgaray.ragserver.server.ServerTestSupport.encryptedSessionState;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class QueryHandlerTest {
@@ -119,8 +125,8 @@ class QueryHandlerTest {
 
         Response response = handler.query(new Request("q", null), logger);
 
-        Map<String, Object> sessionState = JsonUtils.parse(response.sessionState());
-        assertTrue(response.sessionState().contains("\"chunkIdsUsed\":[\"b:0\"]"),
+        String sessionState = decryptedSessionState(response.sessionState());
+        assertTrue(sessionState.contains("\"chunkIdsUsed\":[\"b:0\"]"),
                 "the cited data-source id should be mapped back to its chunk id: " + sessionState);
     }
 
@@ -244,22 +250,48 @@ class QueryHandlerTest {
         QueryHandler handler = queryHandler(new FakeChatModel("not json"), new FakeEmbeddingModel(),
                 new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
 
-        Response response = handler.query(new Request("q", "{}"), logger);
+        Response response = handler.query(new Request("q", encryptedSessionState("{}")), logger);
 
         assertNotNull(response.sessionState(), "a session state with a null exchange list must not NPE");
     }
 
     @Test
-    void sessionStateIsReturnedAsPlainJsonToday() {
+    void sessionStateIsEncryptedInTheResponse() {
         givenChunkText(CHUNK_A, "text a");
         QueryHandler handler = queryHandler(new FakeChatModel("not json"), new FakeEmbeddingModel(),
                 new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
 
-        Response response = handler.query(new Request("q", null), logger);
+        Response response = handler.query(new Request("what are the setbacks?", null), logger);
 
-        // encryptSessionState is currently false; this pins that so flipping it is a deliberate change
-        assertTrue(response.sessionState().startsWith("{"), response.sessionState());
-        assertTrue(response.sessionState().contains("promptExchanges"), response.sessionState());
+        // the browser must never be handed readable conversation history
+        assertFalse(response.sessionState().contains("promptExchanges"), response.sessionState());
+        assertFalse(response.sessionState().contains("what are the setbacks?"), response.sessionState());
+        assertTrue(decryptedSessionState(response.sessionState()).contains("promptExchanges"),
+                "and it must still decrypt back to the state QueryHandler wrote");
+    }
+
+    @Test
+    void aSessionStateThatCannotBeDecryptedFailsHard() {
+        givenChunkText(CHUNK_A, "text a");
+        QueryHandler handler = queryHandler(new FakeChatModel("not json"), new FakeEmbeddingModel(),
+                new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
+
+        // plaintext json is what a pre-encryption browser tab would still be holding
+        assertThrows(RuntimeException.class,
+                () -> handler.query(new Request("q", "{\"promptExchanges\":[]}"), logger),
+                "session state that did not come from this server must not be accepted");
+    }
+
+    @Test
+    void aSessionStateEncryptedWithAnotherKeyFailsHard() {
+        givenChunkText(CHUNK_A, "text a");
+        String foreignKey = Base64.getEncoder().encodeToString("a-different-32-byte-aes-key-here".getBytes(UTF_8));
+        String forged = new EncryptionDelegate(foreignKey).encrypt("{\"promptExchanges\":[]}");
+        QueryHandler handler = queryHandler(new FakeChatModel("not json"), new FakeEmbeddingModel(),
+                new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
+
+        assertThrows(RuntimeException.class, () -> handler.query(new Request("q", forged), logger),
+                "the GCM auth tag is what stops a client editing its own history");
     }
 
     @Test
@@ -271,9 +303,10 @@ class QueryHandlerTest {
 
         Response response = handler.query(new Request("what are the setbacks?", null), logger);
 
-        assertTrue(response.sessionState().contains("what are the setbacks?"), response.sessionState());
-        assertTrue(response.sessionState().contains("Ten feet."), response.sessionState());
-        assertTrue(response.sessionState().contains("a:0"), "the chunks offered should be recorded");
+        String sessionState = decryptedSessionState(response.sessionState());
+        assertTrue(sessionState.contains("what are the setbacks?"), sessionState);
+        assertTrue(sessionState.contains("Ten feet."), sessionState);
+        assertTrue(sessionState.contains("a:0"), "the chunks offered should be recorded");
     }
 
     @Test
@@ -321,7 +354,7 @@ class QueryHandlerTest {
 
         Response response = handler.query(new Request("q", null), logger);
 
-        assertEquals("{\"promptExchanges\":[]}", response.sessionState());
+        assertEquals("{\"promptExchanges\":[]}", decryptedSessionState(response.sessionState()));
     }
 
     @Test
@@ -344,15 +377,16 @@ class QueryHandlerTest {
 
         Response response = handler.query(new Request("q", null), logger);
 
-        assertTrue(response.sessionState().contains("not part of source data:invented-id"), response.sessionState());
+        String sessionState = decryptedSessionState(response.sessionState());
+        assertTrue(sessionState.contains("not part of source data:invented-id"), sessionState);
     }
 
     @Test
     void aChunkIdInSessionStateThatNoLongerExistsIsLoggedAndSkipped() {
         givenChunkText(CHUNK_A, "text a");
-        String sessionState = JsonUtils.toJson(Map.of("promptExchanges", List.of(
+        String sessionState = encryptedSessionState(JsonUtils.toJson(Map.of("promptExchanges", List.of(
                 Map.of("prompt", "earlier", "response", "earlier answer",
-                       "chunkIdsAvailable", List.of("gone:9"), "chunkIdsUsed", List.of("gone:9")))));
+                       "chunkIdsAvailable", List.of("gone:9"), "chunkIdsUsed", List.of("gone:9"))))));
         QueryHandler handler = queryHandler(new FakeChatModel("not json"), new FakeEmbeddingModel(),
                 new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
 
@@ -369,9 +403,9 @@ class QueryHandlerTest {
     void chunksUsedInAnEarlierTurnAreCarriedIntoTheNextPrompt() {
         givenChunkText(CHUNK_A, "text a");
         givenChunkText(CHUNK_B, "text b");
-        String sessionState = JsonUtils.toJson(Map.of("promptExchanges", List.of(
+        String sessionState = encryptedSessionState(JsonUtils.toJson(Map.of("promptExchanges", List.of(
                 Map.of("prompt", "earlier", "response", "earlier answer",
-                       "chunkIdsAvailable", List.of("b:0"), "chunkIdsUsed", List.of("b:0")))));
+                       "chunkIdsAvailable", List.of("b:0"), "chunkIdsUsed", List.of("b:0"))))));
         FakeChatModel chatModel = new FakeChatModel("not json");
         FakeVectorStore vectorStore = new FakeVectorStore(List.of(CHUNK_A), List.of()).knowing(CHUNK_B);
         QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(), vectorStore, config(5, 5, 5));
@@ -390,10 +424,10 @@ class QueryHandlerTest {
         for (int i = 1; i <= 3; i++) {
             givenChunkText(chunk("c", i), "carried text " + i);
         }
-        String sessionState = JsonUtils.toJson(Map.of("promptExchanges", List.of(
+        String sessionState = encryptedSessionState(JsonUtils.toJson(Map.of("promptExchanges", List.of(
                 Map.of("prompt", "earlier", "response", "earlier answer",
                        "chunkIdsAvailable", List.of("c:1", "c:2", "c:3"),
-                       "chunkIdsUsed", List.of("c:1", "c:2", "c:3")))));
+                       "chunkIdsUsed", List.of("c:1", "c:2", "c:3"))))));
         FakeChatModel chatModel = new FakeChatModel("not json");
         FakeVectorStore vectorStore = new FakeVectorStore(List.of(CHUNK_A), List.of())
                 .knowing(chunk("c", 1), chunk("c", 2), chunk("c", 3));
@@ -410,9 +444,9 @@ class QueryHandlerTest {
     @Test
     void aChunkAlreadyFoundBySearchIsNotCarriedOverTwice() {
         givenChunkText(CHUNK_A, "text a");
-        String sessionState = JsonUtils.toJson(Map.of("promptExchanges", List.of(
+        String sessionState = encryptedSessionState(JsonUtils.toJson(Map.of("promptExchanges", List.of(
                 Map.of("prompt", "earlier", "response", "earlier answer",
-                       "chunkIdsAvailable", List.of("a:0"), "chunkIdsUsed", List.of("a:0")))));
+                       "chunkIdsAvailable", List.of("a:0"), "chunkIdsUsed", List.of("a:0"))))));
         FakeChatModel chatModel = new FakeChatModel("not json");
         FakeVectorStore vectorStore = new FakeVectorStore(List.of(CHUNK_A), List.of());
         QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(), vectorStore, config(5, 5, 5));
@@ -426,16 +460,16 @@ class QueryHandlerTest {
     // ----- response envelope -------------------------------------------------------------------
 
     @Test
-    void detailsCarryThePromptAndTheRawModelResponse() {
+    void detailsAreWithheldFromTheClient() {
         givenChunkText(CHUNK_A, "text a");
-        String rawResponse = chatResponse("Ten feet.");
-        FakeChatModel chatModel = new FakeChatModel(rawResponse);
+        FakeChatModel chatModel = new FakeChatModel(chatResponse("Ten feet."));
         QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(),
                 new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
 
         Response response = handler.query(new Request("q", null), logger);
 
-        assertEquals(chatModel.lastPrompt() + "\n\n" + rawResponse, response.details());
+        assertNull(response.details(),
+                "details used to carry the raw prompt, which exposes the chunk text and the data-source ids");
     }
 
     @Test

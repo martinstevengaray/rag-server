@@ -99,21 +99,6 @@
             white-space: pre-wrap;
             color: #444;
         }
-        #session,
-        #debug {
-            margin-top: 4px;
-            color: #444;
-            font-size: 13px;
-        }
-        #session code,
-        #debug code {
-            display: block;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .label {
-            color: #cc0000;
-        }
     </style>
 </head>
 <body>
@@ -130,34 +115,14 @@
         <div id="status"></div>
     </div>
 
-    <div id="session"><span class="label">Session state:</span> <code id="sessionValue">(none)</code></div>
-    <div id="debug"><span class="label">Details:</span> <code id="debugValue">(none)</code></div>
-
     <script>
         const button = document.getElementById("send");
         const input = document.getElementById("input");
         const status = document.getElementById("status");
         const conversation = document.getElementById("conversation");
-        const sessionValueEl = document.getElementById("sessionValue");
-        const debugValueEl = document.getElementById("debugValue");
 
         let inFlight = false;      // guard against overlapping requests
         let sessionState = null;   // null on first request, then echoed back from the server
-
-        // Pretty-print sessionState as JSON. It may arrive as an object or as a
-        // JSON string; fall back to the raw value if it isn'record valid JSON.
-        function formatJson(value) {
-            if (value == null) return "(none)";
-            let obj = value;
-            if (typeof value === "string") {
-                try {
-                    obj = JSON.parse(value);
-                } catch {
-                    return value;
-                }
-            }
-            return JSON.stringify(obj, null, 2);
-        }
 
         // Append a chat bubble and keep the newest message in view.
         // `sources` is an optional array of strings shown beneath the bubble.
@@ -223,9 +188,6 @@
                 const data = await response.json();   // { chatResponse, sources, sessionState, details }
                 addMessage("assistant", data.chatResponse, data.sources);
                 sessionState = data.sessionState;     // echo this back on the next request
-                sessionValueEl.textContent = formatJson(sessionState);
-                // debug is an arbitrary diagnostic string and may be null/absent.
-                debugValueEl.textContent = data.details ?? "(none)";
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {

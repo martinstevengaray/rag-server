@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 public class QueryHandler {
 
-    private static final boolean encryptSessionState = false;
+    private static final boolean encryptSessionState = true;
 
     private final WebappConfig webappConfig;
     private final IDatastore datastore;
@@ -94,6 +94,7 @@ public class QueryHandler {
         SessionState sessionState = getSessionState(request);
         String userPrompt = request.userPrompt();
         timer.snap("Extract state and prompt");
+        logger.log("session state", sessionState);
         List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState, logger);
         timer.snap("Retrieve chunksForPrompt");
         Map<String, Chunk> lookup = new HashMap<>();
@@ -126,7 +127,7 @@ public class QueryHandler {
             sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
         }
         timer.snap("Prepare session state for response");
-        return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+        return new Response(chatResponse, sourceUrls, sessionStateJson, null);
     }
 
     private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
