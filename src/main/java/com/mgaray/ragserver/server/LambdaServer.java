@@ -67,7 +67,9 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         String responseString = null;
         if ("GET".equals(method)) {
             responseString = this.handleGet(path);
-            return proxyResponseHtml(200, responseString);
+            return responseString == null ?
+                    proxyResponseNoContent() :
+                    proxyResponseHtml(200, responseString);
         } else if ("POST".equals(method)) {
             String body = extractBody(input);
             logger.log("body=" + body);
@@ -88,6 +90,9 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
     }
 
     public String handleGet(String path) {
+        if (!"/".equals(path)) {
+            return null;
+        }
         try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
@@ -149,6 +154,17 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
                 "Content-Type", "text/html; charset=utf-8",
                 "Access-Control-Allow-Origin", "*"));
         result.put("body", body);
+        result.put("isBase64Encoded", false);
+        return result;
+    }
+
+    private static Map<String, Object> proxyResponseNoContent() {
+        Map<String, Object> result = new HashMap<>();
+        result.put("statusCode", 204);
+        result.put("headers", Map.of(
+                "Cache-Control", "public, max-age=86400",
+                "Access-Control-Allow-Origin", "*"));
+        result.put("body", "");
         result.put("isBase64Encoded", false);
         return result;
     }

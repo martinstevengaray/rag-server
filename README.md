@@ -225,10 +225,3 @@ Terraform provisions the function, a public function URL (`authorization_type = 
 role with scoped SSM/KMS and S3 Vectors read permissions, and attaches the AWS Parameters and
 Secrets Lambda extension layer. The deployed URL is the `function_url` output.
 
-## Notes
-
-- `local/config.sh` holds a live OpenAI API key in plaintext. It is gitignored, but worth rotating
-  if that file has ever been shared or copied off the machine.
-- The function URL is unauthenticated, so anyone with the URL can spend OpenAI credits through it.
-- The S3 IAM policy grants `GetObject`/`PutObject` on `arn:aws:s3:::*/*` — every bucket in the
-  account.
