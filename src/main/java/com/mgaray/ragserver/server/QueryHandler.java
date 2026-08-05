@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 public class QueryHandler {
 
-    private static final boolean encryptSessionState = false;
+    private static final boolean encryptSessionState = true;
 
     private final WebappConfig webappConfig;
     private final IDatastore datastore;
@@ -66,28 +66,45 @@ public class QueryHandler {
     }
 
     public static ChatModel createChatModel(WebappConfig config) {
-        String chatModelName = switch(config.chatModelType()) {
-            case OPEN_AI_GPT_4O_MINI -> "gpt-4o-mini";
-            case OPEN_AI_GPT_4O -> "gpt-4o";
-            case OPEN_AI_GPT_56_SOL -> "gpt-5.6-sol";
-            case OPEN_AI_GPT_5_NANO -> "gpt-5-nano";
+        return switch(config.chatModelType()) {
+            case OPEN_AI_GPT_4O_MINI -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-4o-mini")
+                    .temperature(0.0)
+                    .build();
+            case OPEN_AI_GPT_4O -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-4o")
+                    .temperature(0.0)
+                    .build();
+            case OPEN_AI_GPT_56_SOL -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-5.6-sol")  // "gpt-5.6-sol" does not support temperature!=1, defaults to 1
+                    .build();
+            case OPEN_AI_GPT_5_NANO -> OpenAiChatModel.builder()
+                    .apiKey(config.openAiKey())
+                    .modelName("gpt-5-nano")  // "gpt-5.6-nano" does not support temperature!=1, defaults to 1
+                    .reasoningEffort("minimal")
+                    .build();
         };
-        return OpenAiChatModel.builder()
-                .apiKey(config.openAiKey())
-                .modelName(chatModelName)
-                //.temperature(0.0)         // 0.0 = deterministic output , "gpt-5.6-sol" does not support temperature!=1
-                .build();
     }
 
     public Response query(Request request, ILogger logger) {
+        Timer timer = new Timer(logger);
         SessionState sessionState = getSessionState(request);
         String userPrompt = request.userPrompt();
+        timer.snap("Extract state and prompt");
+        logger.log("session state", sessionState);
         List<Chunk> chunksForPrompt = chunksForPrompt(userPrompt, sessionState, logger);
+        timer.snap("Retrieve chunksForPrompt");
         Map<String, Chunk> lookup = new HashMap<>();
         List<PromptDataSource> promptDataSources = promptDataSources(chunksForPrompt, lookup);
+        timer.snap("Retrieve chunk text");
         String prompt = createPrompt(promptDataSources, sessionState.promptExchanges(), userPrompt);
         logger.log("prompt: " + prompt);
+        timer.snap("Create raw prompt");
         String chatModelResponseJson = chatModel.chat(prompt);
+        timer.snap("Chat response.");
         logger.log("chatModelResponseJson: " + chatModelResponseJson);
         List<String> sourceUrls = null;
         String chatResponse = null;
@@ -99,6 +116,7 @@ public class QueryHandler {
             chatResponse = chatModelResponse.response();
             List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
             sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
+            timer.snap("Interpret chat response.");
         } catch (Exception e) {
             logger.error("Exception in query", e);
             sourceUrls = List.of();
@@ -108,7 +126,8 @@ public class QueryHandler {
         if (encryptSessionState) {
             sessionStateJson = encryptionDelegate.encrypt(sessionStateJson);
         }
-        return new Response(chatResponse, sourceUrls, sessionStateJson, prompt + "\n\n" + chatModelResponseJson);
+        timer.snap("Prepare session state for response");
+        return new Response(chatResponse, sourceUrls, sessionStateJson, null);
     }
 
     private List<Chunk> chunksForPrompt(String userPrompt, SessionState sessionState, ILogger logger) {
@@ -190,7 +209,7 @@ public class QueryHandler {
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                chunkIds.add("hallucination:" + dataSourceKey);
+                chunkIds.add("not part of source data:" + dataSourceKey);
             } else {
                 chunkIds.add(chunk.id());
             }
@@ -203,7 +222,7 @@ public class QueryHandler {
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                sources.add("hallucination:" + dataSourceKey);
+                sources.add("not part of source data:" + dataSourceKey);
             } else {
                 sources.add(chunk.sourceRecord().sourceUrl());
             }
@@ -238,6 +257,7 @@ Include the ids of the data sources you used to form your response.
 Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 Do not add references inline in the response, only in the dataSourcesUsed section.
+Do not offer to search other sources.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,

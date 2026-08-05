@@ -3,27 +3,58 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Portland City Code</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'
+                    viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <title>Exegesis</title>
     <style>
+        html {
+            height: 100%;
+        }
         body {
             font-family: system-ui, sans-serif;
-            margin: 40px 0;
-            padding: 0 16px;
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+            height: 100vh;    /* fallback for browsers without dvh */
+            height: 100dvh;   /* the visible viewport, excluding mobile browser chrome */
         }
-        /* The chat interaction stays in a comfortable centered column. */
+        /* A comfortable centered column that fills the viewport exactly: the composer is
+           always on screen and #conversation absorbs whatever height is left. */
         #chat {
             max-width: 640px;
+            height: 100%;
             margin: 0 auto;
+            display: flex;
+            flex-direction: column;
         }
-        h1 {
+        /* flex:none so the header keeps its height and only #conversation absorbs the slack */
+        header {
+            flex: none;
             margin: 0 0 12px;
+            text-align: center;
+        }
+        .title {
+            margin: 2px 0 0;
+            font-size: 18px;
+            color: #444;
+        }
+        .meta {
+            margin: 6px 0 0;
+            font-size: 12px;
+            color: #666;
+        }
+        /* tighter gap between the two small lines so they read as one group under the tagline */
+        .meta + .meta {
+            margin-top: 2px;
+        }
+        .meta a {
+            color: #0b5cad;
         }
         #conversation {
-            /* Sized to the browser window, independent of the content below it.
-               Reserves ~260px for the heading and composer so both always fit;
-               falls back to min-height (page scrolls) on very short windows. */
-            height: calc(100vh - 260px);
-            min-height: 160px;
+            /* min-height:0 lets this shrink instead of pushing the composer off the bottom;
+               without it a flex item refuses to go below its content height. */
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 6px;
@@ -76,6 +107,7 @@
             word-break: break-all;
         }
         #composer {
+            flex: none;
             display: flex;
             flex-direction: column;
             margin-top: 12px;
@@ -84,7 +116,7 @@
             width: 100%;
             min-height: 72px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 16px;   /* under 16px iOS Safari zooms in on focus and does not zoom back out */
             padding: 8px;
         }
         button {
@@ -95,30 +127,29 @@
             cursor: pointer;
         }
         #status {
+            flex: none;
             margin-top: 8px;
             white-space: pre-wrap;
             color: #444;
         }
-        #session,
-        #debug {
-            margin-top: 4px;
-            color: #444;
-            font-size: 13px;
-        }
-        #session code,
-        #debug code {
-            display: block;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .label {
-            color: #cc0000;
+        @media (min-width: 700px) {
+            body {
+                padding: 40px 16px;
+            }
         }
     </style>
 </head>
 <body>
     <div id="chat">
-        <h1>RAG Server</h1>
+        <header>
+            <p class="title">Retrieval-Augmented Generation Chat Agent</p>
+            <p class="meta">Currently serving: <span id="corpus">Oregon Revised Statutes</span></p>
+            <p class="meta">
+                Java 21 · AWS Lambda · S3 Vectors
+                <a href="https://github.com/martinstevengaray/rag-server"
+                   target="_blank" rel="noopener noreferrer">Source on GitHub</a>
+            </p>
+        </header>
 
         <div id="conversation"></div>
 
@@ -130,34 +161,14 @@
         <div id="status"></div>
     </div>
 
-    <div id="session"><span class="label">Session state:</span> <code id="sessionValue">(none)</code></div>
-    <div id="debug"><span class="label">Details:</span> <code id="debugValue">(none)</code></div>
-
     <script>
         const button = document.getElementById("send");
         const input = document.getElementById("input");
         const status = document.getElementById("status");
         const conversation = document.getElementById("conversation");
-        const sessionValueEl = document.getElementById("sessionValue");
-        const debugValueEl = document.getElementById("debugValue");
 
         let inFlight = false;      // guard against overlapping requests
         let sessionState = null;   // null on first request, then echoed back from the server
-
-        // Pretty-print sessionState as JSON. It may arrive as an object or as a
-        // JSON string; fall back to the raw value if it isn'record valid JSON.
-        function formatJson(value) {
-            if (value == null) return "(none)";
-            let obj = value;
-            if (typeof value === "string") {
-                try {
-                    obj = JSON.parse(value);
-                } catch {
-                    return value;
-                }
-            }
-            return JSON.stringify(obj, null, 2);
-        }
 
         // Append a chat bubble and keep the newest message in view.
         // `sources` is an optional array of strings shown beneath the bubble.
@@ -223,9 +234,6 @@
                 const data = await response.json();   // { chatResponse, sources, sessionState, details }
                 addMessage("assistant", data.chatResponse, data.sources);
                 sessionState = data.sessionState;     // echo this back on the next request
-                sessionValueEl.textContent = formatJson(sessionState);
-                // debug is an arbitrary diagnostic string and may be null/absent.
-                debugValueEl.textContent = data.details ?? "(none)";
             } catch (err) {
                 status.textContent = "Error: " + err;
             } finally {

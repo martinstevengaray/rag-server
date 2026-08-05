@@ -5,6 +5,7 @@ import com.mgaray.ragserver.Models.EmbeddingSpec;
 import com.mgaray.ragserver.Models.SourceRecord;
 import com.mgaray.ragserver.Models.VectorMatch;
 import com.mgaray.ragserver.Models.VectorStoreSpec;
+import com.mgaray.ragserver.crypto.EncryptionDelegate;
 import com.mgaray.ragserver.logger.ILogger;
 import com.mgaray.ragserver.storage.data.IDatastore;
 import com.mgaray.ragserver.storage.vector.IVectorStore;
@@ -31,8 +32,20 @@ final class ServerTestSupport {
 
     private ServerTestSupport() {}
 
-    /** A valid 256-bit AES key; the value is irrelevant because session state is not encrypted today. */
+    /** A valid 256-bit AES key. Session state is encrypted, so tests must use this key to read it. */
     static final String SIGNING_KEY = Base64.getEncoder().encodeToString(new byte[32]);
+
+    private static final EncryptionDelegate ENCRYPTION_DELEGATE = new EncryptionDelegate(SIGNING_KEY);
+
+    /** Wraps plain session-state json the way an earlier response would have handed it to the browser. */
+    static String encryptedSessionState(String sessionStateJson) {
+        return ENCRYPTION_DELEGATE.encrypt(sessionStateJson);
+    }
+
+    /** Unwraps the session state on a response so tests can assert on what was recorded in it. */
+    static String decryptedSessionState(String sessionState) {
+        return ENCRYPTION_DELEGATE.decrypt(sessionState);
+    }
 
     static SourceRecord sourceRecord(String id) {
         return new SourceRecord(id, "https://example.com/" + id, "2026-01-01", "Title " + id,
