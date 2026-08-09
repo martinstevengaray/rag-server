@@ -43,12 +43,12 @@ public class JsonUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T>  T getNestedField(Map<String, Object> objectMap, String... path) {
+    public static String getNestedField(Map<String, Object> objectMap, String... path) {
         try {
             for (int i = 0; i < path.length - 1; i++) {
                 objectMap = (Map<String, Object>) objectMap.get(path[i]);
             }
-            return (T) objectMap.get(path[path.length - 1]);
+            return (String)objectMap.get(path[path.length - 1]);
         } catch (ClassCastException | NullPointerException e) {
             return null; //key path not available on objectMap
         }

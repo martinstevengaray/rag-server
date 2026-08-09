@@ -56,10 +56,10 @@ class JsonUtilsTest {
 
     @Test
     void getNestedFieldWalksThePath() {
-        Map<String, Object> objectMap = JsonUtils.parse("{\"embedded\":{\"text\":\"hello\",\"meta\":{\"k\":7}}}");
+        Map<String, Object> objectMap = JsonUtils.parse("{\"embedded\":{\"text\":\"hello\",\"meta\":{\"k\":\"7\"}}}");
 
         assertEquals("hello", JsonUtils.getNestedField(objectMap, "embedded", "text"));
-        assertEquals(7, (Integer) JsonUtils.getNestedField(objectMap, "embedded", "meta", "k"));
+        assertEquals("7", JsonUtils.getNestedField(objectMap, "embedded", "meta", "k"));
     }
 
     @Test
