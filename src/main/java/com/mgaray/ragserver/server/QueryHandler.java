@@ -236,28 +236,39 @@ public class QueryHandler {
                                 List<PromptExchange> promptExchanges,
                                 String userPrompt) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append(PROMPT_PREFIX);
+        prompt.append(INSTRUCTIONS);
         prompt.append("DATA SOURCES:\n");
         for (PromptDataSource promptDataSource : promptDataSources) {
             prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
         }
         for (PromptExchange promptExchange : promptExchanges) {
-            prompt.append("\nPROMPT:\n");
+            prompt.append("\nUSER:\n");
             prompt.append("     " + promptExchange.prompt());
-            prompt.append("\nRESPONSE:\n");
+            prompt.append("\nYOU:\n");
             prompt.append("     " + promptExchange.response());
         }
         prompt.append("\nPROMPT:\n");
-        prompt.append("     " + userPrompt);
+        prompt.append("     " + userPrompt + "\n\n\n");
+        prompt.append(OUTPUT_INDICATOR);
         return prompt.toString();
     }
 
-    private static final String PROMPT_PREFIX = """
-Use the following data sources only to continue the conversation.
-If the source data does not include data to answer the prompt, say so.
-Include the ids of the data sources you used to form your response.
+    private static final String INSTRUCTIONS = """
+You are a helpful RAG service that is trying to answer questions based on data sources you have been able to pull.
+You were able to pull the following data sources to continue the conversation you may already be engaged in.
+""";
+
+    private static final String OUTPUT_INDICATOR = """
+Do not use outside data sources. If the sources you pulled do not include enough information to answer the user, say so.
+Do not talk about topics outside the context of the data sources.
+If you user asks about topics not included in the data sources you pulled, let them know that is considered off-topic and do not engage in it.
+Remember these datas sources where provided by the system you represent, not the user. Talk about them in that context.
+When responding back to the user use language like "the documents I have available...". Do not say "the sources you provided"
+Include the ids of the data sources that were used to formulate your response.
 Always respond in the following json format, without a prefix or suffix:
+
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
+
 Do not add references inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
 Only include dataSourcesUsed if they were relevant and used to formulate your response.
