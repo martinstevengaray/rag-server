@@ -127,9 +127,14 @@
     font-size: 16px;   /* under 16px iOS Safari zooms in on focus and does not zoom back out */
     resize: vertical;
 }
-.rag-send {
-    align-self: flex-end;
+/* Both buttons sit on one right-aligned row so the composer keeps its single-column shape. */
+.rag-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
     margin-top: 8px;
+}
+.rag-send {
     padding: 8px 20px;
     border: 1px solid var(--rag-accent, ButtonBorder);
     border-radius: var(--rag-radius, 4px);
@@ -139,7 +144,20 @@
     font-size: 14px;
     cursor: pointer;
 }
-.rag-send:disabled { opacity: 0.6; cursor: default; }
+/* Secondary to Send: the accent shows only in the border and label, so discarding the
+   conversation never looks like the button you reach for by default. */
+.rag-clear {
+    padding: 8px 20px;
+    border: 1px solid var(--rag-border, ButtonBorder);
+    border-radius: var(--rag-radius, 4px);
+    background: transparent;
+    color: var(--rag-muted, ButtonText);
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+.rag-send:disabled,
+.rag-clear:disabled { opacity: 0.6; cursor: default; }
 .rag-status {
     flex: none;
     margin-top: 8px;
@@ -208,6 +226,14 @@
         input.className = "rag-input";
         input.placeholder = host.dataset.ragPlaceholder || "Enter text here...";
 
+        const actions = document.createElement("div");
+        actions.className = "rag-actions";
+
+        const clearButton = document.createElement("button");
+        clearButton.className = "rag-clear";
+        clearButton.type = "button";
+        clearButton.textContent = "Clear";
+
         const button = document.createElement("button");
         button.className = "rag-send";
         button.type = "button";
@@ -217,8 +243,10 @@
         status.className = "rag-status";
         status.setAttribute("role", "status");
 
+        actions.appendChild(clearButton);
+        actions.appendChild(button);
         composer.appendChild(input);
-        composer.appendChild(button);
+        composer.appendChild(actions);
         host.appendChild(header);
         host.appendChild(conversation);
         host.appendChild(composer);
@@ -265,6 +293,17 @@
             conversation.scrollTop = conversation.scrollHeight;
         }
 
+        // Start over: drop the transcript and the session state together, so the next request
+        // goes out as a first request rather than continuing a conversation the user can no
+        // longer see.
+        function clear() {
+            if (inFlight) return;
+            conversation.replaceChildren();
+            sessionState = null;
+            status.textContent = "";
+            input.focus();
+        }
+
         async function send() {
             if (inFlight) return;
             const userPrompt = input.value.trim();
@@ -272,6 +311,7 @@
 
             inFlight = true;
             button.disabled = true;
+            clearButton.disabled = true;
             button.textContent = "Sending…";
             status.textContent = "";
 
@@ -296,12 +336,14 @@
             } finally {
                 inFlight = false;
                 button.disabled = false;
+                clearButton.disabled = false;
                 button.textContent = "Send";
                 input.focus();
             }
         }
 
         button.addEventListener("click", send);
+        clearButton.addEventListener("click", clear);
 
         // Enter sends; Shift+Enter inserts a newline.
         input.addEventListener("keydown", (e) => {

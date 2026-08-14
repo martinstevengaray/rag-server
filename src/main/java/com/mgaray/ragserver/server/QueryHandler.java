@@ -111,8 +111,8 @@ public class QueryHandler {
         try {
             chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
             ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
-            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
-            sourceUrls = sourceUrls(chatModelResponse, lookup);
+            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup, logger);
+            sourceUrls = sourceUrls(chatModelResponse, lookup, logger);
             chatResponse = chatModelResponse.response();
             List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
             sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
@@ -204,12 +204,13 @@ public class QueryHandler {
         return promptDataSources;
     }
 
-    private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+    private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup, ILogger logger) {
         List<String> chunkIds = new ArrayList<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                chunkIds.add("not part of source data:" + dataSourceKey);
+                //chunkIds.add("not part of source data:" + dataSourceKey);
+                logger.log("Source chunk could not be found for source data:" + dataSourceKey);
             } else {
                 chunkIds.add(chunk.id());
             }
@@ -217,12 +218,13 @@ public class QueryHandler {
         return chunkIds;
     }
 
-    private List<String> sourceUrls(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+    private List<String> sourceUrls(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup, ILogger logger) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                sources.add("not part of source data:" + dataSourceKey);
+                //sources.add("not part of source data:" + dataSourceKey);
+                logger.log("Source url could not be found for source data:" + dataSourceKey);
             } else {
                 sources.add(chunk.sourceRecord().sourceUrl());
             }
