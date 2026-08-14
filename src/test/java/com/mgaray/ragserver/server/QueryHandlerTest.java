@@ -76,6 +76,24 @@ class QueryHandlerTest {
         datastore.writeString(chunk.textLocation(), text);
     }
 
+    /**
+     * Asserts the fragments appear in the prompt in the order given. The instruction prose is tuned
+     * often, so these tests pin the layout the model is shown -- sources, then history, then the
+     * question -- and leave the wording free to change.
+     */
+    private static void assertInOrder(String prompt, String... fragments) {
+        int previousIndex = -1;
+        String previousFragment = null;
+        for (String fragment : fragments) {
+            int index = prompt.indexOf(fragment);
+            assertTrue(index >= 0, "missing from the prompt: " + fragment + "\n" + prompt);
+            assertTrue(index > previousIndex,
+                    "'" + fragment + "' should come after '" + previousFragment + "':\n" + prompt);
+            previousIndex = index;
+            previousFragment = fragment;
+        }
+    }
+
     // ----- happy path -------------------------------------------------------------------------
 
     @Test
@@ -159,7 +177,7 @@ class QueryHandlerTest {
     }
 
     @Test
-    void promptCarriesThePrefixTheChunkTextAndTheUserPrompt() {
+    void promptCarriesTheChunkTextTheUserPromptAndTheOutputFormatInThatOrder() {
         givenChunkText(CHUNK_A, "setbacks are 10 feet");
         FakeChatModel chatModel = new FakeChatModel("not json");
         QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(),
@@ -168,11 +186,9 @@ class QueryHandlerTest {
         handler.query(new Request("what are the setbacks?", null), logger);
 
         String prompt = chatModel.lastPrompt();
-        assertTrue(prompt.startsWith("Use the following data sources only"), prompt);
-        assertTrue(prompt.contains("\"dataSourcesUsed\""), "the response format must be specified");
-        assertTrue(prompt.contains("DATA SOURCES:"), prompt);
-        assertTrue(prompt.contains("setbacks are 10 feet"), "chunk text should be inlined");
-        assertTrue(prompt.trim().endsWith("what are the setbacks?"), "the user prompt goes last: " + prompt);
+        assertInOrder(prompt, "DATA SOURCES:", "setbacks are 10 feet", "PROMPT:", "what are the setbacks?",
+                "\"dataSourcesUsed\"");
+        assertTrue(prompt.indexOf("DATA SOURCES:") > 0, "instructions should precede the data sources: " + prompt);
     }
 
     @Test
@@ -324,9 +340,7 @@ class QueryHandlerTest {
         secondHandler.query(new Request("is that from the property line?", sessionState), logger);
 
         String prompt = secondModel.lastPrompt();
-        assertTrue(prompt.contains("what are the setbacks?"), prompt);
-        assertTrue(prompt.contains("Ten feet."), prompt);
-        assertTrue(prompt.trim().endsWith("is that from the property line?"), prompt);
+        assertInOrder(prompt, "what are the setbacks?", "Ten feet.", "is that from the property line?");
         assertTrue(secondEmbeddingModel.embedded.get(0).contains("Ten feet."),
                 "the conversation-wide search should embed the history too");
     }

@@ -170,7 +170,7 @@ class LambdaServerTest {
 
         lambdaServer(chatModel).handleRequest(input, CONTEXT);
 
-        assertTrue(chatModel.lastPrompt().trim().endsWith("what are the setbacks?"),
+        assertTrue(chatModel.lastPrompt().contains("what are the setbacks?"),
                 "the user prompt should have reached the model: " + chatModel.lastPrompt());
     }
 
@@ -195,7 +195,7 @@ class LambdaServerTest {
 
         lambdaServer(chatModel).handleRequest(input, CONTEXT);
 
-        assertTrue(chatModel.lastPrompt().trim().endsWith("what are the setbacks?"),
+        assertTrue(chatModel.lastPrompt().contains("what are the setbacks?"),
                 "a base64 body should be decoded before parsing: " + chatModel.lastPrompt());
     }
 
