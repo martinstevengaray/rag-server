@@ -18,7 +18,7 @@
     // heading and provenance without copying this markup.
     const TITLE = "Retrieval-Augmented Generation Chat";
     const CORPUS = "Oregon Revised Statutes";
-    const STACK = "Java · AWS Lambda · S3 Vectors, OpenAi";
+    const STACK = "Java · AWS Lambda · S3 Vectors · OpenAI API";
     const SOURCE_URL = "https://github.com/martinstevengaray/rag-server";
 
     // Colors are read as custom properties so a host page can theme the widget from any
@@ -65,7 +65,7 @@
    spaces to one, the width is then whatever the font says rather than a value we chose, and
    the gap vanishes the moment someone trims the string. */
 .rag-source-link {
-    margin-left: 8px;
+    margin-left: 12px;
 }
 .rag-conversation {
     /* min-height:0 lets this shrink inside a flex column instead of pushing the composer
