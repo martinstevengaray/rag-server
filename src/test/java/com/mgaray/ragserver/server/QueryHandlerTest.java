@@ -331,7 +331,7 @@ class QueryHandlerTest {
                 "the conversation-wide search should embed the history too");
     }
 
-    // ----- not part of source data and parse failure handling --------------------------------------------
+    // ----- unknown cited id and parse failure handling ----------------------------------------------------
 
     @Test
     void anUnparseableChatResponseFallsBackWithoutThrowing() {
@@ -358,7 +358,7 @@ class QueryHandlerTest {
     }
 
     @Test
-    void aCitedIdThatWasNotInThePromptIsReportedAsAHallucination() {
+    void aCitedIdThatWasNotInThePromptIsDroppedFromTheSourcesAndLogged() {
         givenChunkText(CHUNK_A, "text a");
         QueryHandler handler = queryHandler(new FakeChatModel(chatResponse("Ten feet.", "invented-id")),
                 new FakeEmbeddingModel(), new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
@@ -366,11 +366,13 @@ class QueryHandlerTest {
         Response response = handler.query(new Request("q", null), logger);
 
         assertEquals("Ten feet.", response.chatResponse());
-        assertEquals(List.of("not part of source data:invented-id"), response.sources());
+        assertEquals(List.of(), response.sources(), "a citation nobody can follow is not shown to the reader");
+        assertTrue(logger.messages.stream().anyMatch(message -> message.contains("invented-id")),
+                "the dropped citation should still be logged: " + logger.messages);
     }
 
     @Test
-    void hallucinatedCitationsAreAlsoRecordedInSessionState() {
+    void aCitedIdThatWasNotInThePromptIsNotRecordedInSessionState() {
         givenChunkText(CHUNK_A, "text a");
         QueryHandler handler = queryHandler(new FakeChatModel(chatResponse("Ten feet.", "invented-id")),
                 new FakeEmbeddingModel(), new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
@@ -378,7 +380,25 @@ class QueryHandlerTest {
         Response response = handler.query(new Request("q", null), logger);
 
         String sessionState = decryptedSessionState(response.sessionState());
-        assertTrue(sessionState.contains("not part of source data:invented-id"), sessionState);
+        assertTrue(sessionState.contains("\"chunkIdsUsed\":[]"),
+                "an id that maps to no chunk must not be carried into the next prompt: " + sessionState);
+    }
+
+    // The drop is per citation, not per response: one bad id must not cost the reader the real
+    // sources cited alongside it.
+    @Test
+    void aRealCitationSurvivesAlongsideOneThatWasNotInThePrompt() {
+        givenChunkText(CHUNK_A, "text a");
+        FakeChatModel chatModel = new FakeChatModel(prompt -> ServerTestSupport.chatResponse(
+                "Ten feet.", List.of(dataSourceIdsIn(prompt).get(0), "invented-id")));
+        QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(),
+                new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
+
+        Response response = handler.query(new Request("q", null), logger);
+
+        assertEquals(List.of("https://example.com/a"), response.sources());
+        assertTrue(decryptedSessionState(response.sessionState()).contains("\"chunkIdsUsed\":[\"a:0\"]"),
+                decryptedSessionState(response.sessionState()));
     }
 
     @Test
