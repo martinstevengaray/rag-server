@@ -84,7 +84,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_5_NANO -> OpenAiChatModel.builder()
                     .apiKey(config.openAiKey())
                     .modelName("gpt-5-nano")  // "gpt-5.6-nano" does not support temperature!=1, defaults to 1
-                    .reasoningEffort("minimal")
+                    .reasoningEffort("low")
                     .build();
         };
     }
@@ -271,7 +271,8 @@ Always respond in the following json format, without a prefix or suffix:
 
 Do not add references inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
-Only include dataSourcesUsed if they were relevant and used to formulate your response.
+These data source you pulled might not be relevant to questions the user has asked, and if not relevant, then those sources should not be cited.
+Only include a dataSourcesUsed if it contains specific information that the user asked about.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
