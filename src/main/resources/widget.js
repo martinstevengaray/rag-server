@@ -127,7 +127,9 @@
     font-size: 16px;   /* under 16px iOS Safari zooms in on focus and does not zoom back out */
     resize: vertical;
 }
-/* Both buttons sit on one right-aligned row so the composer keeps its single-column shape. */
+/* Both buttons share one row so the composer keeps its single-column shape. Send stays at
+   the right edge under the textarea; Clear Context is pushed to the left edge, far enough
+   from Send that the destructive action is not next to the one being clicked repeatedly. */
 .rag-actions {
     display: flex;
     justify-content: flex-end;
@@ -147,6 +149,7 @@
 /* Secondary to Send: the accent shows only in the border and label, so discarding the
    conversation never looks like the button you reach for by default. */
 .rag-clear {
+    margin-right: auto;   /* absorbs the row's free space, holding Clear Context at the left */
     padding: 8px 20px;
     border: 1px solid var(--rag-border, ButtonBorder);
     border-radius: var(--rag-radius, 4px);
@@ -232,7 +235,7 @@
         const clearButton = document.createElement("button");
         clearButton.className = "rag-clear";
         clearButton.type = "button";
-        clearButton.textContent = "Clear";
+        clearButton.textContent = "Clear Context";
 
         const button = document.createElement("button");
         button.className = "rag-send";
