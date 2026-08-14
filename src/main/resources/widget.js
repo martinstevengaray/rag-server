@@ -18,7 +18,7 @@
     // heading and provenance without copying this markup.
     const TITLE = "Retrieval-Augmented Generation Chat";
     const CORPUS = "Oregon Revised Statutes";
-    const STACK = "Java 21 · AWS Lambda · S3 Vectors ";
+    const STACK = "Java · AWS Lambda · S3 Vectors, OpenAi";
     const SOURCE_URL = "https://github.com/martinstevengaray/rag-server";
 
     // Colors are read as custom properties so a host page can theme the widget from any
@@ -59,6 +59,13 @@
 }
 .rag-meta a {
     color: var(--rag-accent, #0b5cad);
+}
+/* The link is appended after the stack text, so the gap in front of it is spacing and belongs
+   here. Trailing whitespace in the STACK constant cannot do this job: HTML collapses a run of
+   spaces to one, the width is then whatever the font says rather than a value we chose, and
+   the gap vanishes the moment someone trims the string. */
+.rag-source-link {
+    margin-left: 8px;
 }
 .rag-conversation {
     /* min-height:0 lets this shrink inside a flex column instead of pushing the composer
@@ -209,6 +216,7 @@
         stackLine.textContent = STACK;
 
         const sourceLink = document.createElement("a");
+        sourceLink.className = "rag-source-link";
         sourceLink.href = SOURCE_URL;
         sourceLink.target = "_blank";
         sourceLink.rel = "noopener noreferrer";
