@@ -27,29 +27,6 @@
             display: flex;
             flex-direction: column;
         }
-        /* flex:none so the header keeps its height and only the chat absorbs the slack */
-        header {
-            flex: none;
-            margin: 0 0 12px;
-            text-align: center;
-        }
-        .title {
-            margin: 2px 0 0;
-            font-size: 18px;
-            color: #444;
-        }
-        .meta {
-            margin: 6px 0 0;
-            font-size: 12px;
-            color: #666;
-        }
-        /* tighter gap between the two small lines so they read as one group under the tagline */
-        .meta + .meta {
-            margin-top: 2px;
-        }
-        .meta a {
-            color: #0b5cad;
-        }
         /* the widget is a flex column itself; this lets it absorb the leftover height */
         #rag-chat {
             flex: 1;
@@ -63,19 +40,9 @@
     </style>
 </head>
 <body>
+    <!-- This page is just a centered column around the widget. The heading and the chat both
+         live in widget.js so that this page and any embedding site render the same thing. -->
     <div id="chat">
-        <header>
-            <p class="title">Retrieval-Augmented Generation Chat</p>
-            <p class="meta">Currently serving: <span id="corpus">Oregon Revised Statutes</span></p>
-            <p class="meta">
-                Java 21 · AWS Lambda · S3 Vectors
-                <a href="https://github.com/martinstevengaray/rag-server"
-                   target="_blank" rel="noopener noreferrer">Source on GitHub</a>
-            </p>
-        </header>
-
-        <!-- This page is just chrome around the widget. The chat itself lives in widget.js so
-             that this page and any embedding site run the exact same client. -->
         <div id="rag-chat" data-rag-chat
              data-rag-placeholder="Ask about the Oregon Revised Statutes…"></div>
     </div>

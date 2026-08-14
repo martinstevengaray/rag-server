@@ -14,6 +14,13 @@
     const script = document.currentScript;
     const ENDPOINT = script ? new URL(script.src).origin + "/" : "/";
 
+    // Part of the widget rather than the page around it, so every embedding shows the same
+    // heading and provenance without copying this markup.
+    const TITLE = "Retrieval-Augmented Generation Chat";
+    const CORPUS = "Oregon Revised Statutes";
+    const STACK = "Java 21 · AWS Lambda · S3 Vectors ";
+    const SOURCE_URL = "https://github.com/martinstevengaray/rag-server";
+
     // Colors are read as custom properties so a host page can theme the widget from any
     // ancestor -- `.my-page { --rag-accent: #7aa2f7 }`. The second argument to each var() is
     // the standalone default: this app's original light palette, deliberately fixed rather
@@ -29,6 +36,29 @@
     font-family: inherit;
     text-align: left;
     color: var(--rag-text, inherit);
+}
+/* flex:none so the heading keeps its height and only the conversation absorbs the slack */
+.rag-header {
+    flex: none;
+    margin: 0 0 12px;
+    text-align: center;
+}
+.rag-title {
+    margin: 2px 0 0;
+    font-size: 18px;
+    color: var(--rag-text, #444444);
+}
+.rag-meta {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--rag-muted, #666666);
+}
+/* tighter gap between the two small lines so they read as one group under the title */
+.rag-meta + .rag-meta {
+    margin-top: 2px;
+}
+.rag-meta a {
+    color: var(--rag-accent, #0b5cad);
 }
 .rag-conversation {
     /* min-height:0 lets this shrink inside a flex column instead of pushing the composer
@@ -142,6 +172,32 @@
             host.style.height = host.dataset.ragHeight;
         }
 
+        const header = document.createElement("div");
+        header.className = "rag-header";
+
+        const title = document.createElement("p");
+        title.className = "rag-title";
+        title.textContent = TITLE;
+
+        const corpusLine = document.createElement("p");
+        corpusLine.className = "rag-meta";
+        corpusLine.textContent = "Currently serving: " + CORPUS;
+
+        const stackLine = document.createElement("p");
+        stackLine.className = "rag-meta";
+        stackLine.textContent = STACK;
+
+        const sourceLink = document.createElement("a");
+        sourceLink.href = SOURCE_URL;
+        sourceLink.target = "_blank";
+        sourceLink.rel = "noopener noreferrer";
+        sourceLink.textContent = "Source on GitHub";
+        stackLine.appendChild(sourceLink);
+
+        header.appendChild(title);
+        header.appendChild(corpusLine);
+        header.appendChild(stackLine);
+
         const conversation = document.createElement("div");
         conversation.className = "rag-conversation";
 
@@ -163,6 +219,7 @@
 
         composer.appendChild(input);
         composer.appendChild(button);
+        host.appendChild(header);
         host.appendChild(conversation);
         host.appendChild(composer);
         host.appendChild(status);
