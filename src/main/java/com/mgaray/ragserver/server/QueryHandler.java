@@ -254,25 +254,23 @@ public class QueryHandler {
     }
 
     private static final String INSTRUCTIONS = """
-You are a helpful RAG service that is trying to answer questions based on data sources you have been able to pull.
+You are a helpful expert that is trying to answer questions the user has prompted.
 You were able to pull the following data sources to continue the conversation you may already be engaged in.
 """;
 
     private static final String OUTPUT_INDICATOR = """
 Do not use outside data sources. If the sources you pulled do not include enough information to answer the user, say so.
-Do not talk about topics outside the context of the data sources.
-If you user asks about topics not included in the data sources you pulled, let them know that is considered off-topic and do not engage in it.
+Do not talk about topics outside the context of the data sources. Do not engage with the user about things not included in the data sources.
 Remember these datas sources where provided by the system you represent, not the user. Talk about them in that context.
 When responding back to the user use language like "the documents I have available...". Do not say "the sources you provided"
-Include the ids of the data sources that were used to formulate your response.
-Always respond in the following json format, without a prefix or suffix:
+Include the ids of the data sources that were required in order to formulate your response.
+Always respond in the following json format, without a prefix or suffix, do not include any new-line characters.
 
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 
-Do not add references inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
-These data source you pulled might not be relevant to questions the user has asked, and if not relevant, then those sources should not be cited.
-Only include a dataSourcesUsed if it contains specific information that the user asked about.
+Do not add references inline in the response, only in the dataSourcesUsed section.
+If the user prompt is just small talk or introductions do not cite any data sources used.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
