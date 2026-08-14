@@ -140,8 +140,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         Map<String, Object> result = new HashMap<>();
         result.put("statusCode", statusCode);
         result.put("headers", Map.of(
-                "Content-Type", "application/json; charset=utf-8",
-                "Access-Control-Allow-Origin", "*"));
+                "Content-Type", "application/json; charset=utf-8"));
         result.put("body", body);
         result.put("isBase64Encoded", false);
         return result;
@@ -151,8 +150,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         Map<String, Object> result = new HashMap<>();
         result.put("statusCode", statusCode);
         result.put("headers", Map.of(
-                "Content-Type", "text/html; charset=utf-8",
-                "Access-Control-Allow-Origin", "*"));
+                "Content-Type", "text/html; charset=utf-8"));
         result.put("body", body);
         result.put("isBase64Encoded", false);
         return result;
@@ -162,8 +160,7 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         Map<String, Object> result = new HashMap<>();
         result.put("statusCode", 204);
         result.put("headers", Map.of(
-                "Cache-Control", "public, max-age=86400",
-                "Access-Control-Allow-Origin", "*"));
+                "Cache-Control", "public, max-age=86400"));
         result.put("body", "");
         result.put("isBase64Encoded", false);
         return result;
