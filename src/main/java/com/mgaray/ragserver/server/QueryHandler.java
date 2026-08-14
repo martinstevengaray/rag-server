@@ -260,6 +260,7 @@ Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
 Do not add references inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
+Only include dataSourcesUsed if they were relevant and used to formulate your response.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
