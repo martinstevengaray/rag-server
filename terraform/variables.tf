@@ -13,12 +13,6 @@ variable "aws_lambda_function_name" {
   type        = string
 }
 
-variable "aws_lambda_cors_allow_origins" {
-  description = "Origins allowed to call the function URL from a browser"
-  type        = list(string)
-  default     = ["http://localhost:8080"]
-}
-
 # --- Application configuration (plain environment variables) ---
 
 variable "chat_model_type" {

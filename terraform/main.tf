@@ -174,8 +174,14 @@ resource "aws_lambda_function_url" "this" {
   function_name      = aws_lambda_function.this.function_name
   authorization_type = "NONE"
 
+  # CORS is configured here rather than in the handler so preflights are answered by the
+  # function URL itself and never cost a Lambda invocation. The endpoint is public and
+  # unauthenticated, so an origin allow list restricts nothing a non-browser caller could not
+  # do anyway; "*" keeps any site embedding the webapp working without a redeploy. Do not also
+  # set Access-Control-Allow-Origin in LambdaServer -- the header would go out twice and
+  # browsers reject responses that carry duplicates.
   cors {
-    allow_origins = var.aws_lambda_cors_allow_origins
+    allow_origins = ["*"]
     allow_methods = ["*"]
     allow_headers = ["authorization", "content-type"]
     max_age       = 3600

@@ -109,7 +109,6 @@ class LambdaServerTest {
         Map<String, Object> response = lambdaServer().handleRequest(restRequest("GET", "/", null), CONTEXT);
 
         assertEquals("text/html; charset=utf-8", headersOf(response).get("Content-Type"));
-        assertEquals("*", headersOf(response).get("Access-Control-Allow-Origin"));
         assertEquals(false, response.get("isBase64Encoded"));
     }
 
@@ -241,8 +240,11 @@ class LambdaServerTest {
 
     // ----- response envelope -------------------------------------------------------------------
 
+    // The function URL's cors{} block adds Access-Control-Allow-Origin itself. If the handler
+    // sets it too the header goes out twice and browsers reject the response, so no response
+    // may carry its own.
     @Test
-    void everyResponseCarriesTheCorsHeader() {
+    void noResponseSetsItsOwnCorsHeader() {
         List<Map<String, Object>> responses = List.of(
                 lambdaServer().handleRequest(restRequest("GET", "/", null), CONTEXT),
                 lambdaServer().handleRequest(restRequest("POST", "/", JsonUtils.toJson(new Request("q", null))),
@@ -250,7 +252,7 @@ class LambdaServerTest {
                 lambdaServer().handleRequest(restRequest("DELETE", "/", null), CONTEXT));
 
         for (Map<String, Object> response : responses) {
-            assertEquals("*", headersOf(response).get("Access-Control-Allow-Origin"));
+            assertFalse(headersOf(response).containsKey("Access-Control-Allow-Origin"));
             assertEquals(false, response.get("isBase64Encoded"));
         }
     }
