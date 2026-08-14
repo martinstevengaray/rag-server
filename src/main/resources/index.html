@@ -19,7 +19,7 @@
             height: 100dvh;   /* the visible viewport, excluding mobile browser chrome */
         }
         /* A comfortable centered column that fills the viewport exactly: the composer is
-           always on screen and #conversation absorbs whatever height is left. */
+           always on screen and the chat absorbs whatever height is left. */
         #chat {
             max-width: 640px;
             height: 100%;
@@ -27,7 +27,7 @@
             display: flex;
             flex-direction: column;
         }
-        /* flex:none so the header keeps its height and only #conversation absorbs the slack */
+        /* flex:none so the header keeps its height and only the chat absorbs the slack */
         header {
             flex: none;
             margin: 0 0 12px;
@@ -50,87 +50,10 @@
         .meta a {
             color: #0b5cad;
         }
-        #conversation {
-            /* min-height:0 lets this shrink instead of pushing the composer off the bottom;
-               without it a flex item refuses to go below its content height. */
+        /* the widget is a flex column itself; this lets it absorb the leftover height */
+        #rag-chat {
             flex: 1;
             min-height: 0;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #fafafa;
-        }
-        .msg {
-            max-width: 80%;
-            padding: 8px 12px;
-            border-radius: 12px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-        .msg.user {
-            align-self: flex-end;
-            background: #d6eaff;
-            border-bottom-right-radius: 2px;
-        }
-        .msg.assistant {
-            align-self: flex-start;
-            background: #eee;
-            border-bottom-left-radius: 2px;
-        }
-        .sources {
-            max-width: 80%;
-            font-size: 12px;
-            color: #555;
-        }
-        .sources.assistant {
-            align-self: flex-start;
-        }
-        .sources.user {
-            align-self: flex-end;
-        }
-        .sources-title {
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-        .sources ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-        .sources a {
-            color: #0b5cad;
-            word-break: break-all;
-        }
-        #composer {
-            flex: none;
-            display: flex;
-            flex-direction: column;
-            margin-top: 12px;
-        }
-        textarea {
-            width: 100%;
-            min-height: 72px;
-            box-sizing: border-box;
-            font-size: 16px;   /* under 16px iOS Safari zooms in on focus and does not zoom back out */
-            padding: 8px;
-        }
-        button {
-            align-self: flex-end;
-            margin-top: 8px;
-            padding: 8px 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-        #status {
-            flex: none;
-            margin-top: 8px;
-            white-space: pre-wrap;
-            color: #444;
         }
         @media (min-width: 700px) {
             body {
@@ -151,108 +74,12 @@
             </p>
         </header>
 
-        <div id="conversation"></div>
-
-        <div id="composer">
-            <textarea id="input" placeholder="Enter text here..."></textarea>
-            <button id="send">Send</button>
-        </div>
-
-        <div id="status"></div>
+        <!-- This page is just chrome around the widget. The chat itself lives in widget.js so
+             that this page and any embedding site run the exact same client. -->
+        <div id="rag-chat" data-rag-chat
+             data-rag-placeholder="Ask about the Oregon Revised Statutes…"></div>
     </div>
 
-    <script>
-        const button = document.getElementById("send");
-        const input = document.getElementById("input");
-        const status = document.getElementById("status");
-        const conversation = document.getElementById("conversation");
-
-        let inFlight = false;      // guard against overlapping requests
-        let sessionState = null;   // null on first request, then echoed back from the server
-
-        // Append a chat bubble and keep the newest message in view.
-        // `sources` is an optional array of strings shown beneath the bubble.
-        function addMessage(role, text, sources) {
-            const msg = document.createElement("div");
-            msg.className = "msg " + role;   // role is "user" or "assistant"
-            msg.textContent = text;
-            conversation.appendChild(msg);
-
-            if (Array.isArray(sources) && sources.length > 0) {
-                const box = document.createElement("div");
-                box.className = "sources " + role;
-                const title = document.createElement("div");
-                title.className = "sources-title";
-                title.textContent = "Sources";
-                box.appendChild(title);
-
-                const list = document.createElement("ul");
-                for (const src of sources) {
-                    const li = document.createElement("li");
-                    if (/^https?:\/\//i.test(src)) {
-                        const a = document.createElement("a");
-                        a.href = src;
-                        a.textContent = src;
-                        a.target = "_blank";
-                        a.rel = "noopener noreferrer";
-                        li.appendChild(a);
-                    } else {
-                        li.textContent = src;
-                    }
-                    list.appendChild(li);
-                }
-                box.appendChild(list);
-                conversation.appendChild(box);
-            }
-
-            conversation.scrollTop = conversation.scrollHeight;
-        }
-
-        async function send() {
-            if (inFlight) return;
-            const userPrompt = input.value.trim();
-            if (userPrompt === "") return;
-
-            inFlight = true;
-            button.disabled = true;
-            button.textContent = "Sending…";
-            status.textContent = "";
-
-            // Show the user's message immediately and clear the input.
-            addMessage("user", userPrompt);
-            input.value = "";
-
-            try {
-                const response = await fetch("/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ userPrompt, sessionState })
-                });
-                if (!response.ok) {
-                    throw new Error("HTTP " + response.status);
-                }
-                const data = await response.json();   // { chatResponse, sources, sessionState, details }
-                addMessage("assistant", data.chatResponse, data.sources);
-                sessionState = data.sessionState;     // echo this back on the next request
-            } catch (err) {
-                status.textContent = "Error: " + err;
-            } finally {
-                inFlight = false;
-                button.disabled = false;
-                button.textContent = "Send";
-                input.focus();
-            }
-        }
-
-        button.addEventListener("click", send);
-
-        // Enter sends; Shift+Enter inserts a newline.
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send();
-            }
-        });
-    </script>
+    <script src="/widget.js"></script>
 </body>
 </html>

@@ -28,9 +28,12 @@ public class WebappHandler implements LocalServer.IListener {
         return responseJson;
     }
 
+    // Mirrors LambdaServer: the page loads the client from /widget.js, so serving that path
+    // here too is what keeps local development exercising the deployed arrangement.
     @Override
     public String handleGet(String path) {
-        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+        String resource = "/widget.js".equals(path) ? "/widget.js" : "/index.html";
+        try(InputStream inputStream = getClass().getResourceAsStream(resource)) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (Exception e) {

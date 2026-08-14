@@ -28,6 +28,10 @@ import java.util.Map;
 
 public class LambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
 
+    // The embeddable client. Served from here so that this server's own page and any site
+    // embedding the chat run the same code rather than two copies that drift apart.
+    private static final String WIDGET_PATH = "/widget.js";
+
     private final QueryHandler queryHandler;
 
     public LambdaServer() {
@@ -66,6 +70,9 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         logger.log("method=" + method + ", path=" + path);
         String responseString = null;
         if ("GET".equals(method)) {
+            if (WIDGET_PATH.equals(path)) {
+                return proxyResponseJavaScript(200, readResource("/widget.js"));
+            }
             responseString = this.handleGet(path);
             return responseString == null ?
                     proxyResponseNoContent() :
@@ -93,7 +100,11 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         if (!"/".equals(path)) {
             return null;
         }
-        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+        return readResource("/index.html");
+    }
+
+    private static String readResource(String resource) {
+        try(InputStream inputStream = LambdaServer.class.getResourceAsStream(resource)) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
@@ -151,6 +162,17 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         result.put("statusCode", statusCode);
         result.put("headers", Map.of(
                 "Content-Type", "text/html; charset=utf-8"));
+        result.put("body", body);
+        result.put("isBase64Encoded", false);
+        return result;
+    }
+
+    private static Map<String, Object> proxyResponseJavaScript(int statusCode, String body) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("statusCode", statusCode);
+        result.put("headers", Map.of(
+                "Content-Type", "text/javascript; charset=utf-8",
+                "Cache-Control", "public, max-age=300"));
         result.put("body", body);
         result.put("isBase64Encoded", false);
         return result;

@@ -49,7 +49,10 @@ public class LocalServer {
                         httpExchange.sendResponseHeaders(200, response.length);
                         break;
                     case "GET":
-                        httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+                        // browsers refuse to execute a script served as text/html
+                        httpExchange.getResponseHeaders().add("Content-Type", path.endsWith(".js") ?
+                                "text/javascript; charset=utf-8" :
+                                "text/html; charset=utf-8");
                         response = iListener.handleGet(path).getBytes(StandardCharsets.UTF_8);
                         httpExchange.sendResponseHeaders(200, response.length);
                         break;
