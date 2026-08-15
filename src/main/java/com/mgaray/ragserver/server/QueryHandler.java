@@ -236,41 +236,46 @@ public class QueryHandler {
                                 List<PromptExchange> promptExchanges,
                                 String userPrompt) {
         StringBuilder prompt = new StringBuilder();
+        prompt.append("INSTRUCTIONS:\n");
         prompt.append(INSTRUCTIONS);
-        prompt.append("DATA SOURCES:\n");
+        prompt.append("\nPULLED DATA SOURCES:\n");
         for (PromptDataSource promptDataSource : promptDataSources) {
             prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
         }
+        prompt.append("\n<CONVERSATION START>\n");
         for (PromptExchange promptExchange : promptExchanges) {
-            prompt.append("\nUSER:\n");
+            prompt.append("\nuser:\n");
             prompt.append("     " + promptExchange.prompt());
-            prompt.append("\nYOU:\n");
+            prompt.append("\nyou:\n");
             prompt.append("     " + promptExchange.response());
         }
-        prompt.append("\nPROMPT:\n");
+        prompt.append("\nuser:\n");
         prompt.append("     " + userPrompt + "\n\n\n");
+        prompt.append("<CONVERSATION END>\n");
+        prompt.append("\nOUTPUT INDICATOR:\n");
         prompt.append(OUTPUT_INDICATOR);
         return prompt.toString();
     }
-
     private static final String INSTRUCTIONS = """
-You are a helpful expert that is trying to answer questions the user has prompted.
-You were able to pull the following data sources to continue the conversation you may already be engaged in.
+Use the following data sources to continue the conversation. Do not user other data sources.
 """;
 
     private static final String OUTPUT_INDICATOR = """
-Do not use outside data sources. If the sources you pulled do not include enough information to answer the user, say so.
-Do not talk about topics outside the context of the data sources. Do not engage with the user about things not included in the data sources.
-Remember these datas sources where provided by the system you represent, not the user. Talk about them in that context.
-When responding back to the user use language like "the documents I have available...". Do not say "the sources you provided"
-Include the ids of the data sources that were required in order to formulate your response.
-Always respond in the following json format, without a prefix or suffix, do not include any new-line characters.
+The data sources were provided by the system you represent, not the user. Talk about them in that context.
+When responding back to the user use language like "the documents I have available...". Do not say things like "the sources you provided".
+Do not mention what is in the data sources unless it relates to the user's question.
+Do not engage with the user about topics not in the data sources, or any health related suggestions.
 
-{ "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
+Always respond in the following json format, without a prefix or suffix:
+{ "dataSourcesUsed": ["<id1-guid>","<id2-guid>","<id3-guid>",...], "response": "<next response>" }
 
+ALL 'dataSourcesUsed' MUST BE GUIDs as they appeared in the "PULLED DATA SOURCES" list ids.
+DO NOT include any non UTF-8 characters.
+If the data sources do not include information to provide a good answer, say so, and do not include any data sources used.
+If the data sources are useful, include the GUIDs of the data sources you used to form your response.
+Do not add data source GUIDS inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
-Do not add references inline in the response, only in the dataSourcesUsed section.
-If the user prompt is just small talk or introductions do not cite any data sources used.
+If asked about something that was talked about before the conversation started, say there is no record of that;
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
