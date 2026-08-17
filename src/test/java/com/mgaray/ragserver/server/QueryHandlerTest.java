@@ -186,9 +186,9 @@ class QueryHandlerTest {
         handler.query(new Request("what are the setbacks?", null), logger);
 
         String prompt = chatModel.lastPrompt();
-        assertInOrder(prompt, "DATA SOURCES:", "setbacks are 10 feet", "PROMPT:", "what are the setbacks?",
-                "\"dataSourcesUsed\"");
-        assertTrue(prompt.indexOf("DATA SOURCES:") > 0, "instructions should precede the data sources: " + prompt);
+        assertInOrder(prompt, "INSTRUCTIONS:", "PULLED DATA SOURCES:", "setbacks are 10 feet",
+                "<CONVERSATION START>", "what are the setbacks?", "<CONVERSATION END>",
+                "OUTPUT INDICATOR:", "\"dataSourcesUsed\"");
     }
 
     @Test

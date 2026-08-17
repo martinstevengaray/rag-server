@@ -269,13 +269,13 @@ Do not engage with the user about topics not in the data sources, or any health 
 Always respond in the following json format, without a prefix or suffix:
 { "dataSourcesUsed": ["<id1-guid>","<id2-guid>","<id3-guid>",...], "response": "<next response>" }
 
-ALL 'dataSourcesUsed' MUST BE GUIDs as they appeared in the "PULLED DATA SOURCES" list ids.
-DO NOT include any non UTF-8 characters.
+ALL 'dataSourcesUsed' must be GUIDs as they appeared in the "PULLED DATA SOURCES" list ids.
+Do not include any non UTF-8 characters.
 If the data sources do not include information to provide a good answer, say so, and do not include any data sources used.
 If the data sources are useful, include the GUIDs of the data sources you used to form your response.
 Do not add data source GUIDS inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
-If asked about something that was talked about before the conversation started, say there is no record of that;
+If asked about something that was talked about before the conversation started, say there is no record of that,
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
