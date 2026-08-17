@@ -25,8 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class LambdaServer implements RequestHandler<Map<String, Object>, Map<String, Object>> {
+
+    private static final Set<String> VALID_PATHS = Set.of("/", "/index.html", "/widget.js");
 
     private final QueryHandler queryHandler;
 
@@ -64,17 +67,19 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         String method = extractMethod(input);        //POST OR GET
         String path = extractPath(input);
         logger.log("method=" + method + ", path=" + path);
-        String responseString = null;
         if ("GET".equals(method)) {
-            responseString = this.handleGet(path);
-            return responseString == null ?
-                    proxyResponseNoContent() :
-                    proxyResponseHtml(200, responseString);
+            String responseBody = this.handleGet(path);
+            if (responseBody == null) {
+                return proxyResponseNoContent();
+            } else if (path.endsWith(".js")) {
+                return proxyResponseJavaScript(200, responseBody);
+            }
+            return proxyResponseHtml(200, responseBody);
         } else if ("POST".equals(method)) {
-            String body = extractBody(input);
-            logger.log("body=" + body);
-            responseString = this.handlePost(path, body, logger);
-            return proxyResponseJson(200, responseString);
+            String requestBody = extractBody(input);
+            logger.log("body=" + requestBody);
+            String responseBody = this.handlePost(path, requestBody, logger);
+            return proxyResponseJson(200, responseBody);
         } else {
             Request request = extractRequest(input);
             logger.log("request", request);
@@ -85,15 +90,26 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
     public String handlePost(String path, String body, ILogger logger) {
         Request request = JsonUtils.toObject(body, Request.class);
         Response response = queryHandler.query(request, logger);
-        String responseJson = JsonUtils.toJson(response);
-        return responseJson;
+        return JsonUtils.toJson(response);
     }
 
     public String handleGet(String path) {
-        if (!"/".equals(path)) {
+        String resource = resolveResource(path);
+        return (resource != null) ? readResource(resource) : null;
+    }
+
+    public static String resolveResource(String path) {
+        if (!VALID_PATHS.contains(path)) {
             return null;
         }
-        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+        if ("/".equals(path)) {
+            return "/index.html";
+        }
+        return path;
+    }
+
+    private static String readResource(String resource) {
+        try(InputStream inputStream = LambdaServer.class.getResourceAsStream(resource)) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
@@ -151,6 +167,17 @@ public class LambdaServer implements RequestHandler<Map<String, Object>, Map<Str
         result.put("statusCode", statusCode);
         result.put("headers", Map.of(
                 "Content-Type", "text/html; charset=utf-8"));
+        result.put("body", body);
+        result.put("isBase64Encoded", false);
+        return result;
+    }
+
+    private static Map<String, Object> proxyResponseJavaScript(int statusCode, String body) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("statusCode", statusCode);
+        result.put("headers", Map.of(
+                "Content-Type", "text/javascript; charset=utf-8",
+                "Cache-Control", "public, max-age=300"));
         result.put("body", body);
         result.put("isBase64Encoded", false);
         return result;

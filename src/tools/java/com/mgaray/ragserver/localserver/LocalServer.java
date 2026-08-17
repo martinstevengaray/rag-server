@@ -44,13 +44,22 @@ public class LocalServer {
                         httpExchange.sendResponseHeaders(204, -1);
                         break;
                     case "POST":
-                        httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
                         response = iListener.handlePost(path, body).getBytes(StandardCharsets.UTF_8);
+                        httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
                         httpExchange.sendResponseHeaders(200, response.length);
                         break;
                     case "GET":
-                        httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
-                        response = iListener.handleGet(path).getBytes(StandardCharsets.UTF_8);
+                        String getBody = iListener.handleGet(path);
+                        if (getBody == null) {   //nothing is served at this path
+                            httpExchange.sendResponseHeaders(204, -1);
+                            break;
+                        }
+                        response = getBody.getBytes(StandardCharsets.UTF_8);
+                        if (path.endsWith(".js")) {
+                            httpExchange.getResponseHeaders().add("Content-Type", "text/javascript; charset=utf-8");
+                        } else {
+                            httpExchange.getResponseHeaders().add("Content-Type", "text/html; charset=utf-8");
+                        }
                         httpExchange.sendResponseHeaders(200, response.length);
                         break;
                 }
@@ -65,5 +74,3 @@ public class LocalServer {
     }
 
 }
-//NOTE: sendResponseHeaders() must be called after setting the headers and before writing the body
-

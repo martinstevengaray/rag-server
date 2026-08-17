@@ -49,6 +49,8 @@ public class LocalWebappMain {
 
         LocalServer localServer = new LocalServer();
         localServer.startServer(new WebappHandler(queryHandler), 80);
+
+        System.out.println("http://localhost:80");
     }
 
 }

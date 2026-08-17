@@ -84,7 +84,7 @@ public class QueryHandler {
             case OPEN_AI_GPT_5_NANO -> OpenAiChatModel.builder()
                     .apiKey(config.openAiKey())
                     .modelName("gpt-5-nano")  // "gpt-5.6-nano" does not support temperature!=1, defaults to 1
-                    .reasoningEffort("minimal")
+                    .reasoningEffort("low")
                     .build();
         };
     }
@@ -111,8 +111,8 @@ public class QueryHandler {
         try {
             chatModelResponseJson = extractJsonFromText(chatModelResponseJson);
             ChatModelResponse chatModelResponse = JsonUtils.toObject(chatModelResponseJson, ChatModelResponse.class);
-            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup);
-            sourceUrls = sourceUrls(chatModelResponse, lookup);
+            List<String> chunkIdsUsed = chunkIdsUsed(chatModelResponse, lookup, logger);
+            sourceUrls = sourceUrls(chatModelResponse, lookup, logger);
             chatResponse = chatModelResponse.response();
             List<String> chunkIdsAvailable = chunksForPrompt.stream().map(Chunk::id).collect(Collectors.toList());
             sessionState.promptExchanges().add(new PromptExchange(userPrompt, chatResponse, chunkIdsAvailable, chunkIdsUsed));
@@ -204,12 +204,13 @@ public class QueryHandler {
         return promptDataSources;
     }
 
-    private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+    private List<String> chunkIdsUsed(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup, ILogger logger) {
         List<String> chunkIds = new ArrayList<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                chunkIds.add("not part of source data:" + dataSourceKey);
+                //chunkIds.add("not part of source data:" + dataSourceKey);
+                logger.log("Source chunk could not be found for source data:" + dataSourceKey);
             } else {
                 chunkIds.add(chunk.id());
             }
@@ -217,12 +218,13 @@ public class QueryHandler {
         return chunkIds;
     }
 
-    private List<String> sourceUrls(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup) {
+    private List<String> sourceUrls(ChatModelResponse chatModelResponse, Map<String, Chunk> lookup, ILogger logger) {
         Set<String> sources = new HashSet<>();
         for (String dataSourceKey : chatModelResponse.dataSourcesUsed()) {
             Chunk chunk = lookup.get(dataSourceKey);
             if (chunk == null) { //hallucination (source cited was not part of prompt)
-                sources.add("not part of source data:" + dataSourceKey);
+                //sources.add("not part of source data:" + dataSourceKey);
+                logger.log("Source url could not be found for source data:" + dataSourceKey);
             } else {
                 sources.add(chunk.sourceRecord().sourceUrl());
             }
@@ -234,30 +236,46 @@ public class QueryHandler {
                                 List<PromptExchange> promptExchanges,
                                 String userPrompt) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append(PROMPT_PREFIX);
-        prompt.append("DATA SOURCES:\n");
+        prompt.append("INSTRUCTIONS:\n");
+        prompt.append(INSTRUCTIONS);
+        prompt.append("\nPULLED DATA SOURCES:\n");
         for (PromptDataSource promptDataSource : promptDataSources) {
             prompt.append(JsonUtils.toJson(promptDataSource) + "\n");
         }
+        prompt.append("\n<CONVERSATION START>\n");
         for (PromptExchange promptExchange : promptExchanges) {
-            prompt.append("\nPROMPT:\n");
+            prompt.append("\nuser:\n");
             prompt.append("     " + promptExchange.prompt());
-            prompt.append("\nRESPONSE:\n");
+            prompt.append("\nyou:\n");
             prompt.append("     " + promptExchange.response());
         }
-        prompt.append("\nPROMPT:\n");
-        prompt.append("     " + userPrompt);
+        prompt.append("\nuser:\n");
+        prompt.append("     " + userPrompt + "\n\n\n");
+        prompt.append("<CONVERSATION END>\n");
+        prompt.append("\nOUTPUT INDICATOR:\n");
+        prompt.append(OUTPUT_INDICATOR);
         return prompt.toString();
     }
+    private static final String INSTRUCTIONS = """
+Use the following data sources to continue the conversation. Do not user other data sources.
+""";
 
-    private static final String PROMPT_PREFIX = """
-Use the following data sources only to continue the conversation.
-If the source data does not include data to answer the prompt, say so.
-Include the ids of the data sources you used to form your response.
+    private static final String OUTPUT_INDICATOR = """
+The data sources were provided by the system you represent, not the user. Talk about them in that context.
+When responding back to the user use language like "the documents I have available...". Do not say things like "the sources you provided".
+Do not mention what is in the data sources unless it relates to the user's question.
+Do not engage with the user about topics not in the data sources, or any health related suggestions.
+
 Always respond in the following json format, without a prefix or suffix:
-{ "dataSourcesUsed": ["<id1>","<id2>","<id3>",...], "response": "<next response>" }
-Do not add references inline in the response, only in the dataSourcesUsed section.
+{ "dataSourcesUsed": ["<id1-guid>","<id2-guid>","<id3-guid>",...], "response": "<next response>" }
+
+ALL 'dataSourcesUsed' must be GUIDs as they appeared in the "PULLED DATA SOURCES" list ids.
+Do not include any non UTF-8 characters.
+If the data sources do not include information to provide a good answer, say so, and do not include any data sources used.
+If the data sources are useful, include the GUIDs of the data sources you used to form your response.
+Do not add data source GUIDS inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
+If asked about something that was talked about before the conversation started, say there is no record of that.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,

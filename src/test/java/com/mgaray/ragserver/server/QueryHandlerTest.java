@@ -76,6 +76,24 @@ class QueryHandlerTest {
         datastore.writeString(chunk.textLocation(), text);
     }
 
+    /**
+     * Asserts the fragments appear in the prompt in the order given. The instruction prose is tuned
+     * often, so these tests pin the layout the model is shown -- sources, then history, then the
+     * question -- and leave the wording free to change.
+     */
+    private static void assertInOrder(String prompt, String... fragments) {
+        int previousIndex = -1;
+        String previousFragment = null;
+        for (String fragment : fragments) {
+            int index = prompt.indexOf(fragment);
+            assertTrue(index >= 0, "missing from the prompt: " + fragment + "\n" + prompt);
+            assertTrue(index > previousIndex,
+                    "'" + fragment + "' should come after '" + previousFragment + "':\n" + prompt);
+            previousIndex = index;
+            previousFragment = fragment;
+        }
+    }
+
     // ----- happy path -------------------------------------------------------------------------
 
     @Test
@@ -159,7 +177,7 @@ class QueryHandlerTest {
     }
 
     @Test
-    void promptCarriesThePrefixTheChunkTextAndTheUserPrompt() {
+    void promptCarriesTheChunkTextTheUserPromptAndTheOutputFormatInThatOrder() {
         givenChunkText(CHUNK_A, "setbacks are 10 feet");
         FakeChatModel chatModel = new FakeChatModel("not json");
         QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(),
@@ -168,11 +186,9 @@ class QueryHandlerTest {
         handler.query(new Request("what are the setbacks?", null), logger);
 
         String prompt = chatModel.lastPrompt();
-        assertTrue(prompt.startsWith("Use the following data sources only"), prompt);
-        assertTrue(prompt.contains("\"dataSourcesUsed\""), "the response format must be specified");
-        assertTrue(prompt.contains("DATA SOURCES:"), prompt);
-        assertTrue(prompt.contains("setbacks are 10 feet"), "chunk text should be inlined");
-        assertTrue(prompt.trim().endsWith("what are the setbacks?"), "the user prompt goes last: " + prompt);
+        assertInOrder(prompt, "INSTRUCTIONS:", "PULLED DATA SOURCES:", "setbacks are 10 feet",
+                "<CONVERSATION START>", "what are the setbacks?", "<CONVERSATION END>",
+                "OUTPUT INDICATOR:", "\"dataSourcesUsed\"");
     }
 
     @Test
@@ -324,14 +340,12 @@ class QueryHandlerTest {
         secondHandler.query(new Request("is that from the property line?", sessionState), logger);
 
         String prompt = secondModel.lastPrompt();
-        assertTrue(prompt.contains("what are the setbacks?"), prompt);
-        assertTrue(prompt.contains("Ten feet."), prompt);
-        assertTrue(prompt.trim().endsWith("is that from the property line?"), prompt);
+        assertInOrder(prompt, "what are the setbacks?", "Ten feet.", "is that from the property line?");
         assertTrue(secondEmbeddingModel.embedded.get(0).contains("Ten feet."),
                 "the conversation-wide search should embed the history too");
     }
 
-    // ----- not part of source data and parse failure handling --------------------------------------------
+    // ----- unknown cited id and parse failure handling ----------------------------------------------------
 
     @Test
     void anUnparseableChatResponseFallsBackWithoutThrowing() {
@@ -358,7 +372,7 @@ class QueryHandlerTest {
     }
 
     @Test
-    void aCitedIdThatWasNotInThePromptIsReportedAsAHallucination() {
+    void aCitedIdThatWasNotInThePromptIsDroppedFromTheSourcesAndLogged() {
         givenChunkText(CHUNK_A, "text a");
         QueryHandler handler = queryHandler(new FakeChatModel(chatResponse("Ten feet.", "invented-id")),
                 new FakeEmbeddingModel(), new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
@@ -366,11 +380,13 @@ class QueryHandlerTest {
         Response response = handler.query(new Request("q", null), logger);
 
         assertEquals("Ten feet.", response.chatResponse());
-        assertEquals(List.of("not part of source data:invented-id"), response.sources());
+        assertEquals(List.of(), response.sources(), "a citation nobody can follow is not shown to the reader");
+        assertTrue(logger.messages.stream().anyMatch(message -> message.contains("invented-id")),
+                "the dropped citation should still be logged: " + logger.messages);
     }
 
     @Test
-    void hallucinatedCitationsAreAlsoRecordedInSessionState() {
+    void aCitedIdThatWasNotInThePromptIsNotRecordedInSessionState() {
         givenChunkText(CHUNK_A, "text a");
         QueryHandler handler = queryHandler(new FakeChatModel(chatResponse("Ten feet.", "invented-id")),
                 new FakeEmbeddingModel(), new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
@@ -378,7 +394,25 @@ class QueryHandlerTest {
         Response response = handler.query(new Request("q", null), logger);
 
         String sessionState = decryptedSessionState(response.sessionState());
-        assertTrue(sessionState.contains("not part of source data:invented-id"), sessionState);
+        assertTrue(sessionState.contains("\"chunkIdsUsed\":[]"),
+                "an id that maps to no chunk must not be carried into the next prompt: " + sessionState);
+    }
+
+    // The drop is per citation, not per response: one bad id must not cost the reader the real
+    // sources cited alongside it.
+    @Test
+    void aRealCitationSurvivesAlongsideOneThatWasNotInThePrompt() {
+        givenChunkText(CHUNK_A, "text a");
+        FakeChatModel chatModel = new FakeChatModel(prompt -> ServerTestSupport.chatResponse(
+                "Ten feet.", List.of(dataSourceIdsIn(prompt).get(0), "invented-id")));
+        QueryHandler handler = queryHandler(chatModel, new FakeEmbeddingModel(),
+                new FakeVectorStore(List.of(CHUNK_A), List.of()), config(5, 5, 5));
+
+        Response response = handler.query(new Request("q", null), logger);
+
+        assertEquals(List.of("https://example.com/a"), response.sources());
+        assertTrue(decryptedSessionState(response.sessionState()).contains("\"chunkIdsUsed\":[\"a:0\"]"),
+                decryptedSessionState(response.sessionState()));
     }
 
     @Test

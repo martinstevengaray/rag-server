@@ -105,6 +105,27 @@ class LambdaServerTest {
     }
 
     @Test
+    void getServesTheWidgetScript() {
+        Map<String, Object> response = lambdaServer().handleRequest(restRequest("GET", "/widget.js", null), CONTEXT);
+
+        assertEquals(200, response.get("statusCode"));
+        assertEquals("text/javascript; charset=utf-8", headersOf(response).get("Content-Type"));
+        assertTrue(((String) response.get("body")).contains("data-rag-chat"),
+                "expected widget.js to be served");
+    }
+
+    // The bundled page must not carry its own copy of the client: it mounts the same widget an
+    // embedding site would, so there is a single implementation to keep working.
+    @Test
+    void theBundledWebappLoadsTheWidgetRatherThanInliningIt() {
+        String body = (String) lambdaServer().handleRequest(restRequest("GET", "/", null), CONTEXT).get("body");
+
+        assertTrue(body.contains("/widget.js"), "expected index.html to load the widget");
+        assertTrue(body.contains("data-rag-chat"), "expected index.html to provide a mount point");
+        assertFalse(body.contains("fetch("), "expected no inlined client logic in index.html");
+    }
+
+    @Test
     void getIsServedAsHtml() {
         Map<String, Object> response = lambdaServer().handleRequest(restRequest("GET", "/", null), CONTEXT);
 
@@ -149,7 +170,7 @@ class LambdaServerTest {
 
         lambdaServer(chatModel).handleRequest(input, CONTEXT);
 
-        assertTrue(chatModel.lastPrompt().trim().endsWith("what are the setbacks?"),
+        assertTrue(chatModel.lastPrompt().contains("what are the setbacks?"),
                 "the user prompt should have reached the model: " + chatModel.lastPrompt());
     }
 
@@ -174,7 +195,7 @@ class LambdaServerTest {
 
         lambdaServer(chatModel).handleRequest(input, CONTEXT);
 
-        assertTrue(chatModel.lastPrompt().trim().endsWith("what are the setbacks?"),
+        assertTrue(chatModel.lastPrompt().contains("what are the setbacks?"),
                 "a base64 body should be decoded before parsing: " + chatModel.lastPrompt());
     }
 

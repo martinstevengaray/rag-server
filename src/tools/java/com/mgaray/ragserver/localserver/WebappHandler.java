@@ -1,6 +1,7 @@
 package com.mgaray.ragserver.localserver;
 
 import com.mgaray.ragserver.logger.Logger;
+import com.mgaray.ragserver.server.LambdaServer;
 import com.mgaray.ragserver.util.JsonUtils;
 import com.mgaray.ragserver.Models.Request;
 import com.mgaray.ragserver.Models.Response;
@@ -28,9 +29,15 @@ public class WebappHandler implements LocalServer.IListener {
         return responseJson;
     }
 
+    // null for anything outside the served set, which the caller turns into a 404. Passing the
+    // unresolved null straight to getResourceAsStream would throw instead.
     @Override
     public String handleGet(String path) {
-        try(InputStream inputStream = getClass().getResourceAsStream("/index.html")) {
+        String resource = LambdaServer.resolveResource(path);
+        if (resource == null) {
+            return null;
+        }
+        try(InputStream inputStream = getClass().getResourceAsStream(resource)) {
             byte[] bytes = inputStream.readAllBytes();
             return new String(bytes, StandardCharsets.UTF_8);
         } catch (Exception e) {
