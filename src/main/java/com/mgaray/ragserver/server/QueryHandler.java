@@ -275,7 +275,7 @@ If the data sources do not include information to provide a good answer, say so,
 If the data sources are useful, include the GUIDs of the data sources you used to form your response.
 Do not add data source GUIDS inline in the response, only in the dataSourcesUsed section.
 Do not offer to search other sources.
-If asked about something that was talked about before the conversation started, say there is no record of that,
+If asked about something that was talked about before the conversation started, say there is no record of that.
 """;
 
     private record ChatModelResponse(List<String> dataSourcesUsed,
